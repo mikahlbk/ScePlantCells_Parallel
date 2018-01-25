@@ -1,2 +1,2 @@
-# ScePlantCells_Parallel
-Parallelized version of ScePlantCells
+# ScePlantCells
+This repository contains C++ code for modeling plant cells using the subcellular element model.
