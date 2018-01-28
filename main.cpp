@@ -94,7 +94,7 @@ int main(){
 //		if(Ti%217==0) {
 //			growing_Tissue.update_Wall();
 //		}
-		if (Ti% 100  == 0 ) {
+		if (Ti% 150  == 0 ) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}
