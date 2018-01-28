@@ -45,6 +45,7 @@ class Cell {
 		Wall_Node* bottom;
 		int counter_left;
 		int counter_right;
+		vector<Wall_Node*> wall_nodes;
 		vector<Cyt_Node*> cyt_nodes;
 		vector<Cell*> neigh_cells;
 		Wall_Node* left_Corner;	
@@ -74,6 +75,7 @@ class Cell {
 		Wall_Node* get_Wall_Nodes() {return left_Corner;}
 		Wall_Node* get_Left_Corner() {return left_Corner;}		
 		int get_Node_Count();
+		void get_Wall_Nodes_Vec(vector<Wall_Node*>& walls);
 		void get_Cyt_Nodes(vector<Cyt_Node*>& cyts);
 		void get_Neighbor_Cells(vector<Cell*>& cells);
 		void set_div_time(int& Ti);	

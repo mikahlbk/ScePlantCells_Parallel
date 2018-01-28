@@ -85,8 +85,8 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 		K_LINEAR_X = 150;
 	}	
 	else {
-		K_LINEAR_X = 150;
-		K_LINEAR_Y = 600;
+		K_LINEAR_X = 600;
+		K_LINEAR_Y = 150;
 	}	
 
 	this->K_LINEAR = Coord(K_LINEAR_X, K_LINEAR_Y);
@@ -108,6 +108,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	location = Coord(curr_X,curr_Y);
 	//make the first node
 	prevW = new Wall_Node(location,this);
+	wall_nodes.push_back(prevW);
 	num_wall_nodes++;
 	orig = prevW;
 	//this will be the "starter" node
@@ -120,6 +121,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 		curr_Y = cell_center.get_Y() + radius*sin(curr_theta);
 		location = Coord(curr_X,curr_Y);
 		currW = new Wall_Node(location, this);
+		wall_nodes.push_back(currW);
 		num_wall_nodes++;
 		prevW->set_Left_Neighbor(currW);
 		currW->set_Right_Neighbor(prevW);
@@ -202,6 +204,10 @@ Cell::~Cell() {
 //=============================================================
 int Cell::get_Node_Count() {
 	return num_wall_nodes + num_cyt_nodes;
+}
+void Cell::get_Wall_Nodes_Vec(vector<Wall_Node*>& walls) {
+	walls = wall_nodes;
+	return;
 }
 void Cell::get_Cyt_Nodes(vector<Cyt_Node*>& cyts) {
 	cyts = cyt_nodes;
@@ -291,45 +297,55 @@ void Cell::update_Neighbor_Cells() {
 
 	
 	// Empty variables for holding info about other cells
-	Cell* curr = NULL;
-	Coord curr_Cent;
-	Coord distance;
-	
 	double prelim_threshold = 18;
 	//double sec_threshold = 1;
-
+	Cell* me = this;
 	// iterate through all cells
-	for (unsigned int i = 0; i < all_Cells.size(); i++) {
-		curr = all_Cells.at(i);
-		if (curr != this) {
-			curr_Cent = curr->get_Cell_Center();
-			// Check if cell centers are close enough together
-			distance = this->cell_center - curr_Cent;
-			//cout << "Distance = " << distance << endl;
-			if ( distance.length() < prelim_threshold ) {
-				neigh_cells.push_back(curr);
+	#pragma omp parallel
+	{
+		Cell* curr = NULL;
+		Coord curr_Cent;
+		Coord distance;
+		#pragma omp for schedule(static,1)
+		for (unsigned int i = 0; i < all_Cells.size(); i++) {
+			curr = all_Cells.at(i);
+			if (curr != me) {
+				curr_Cent = curr->get_Cell_Center();
+				// Check if cell centers are close enough together
+				distance = me->cell_center - curr_Cent;
+				//cout << "Distance = " << distance << endl;
+				if ( distance.length() < prelim_threshold ) {
+//					#pragma omp critical
+					neigh_cells.push_back(curr);
 				//cout << rank << "has neighbor" << curr->get_Rank() << endl;
-			}
+				}
 			
+			}
+			//else you're pointing at yourself and shouldnt do anything
 		}
-		//else you're pointing at yourself and shouldnt do anything
 	}	
 	
-//	cout << "Cell: " << rank << " -- neighbors: " << neigh_cells.size() << endl;
+	//cout << "Cell: " << rank << " -- neighbors: " << neigh_cells.size() << endl;
 
 	return;
 }
 
 void Cell::update_adhesion_springs() {
-	Wall_Node* curr = left_Corner;
-	Wall_Node* orig = curr;
-	Wall_Node* next = NULL;
-	do {
-		next = curr->get_Left_Neighbor();
-		curr->set_Closest(NULL, 100);
-		curr = next;
-	} while(next != orig);
-	
+	//Wall_Node* curr = left_Corner;
+	//Wall_Node* orig = curr;
+	//Wall_Node* next = NULL;
+	//do {
+	vector<Wall_Node*> walls;
+	this->get_Wall_Nodes_Vec(walls);
+	#pragma omp parallel
+	{	
+
+		#pragma omp for schedule(static,1)	
+		for(unsigned int i=0; i< walls.size();i++) {
+			walls.at(i)->set_Closest(NULL, 100);
+		}
+	}
+
 	vector<Cell*>neighbors;
 	this->get_Neighbor_Cells(neighbors);
 	Wall_Node* curr_Node = NULL;
@@ -354,71 +370,65 @@ void Cell::update_adhesion_springs() {
 //============================
 //===============================================================
 void Cell::calc_New_Forces(int Ti) {
+	#pragma omp parallel for
 	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
 		cyt_nodes.at(i)->calc_Forces();
 	}
 
 	//calc forces on wall nodes
-	Wall_Node* curr = left_Corner; 
-	Wall_Node* orig = curr;
-	int counter = 0;
-	do {
-		counter++;
-//		cout << "Wall node number: " << counter << endl;
-		curr->calc_Forces(Ti);
-	//	cout << "Forces calculated" << endl;
-		curr = curr->get_Left_Neighbor();
+	vector<Wall_Node*> walls;
+	this->get_Wall_Nodes_Vec(walls);
+
+	//Wall_Node* curr = left_Corner; 
+	//Wall_Node* orig = curr;
+	//int counter = 0;
+	//do {
+	#pragma omp parallel
+	{
+		Wall_Node* curr;
+		//counter++;
+		#pragma omp for schedule(static,1)
+		for(unsigned int i=0; i < walls.size(); i++) {
+			curr = walls.at(i);
+//			cout << "Wall node number: " << counter << endl;
+			curr->calc_Forces(Ti);
+//			cout << "Forces calculated" << endl;
+			//curr = curr->get_Left_Neighbor();
 	
-	} while (curr != orig);
+		} //while (curr != orig);
 	//cout << "out of forces function" << endl;
+	}
 	return;
 }
 
 void Cell::update_Node_Locations() {
 	//update cyt nodes
-	double new_damping = 0;
-	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
-		new_damping = cyt_nodes.at(i)->get_My_Cell()->get_Damping();
-		cyt_nodes.at(i)->update_Location(new_damping);
-
+	#pragma omp parallel 
+	{
+		double new_damping;
+		#pragma omp for schedule(static,1)
+		for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+			  new_damping = cyt_nodes.at(i)->get_My_Cell()->get_Damping();
+			  cyt_nodes.at(i)->update_Location(new_damping);
+		}	
 	}
 
 	//update wall nodes
-	Wall_Node* curr = left_Corner;
-	Wall_Node* orig = left_Corner;
-	
-//	if(this->top == NULL) {
-//		cout << "NULL top" << endl;
-//	}
-//	double x_coord = this->top->get_Location().get_X();
-//	double direction;
-//	Wall_Node* neighbor = NULL;
-	do {
-		new_damping = curr->get_My_Cell()->get_Damping();
-	//	cout << "check if needs stationary" << endl;
-	//	direction = curr->get_Location().get_X() - x_coord;
-	//	if(direction > 0) {
-	//		neighbor = curr->get_Left_Neighbor();
-	//	}
-	//	else if(direction < 0) {
-	//		neighbor = curr->get_Right_Neighbor();
-	//	}
-
-	//	if((curr->get_Location().get_Y() > neighbor->get_Location().get_Y() - .02) && (curr->get_Location().get_Y() < neighbor->get_Location().get_Y() + .02)){
-//		if(curr->get_isStationary()) {
-//			//do nothing
-//		}
-	//	else {
-//		if((curr->get_Angle() - pi < .00001) && (curr->get_Angle() -pi > -.00001)) {
-//			curr->set_isStationary();
-//		}
-	//	}
+	//Wall_Node* curr = left_Corner;
+	//Wall_Node* orig = left_Corner;
+	vector<Wall_Node*> walls;
+	this->get_Wall_Nodes_Vec(walls);
+	//do {
+	#pragma omp parallel 
+	{	
+		double new_damping;
+		#pragma omp for schedule(static,1)
+		for(unsigned int i=0; i< walls.size();i++) {
+			new_damping = walls.at(i)->get_My_Cell()->get_Damping();
 	//	cout << "update locaation" << endl;
-		curr->update_Location(new_damping);
-		curr = curr->get_Left_Neighbor();
-	
-	} while(curr != orig);
-
+			walls.at(i)->update_Location(new_damping);
+		}
+	}
 	//update cell_Center
 	update_Cell_Center();
 	//update wall_angles
@@ -429,40 +439,52 @@ void Cell::update_Node_Locations() {
 
 void Cell::update_Wall_Angles() {
 //	cout << "wall angles" << endl;
-	Wall_Node* curr = left_Corner;
-	Wall_Node* orig = curr;
-	do {
-		curr->update_Angle();
-		curr = curr->get_Left_Neighbor();
-	} while (curr != orig);	
-
+	vector<Wall_Node*> walls;
+	this->get_Wall_Nodes_Vec(walls);
+//	Wall_Node* curr = left_Corner;
+//	Wall_Node* orig = curr;
+//	do {
+	#pragma omp parallel for schedule(static,1)
+	for(unsigned int i=0; i< walls.size();i++) {
+		walls.at(i)->update_Angle();
+	}
 	return;
 }
 
 void Cell::update_Wall_Equi_Angles() {
 //	cout << "equi angles" << endl;
 	double new_equi_angle = (num_wall_nodes-2)*pi/num_wall_nodes;
-	Wall_Node* curr = left_Corner;
-	Wall_Node* orig = left_Corner;
+	//Wall_Node* curr = left_Corner;
+	//Wall_Node* orig = left_Corner;
 	
-	do {
-		curr->update_Equi_Angle(new_equi_angle);
-		curr = curr->get_Left_Neighbor();
-	} while (curr != orig);	
-	
+	//do {
+	vector<Wall_Node*> walls;
+	this->get_Wall_Nodes_Vec(walls);
+	#pragma omp parallel for schedule(static,1)
+	for(unsigned int i=0; i < walls.size(); i++) {
+		walls.at(i)->update_Equi_Angle(new_equi_angle);
+	}
 	return;
 }
 
 void Cell::update_Cell_Center() {
-	Wall_Node* curr = left_Corner;
-	Wall_Node* orig = curr;
+	//Wall_Node* curr = left_Corner;
+	//Wall_Node* orig = curr;
+	vector<Wall_Node*> walls;
+	this->get_Wall_Nodes_Vec(walls);
+
 	Coord total_location = Coord();
-
-	do {
-		total_location += curr->get_Location();
-		curr = curr->get_Left_Neighbor();
-	} while(curr != orig);
-
+//	#pragma omp parallel
+//	{
+		Coord curr_loc;
+//		#pragma omp for reduction(CoordPlus:total_location)
+		for(unsigned int i=0;i<walls.size();i++) {
+			//do {
+			curr_loc = walls.at(i)->get_Location();
+			total_location += curr_loc;
+			//curr = curr->get_Left_Neighbor();
+		} //while(curr != orig);
+//	}
 	cell_center = total_location*(1.0/num_wall_nodes);
 	
 	return;
@@ -475,16 +497,16 @@ void Cell::update_Cell_Center() {
 void Cell::update_Cell_Progress(int Ti) {
 	//update life length of the current cell
 	this->update_Life_Length();
-	if(Ti%217 == 0) {
-		if(Cell_Progress_div > 0) {
-			if(Ti-Cell_Progress_div > 1000) {
-				this->wall_Node_Check();
-			}
-		}
-		else {
-			this->wall_Node_Check();
-		}
-	}
+//	if(Ti%217 == 0) {
+//		if(Cell_Progress_div > 0) {
+//			if(Ti-Cell_Progress_div > 1000) {
+//				this->wall_Node_Check();
+//			}
+//		}
+//		else {
+//			this->wall_Node_Check();
+//		}
+//	}
 	//variables needed if division occurs
 	Cell* new_Cell= NULL;
 	vector<Cell*> cells;
@@ -501,7 +523,7 @@ void Cell::update_Cell_Progress(int Ti) {
 //	cout << "Rank: " << this->rank << "and Progress: " << Cell_Progress << " and life length: " << life_length << endl;
 	//division check
 //	cout << "Sigma"<< sigma << endl;
-	if(Ti==5000) { //(this->Cell_Progress >= 1) && (curr_area >= AREA_THRESH)) {
+/*	if(Ti==5000) { //(this->Cell_Progress >= 1) && (curr_area >= AREA_THRESH)) {
 		cout << "Cell Prog" << Cell_Progress << endl;
 		new_Cell = this->divide();
 		Cell_Progress_div = Ti;
@@ -551,7 +573,7 @@ void Cell::update_Cell_Progress(int Ti) {
 		}
 	
 	//cout << "Cell Prog: " << Cell_Progress_add_node << endl;
-	return;
+*/	return;
 }
 
 double Cell::calc_Area() {

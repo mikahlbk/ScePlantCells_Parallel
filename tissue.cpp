@@ -94,15 +94,17 @@ void Tissue::update_Num_Cells(Cell*& new_Cell) {
 void Tissue::update_Cell_Cycle(int Ti) {
 	//cout << "Current number of cells: " << cells.size() << endl; 
 	int number_cells = cells.size();
+	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < number_cells; i++) {
 		//cout << "updating cell" << i << endl;
 		cells.at(i)->update_Cell_Progress(Ti);
 	}
-//	cout << "Number cells is: " << cells.size() << endl;
+	//cout << "Number cells is: " << cells.size() << endl;
 	return;
 }
 //adds node to cell wall if needed for each cell
 void Tissue::update_Wall() {
+	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->wall_Node_Check();
 		//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
@@ -119,6 +121,7 @@ void Tissue::cell_area(){
 }
 //calculates the forces for nodes of  each cell 
 void Tissue::calc_New_Forces(int Ti) {
+	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cout << "Calc forces for cell: " << i << endl;
 		cells.at(i)->calc_New_Forces(Ti);
@@ -129,6 +132,7 @@ void Tissue::calc_New_Forces(int Ti) {
 
 //updates the location of all the nodes of each cell
 void Tissue::update_Cell_Locations() {
+	#pragma omp parallel for schedule(static,1)	
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->update_Node_Locations();
 	}
@@ -137,6 +141,7 @@ void Tissue::update_Cell_Locations() {
 //updates current neighbors of each cell
 void Tissue::update_Neighbor_Cells() {
 	//update vectors of neighboring cells
+	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->update_Neighbor_Cells();
 	}

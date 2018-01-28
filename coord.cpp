@@ -5,6 +5,8 @@
 //=========================
 //include dependencies
 #include <iostream>
+#include <omp.h>
+#include <unistd.h>
 #include "coord.h"
 #include <math.h>
 //=========================
@@ -49,7 +51,6 @@ Coord Coord::operator+(const Coord& c) const {
 	Coord q( x + c.get_X(), y + c.get_Y());
 	return q;
 }
-
 void Coord::operator+=(const Coord& c) {
 	x += c.get_X();
 	y += c.get_Y();
@@ -90,7 +91,6 @@ Coord Coord::distribute(const Coord& c) const {
 }
 
 // Display Functions
-
 ostream& operator<<(ostream& os, const Coord& c) {
 	os << '(' << c.get_X() << ',' << c.get_Y() << ')';
 	return os;

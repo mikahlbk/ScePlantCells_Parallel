@@ -48,7 +48,7 @@ void Cyt_Node::calc_Forces() {
 	//for cytoplasm, just need morse potential for int-int and int-membr
 	Coord Fii = calc_Morse_II();
 	Coord Fmi = calc_Morse_MI(my_cell->get_Wall_Nodes());
-    new_force = Fmi + Fii;
+   	 new_force = Fmi + Fii;
 	
 	return;
 }
@@ -67,12 +67,17 @@ Coord Cyt_Node::calc_Morse_II() {
 		exit(1);
 	}
 	my_cell->get_Cyt_Nodes(cyts);
-
-	for (unsigned int j = 0; j < cyts.size(); j++) {
-		//don't calculate yourself
-		if (cyts.at(j) != this) {
-			//calc morse between this node and node j
-			Fii += morse_Equation(cyts.at(j));
+	Cyt_Node* me = this;
+	#pragma omp parallel
+	{	
+		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+		#pragma omp for reduction(+:Fii) schedule(static,1)
+		for (unsigned int j = 0; j < cyts.size(); j++) {
+			//don't calculate yourself
+			if (cyts.at(j) != me) {
+				//calc morse between this node and node j
+				Fii += me->morse_Equation(cyts.at(j));
+			}
 		}
 	}
 
@@ -82,15 +87,18 @@ Coord Cyt_Node::calc_Morse_II() {
 Coord Cyt_Node::calc_Morse_MI(Wall_Node* orig) {
 	//calc force for IM
 	Coord Fmi;
-
-	Wall_Node* curr = orig;
-	
-	do {
-		Fmi += morse_Equation(curr);
-		//update curr_wall
-		curr = curr->get_Left_Neighbor();
-
-	} while (curr != orig); 
+	vector<Wall_Node*> walls;
+	this->get_My_Cell()->get_Wall_Nodes_Vec(walls);
+	Cyt_Node* me = this;
+	#pragma omp parallel
+	{	
+		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+		#pragma omp for reduction(+:Fmi) schedule(static,1)
+		for(unsigned int i = 0; i < walls.size(); i++) {
+			Fmi +=me-> morse_Equation(walls.at(i));
+			//update curr_wall
+		}
+	}
 
 	return Fmi;
 }
@@ -271,11 +279,15 @@ void Wall_Node::calc_Forces(int Ti) {
 Coord Wall_Node::calc_Morse_SC() {
 	vector<Cyt_Node*> cyt_nodes;
 	my_cell->get_Cyt_Nodes(cyt_nodes);
-
+	Wall_Node* curr_wall = this;
 	Coord Fmi;
-	
-	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
-		Fmi += this->morse_Equation(cyt_nodes.at(i));
+	#pragma omp parallel
+	{	
+		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+		#pragma omp for reduction(+:Fmi) schedule(static,1)
+		for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+			Fmi += curr_wall->morse_Equation(cyt_nodes.at(i));
+		}
 	}
 //	cout << "	morse_sc: " << Fmi << endl;	
 	return Fmi;

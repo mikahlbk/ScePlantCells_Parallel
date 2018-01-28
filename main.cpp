@@ -36,7 +36,7 @@ int main(){
 	Tissue growing_Tissue(init_tissue);
 	cout << "Finished creating Cells" << endl;
 	//parameters for time step
-    double numSteps = 200;
+	 double numSteps = .25;
 
 	// Variable for dataoutput
 	int digits;
@@ -53,7 +53,7 @@ int main(){
 		//for now only one cell
 		//cout << "Ti = " << Ti << endl;
 		//Print to dataOutput and VTK files
-		if (Ti % 500 == 0) {
+		if (Ti % 100 == 0) {
 			
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
@@ -111,9 +111,9 @@ int main(){
 	//	if(Ti >= calibStart) {
 	//		growing_Tissue.compression_Test();	
 	//	}
-		if(Ti%1000 == 999) {
-			growing_Tissue.add_cyt_node();
-		}
+//		if(Ti%1000 == 999) {
+			//growing_Tissue.add_cyt_node();
+//		}
 		//Calculate new forces on cells and nodes
 //		cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
