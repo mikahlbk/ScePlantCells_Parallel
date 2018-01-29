@@ -2,8 +2,9 @@
 
 #$ -M mbkuhn@math.ucr.edu
 #$ -m abe
-#$ -q  long 				# Specify queue
-#$ -N  run_DEC11_Animate5   		 	# Specify job name
+#$ -pe mpi-* 24 
+#$ -q  debug 				# Specify queue
+#$ -N  run_Jan28_Animate15   	 	# Specify job name
 
-mkdir Animate5
-./program Animate5
+mkdir Animate15
+./program Animate15

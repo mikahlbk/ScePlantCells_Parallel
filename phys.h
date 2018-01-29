@@ -16,9 +16,9 @@
 
 // Simulation Constants
 const double dt = .00075;
-
 const int Init_Num_Cyt_Nodes = 20;
 const int Init_Wall_Nodes = 350;
+
 const double AREA_THRESH = 64;
 const double GROWTH_RATE = .000001;
 // Global Physics Constants
@@ -30,7 +30,7 @@ const double K_BEND = 2;
 //Adhesion spring mechanical params
 const double K_ADH = 20;
 const double MembrEquLen_ADH = 0.6;
-const double ADHThresh = .65;
+const double ADHThresh = .78125;
 
 //Calibration parameters
 const double EXTERNAL_FORCE = .001;
@@ -38,7 +38,7 @@ const double INIT_AREA = .018;
 const double GROWTH = 0.018;
 
 //linear spring equilibrium length
-const double MembrEquLen = .0425; 
+const double MembrEquLen = .0625; 
 const double MEMBR_THRESH_LENGTH = 0.095; 
 
 
@@ -55,7 +55,7 @@ const double xsi_MI = .15;
 const double gamma_MI = 1.55;
 
 ///// Subcellular element parameters for internal - internal interactions
-const double U_II = 150;
+const double U_II = 75;
 const double W_II = 6.71;
 const double xsi_II = .4;
 const double gamma_II = 1.34;

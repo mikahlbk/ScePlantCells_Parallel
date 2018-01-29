@@ -76,7 +76,7 @@ Coord Cyt_Node::calc_Morse_II() {
 			//don't calculate yourself
 			if (cyts.at(j) != me) {
 				//calc morse between this node and node j
-				Fii += me->morse_Equation(cyts.at(j));
+				Fii +=  me->morse_Equation(cyts.at(j));
 			}
 		}
 	}

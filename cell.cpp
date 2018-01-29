@@ -81,12 +81,12 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	double K_LINEAR_Y;
 	
 	if(this->layer == 1) {
-		K_LINEAR_Y = 600;
+		K_LINEAR_Y = 450;
 		K_LINEAR_X = 150;
 	}	
 	else {
-		K_LINEAR_X = 600;
-		K_LINEAR_Y = 150;
+		K_LINEAR_X = 200;
+		K_LINEAR_Y = 200;
 	}	
 
 	this->K_LINEAR = Coord(K_LINEAR_X, K_LINEAR_Y);

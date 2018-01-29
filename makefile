@@ -1,5 +1,4 @@
-CC=g++-7 -fopenmp
-
+CC=g++ -fopenmp -static-libstdc++
 CFLAGS=-c -Wall
 
 all: program
