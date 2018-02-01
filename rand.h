@@ -1,4 +1,3 @@
-//rand.h
 #include <iostream>
 #include <ctime>
 

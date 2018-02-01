@@ -50,9 +50,9 @@ class Cell {
 		~Cell();
 
 		// Getters and Setters
-		Tissue* get_Tissue() {return my_tissue}
+		Tissue* get_Tissue() {return my_tissue;}
 		int get_Rank() {return rank;}
-		void set_Rank(const id id);
+		void set_Rank(const int id);
 		int get_Layer() {return layer;}
 		void set_Layer(int layer);
 		double get_Damping() {return damping;}
@@ -97,7 +97,7 @@ class Cell {
 		void update_Cell_Center();
 	
 		//Growth of a cell
-		void update_Cell_Progress();
+		void update_Cell_Progress(int& Ti);
 		double calc_Area();
 		void wall_Node_Check();
 		void add_Wall_Node();
@@ -127,7 +127,7 @@ class Cell {
 		
 		//Division 
 		Cell* divide();
-		void Cell::find_Largest_Length_Div(Wall_Node*& right_one, Wall_Node*& right_two);
+		//void find_Largest_Length_Div(Wall_Node*& right_one, Wall_Node*& right_two);
 		Cell* division();
 	};
 

@@ -66,7 +66,7 @@ Coord Cyt_Node::calc_Morse_II() {
 		cout << "Error: Trying to access NULL Pointer. Aborting!" << endl;
 		exit(1);
 	}
-	my_cell->get_Cyt_Nodes(cyts);
+	my_cell->get_Cyt_Nodes_Vec(cyts);
 	Cyt_Node* me = this;
 	#pragma omp parallel
 	{	
@@ -249,7 +249,7 @@ void Wall_Node::calc_Forces(int Ti) {
 //morse potential between wall node i and every cyt node in cell
 Coord Wall_Node::calc_Morse_SC() {
 	vector<Cyt_Node*> cyt_nodes;
-	my_cell->get_Cyt_Nodes(cyt_nodes);
+	my_cell->get_Cyt_Nodes_Vec(cyt_nodes);
 	Wall_Node* curr_wall = this;
 	Coord Fmi;
 	#pragma omp parallel

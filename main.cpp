@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
 	int start = clock();
 	
-	string init_tissue = "cell_start.txt";
+	string init_tissue = "new_cells.txt";
 	
 	//make new cell objects in tissue
 	Tissue growing_Tissue(init_tissue);

@@ -11,7 +11,6 @@
 // Include dependencies
 #include <math.h>
 #include "coord.h"
-#include "rand.h"
 //=====================
 
 // Simulation Constants

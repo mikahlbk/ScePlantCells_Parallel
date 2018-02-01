@@ -28,7 +28,7 @@ Cell* Cell::divide() {
 		//add in iff statement for amount of cytokinin and wuschel and logintudinal vs. radial pressure
 	//	if(this->rank != 1) {
 			cout << "Cell " << this->rank << "  passed area threshold for division lengthwise" << endl;
-			sister = this->divide_length_wise();
+			sister = this->division();
 			cout << "divided" << endl;
 	//	}
 	//	else if(layer == 3) {
@@ -102,7 +102,7 @@ void Cell::find_Largest_Length_Div(Wall_Node*& right_one, Wall_Node*& right_two)
 	return;
 }
 
-Cell* Cell::divide_length_wise() {
+Cell* Cell::division() {
 	//current cell will split into two daughter cells
 	//	-"this" will keep its entity as the left sister
 	//	this functoin will create a sister cell to the right

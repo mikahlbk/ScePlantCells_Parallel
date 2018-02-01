@@ -15,8 +15,8 @@
 #include "phys.h"
 #include "coord.h"
 #include "node.h"
-#include "cell.h"
 #include "rand.h"
+#include "cell.h"
 #include "tissue.h"
 //===================
 
@@ -77,12 +77,12 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	double K_LINEAR_Y;
 	
 	if(this->layer == 1) {
-		K_LINEAR_Y = 450;
-		K_LINEAR_X = 150;
+		K_LINEAR_Y = 150;
+		K_LINEAR_X = 450;
 	}	
 	else {
-		K_LINEAR_X = 200;
-		K_LINEAR_Y = 200;
+		K_LINEAR_X = 450;
+		K_LINEAR_Y = 150;
 	}	
 
 	this->K_LINEAR = Coord(K_LINEAR_X, K_LINEAR_Y);
@@ -216,7 +216,7 @@ void Cell::reset_Cell_Progress(){
 	this->Cell_Progress = 0;
 	return;
 }
-void Cell::upate_Cell_Progress_add_node(double& add_node_prog) {
+void Cell::update_Cell_Progress_add_node(double& add_node_prog) {
 	this->Cell_Progress_add_node = add_node_prog;
 	return;
 }
@@ -228,7 +228,7 @@ void Cell::set_K_LINEAR(double& x, double& y) {
 	this->K_LINEAR = Coord(x,y);
 	return;
 }
-void Cell::get_Neighbor_Cells_Vec(vector<Cell*>& cells) {
+void Cell::get_Neighbor_Cells(vector<Cell*>& cells) {
 	cells = neigh_cells;
 	return;
 }
@@ -476,7 +476,7 @@ void Cell::update_Cell_Center() {
 // Growth of Cell
 //==========================================
 //=====================================================================
-void Cell::update_Cell_Progress(int Ti) {
+void Cell::update_Cell_Progress(int& Ti) {
 	//update life length of the current cell
 	this->update_Life_Length();
 //	if(Ti%217 == 0) {
@@ -499,7 +499,7 @@ void Cell::update_Cell_Progress(int Ti) {
 	double sigma = (((double) rand()/(double) RAND_MAX))+.004;
 //	double rate = (.004 + sigma)*exp(GROWTH_RATE*life_length);
 	double rate = 1;	
-	this->curr_area = this->calc_Area();
+//	this->curr_area = this->calc_Area();
 	//update cell progress
 	Cell_Progress = Cell_Progress + rate*dt;
 //	cout << "Rank: " << this->rank << "and Progress: " << Cell_Progress << " and life length: " << life_length << endl;
@@ -579,7 +579,7 @@ double Cell::calc_Area() {
 }
 void Cell::wall_Node_Check() {
 	//cout << "adding a wall node" << endl;
-		add_Wall_Node();
+	add_Wall_Node();
 	return;
 }
 void Cell::add_Wall_Node() {
@@ -614,12 +614,12 @@ void Cell::find_Largest_Length(Wall_Node*& right) {
 	#pragma omp parallel 
 	{
 		Wall_Node* left_neighbor;
-		double curr_len;
+		double curr_len = 0;
 		#pragma omp for schedule(static,1)
 		for(unsigned int i=0; i < walls.size(); i++) {
 			left_neighbor = walls.at(i)->get_Left_Neighbor();
 			curr_len = (walls.at(i)->get_Location()-left_neighbor->get_Location()).length();
-			if(curr_Len > MEMBR_THRESH_LENGTH) {			
+			if(curr_len > MEMBR_THRESH_LENGTH) {			
 				if(curr_len > max_len) {
 					#pragma omp critical
 					max_len = curr_len;
@@ -628,6 +628,7 @@ void Cell::find_Largest_Length(Wall_Node*& right) {
 			}
 		}		
 	//cout << "Cell " << rank << " -- big gaps: " << big_gaps << endl;
+	}
 	return;
 }
 void Cell::add_Cyt_Node() {

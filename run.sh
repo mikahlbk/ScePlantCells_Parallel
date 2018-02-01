@@ -4,7 +4,7 @@
 #$ -m abe
 #$ -pe mpi-* 24 
 #$ -q  debug 				# Specify queue
-#$ -N  run_Jan28_Animate15   	 	# Specify job name
+#$ -N  run_Animate4   	 	# Specify job name
 
-mkdir Animate15
-./program Animate15
+mkdir Animate4
+./program Animate4
