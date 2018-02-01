@@ -111,14 +111,6 @@ void Tissue::update_Wall() {
 	}
 	return;
 }
-void Tissue::cell_area(){
-	double area;
-	for(unsigned int i = 0; i < cells.size(); i++) {
-		area = cells.at(i)->calc_Area();
-		cout << "Area: " << area << endl;
-	}
-	return;
-}
 //calculates the forces for nodes of  each cell 
 void Tissue::calc_New_Forces(int Ti) {
 	#pragma omp parallel for schedule(static,1)
@@ -149,85 +141,17 @@ void Tissue::update_Neighbor_Cells() {
 }
 //updates adhesion springs for each cell
 void Tissue::update_Adhesion() {
+	#pragma omp parallel for schedule(static,1)
 	for(unsigned int i=0;i<cells.size();i++) {
 		//cout << "Updating adhesion for cell" << endl;
 		cells.at(i)->update_adhesion_springs();
 	}
 }
-//functions for calibration
-void Tissue::pressure() {
-	for(unsigned int i = 0; i < cells.size(); i++) {
-		cout << "Curr Pressure: " << cells.at(i)->compute_pressure() << endl;
-	}
-	return;
-}
-/*void Tissue::nodes_for_stretch_test() {
-	for(unsigned int i=0; i < cells.size(); i++) {
-		cells.at(i)->get_stretch_nodes();
-	}
-	return;
-}*/
+
 void Tissue::add_cyt_node(){
+	#pragma omp parallel for schedule(static,1)
 	for(unsigned int i =0; i < cells.size(); i++) {
 		cells.at(i)->add_Cyt_Node();
-	}
-	return;
-}
-void Tissue::set_Stationary_Points(int Ti){
-	for(unsigned int i=0; i < cells.size(); i++) {
-		cells.at(i)->set_Stationary_Points(Ti);
-	}	
-	return;
-}
-
-void Tissue::compression_Test() {
-	//stretch the cell
-	for(unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->compress();
-	}
-	return;
-}
-
-/*void Tissue::elastic_mod_measurements() {
-	for(unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->extensional_strain();
-		cells.at(i)->tensile_Stress();
-	}
-
-	return;
-}
-*/
-void Tissue::make_Vectors() {
-	Cell* curr = NULL;
-	vector<double> strain;
-	vector<double> stress;
-	ofstream myfile1("strain_vec.txt");
-	ofstream myfile2("stress_vec.txt");
-	if(myfile1.is_open()){
-		for(int i = 0; i < cells.size();i++) {
-			curr = cells.at(i);
-			curr->get_Strain(strain);
-			for(int j= 0; j < strain.size(); j++) {
-					myfile1 << strain.at(j) << endl;
-			}
-		}
-		myfile1.close();
-	}
-	else {
-		cout << "unable to open file" << endl;
-	}
-	if(myfile2.is_open()){
-		for(int i = 0; i < cells.size(); i++) {
-			curr = cells.at(i);
-			curr->get_Stress(stress);
-			for(int j = 0;j < stress.size(); j++) {
-				myfile2 << stress.at(j) << endl;
-			}
-		}
-		myfile2.close();
-	}
-	else {
-		cout << "unable to open file" << endl;
 	}
 	return;
 }

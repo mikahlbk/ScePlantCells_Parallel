@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 			out++;
 		}
 		
-		if (Ti % 100 == 0) {
+		if (Ti % 1000 == 0) {
 			cout << "Simulation still running. Ti: " << Ti << endl;
 		}
 		
@@ -87,16 +87,13 @@ int main(int argc, char* argv[]) {
 		//this includes a check for division and addition
 		//of new internal nodes according to growth rate
 		growing_Tissue.update_Cell_Cycle(Ti);
-//		cout << "updated cell cycle" << endl;	
-	//	cout << "add new cell wall nodes if needed" << endl;
-		//adds one new cell wall node in the biggest gapm
-//		if(Ti%217==0) {
-//			growing_Tissue.update_Wall();
-//		}
+		//cout << "updated cell cycle" << endl;	
+		//cout << "add new cell wall nodes if needed" << endl;
+		//adds one new cell wall node in the biggest gap
 		if(Ti%100==0) {
 			growing_Tissue.update_Wall();
 		}
-		if (Ti% 100  == 0 ) {
+		if (Ti% 100 == 0 ) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}
@@ -104,30 +101,19 @@ int main(int argc, char* argv[]) {
 			//cout << "Finding adhesion points" << endl;
 			growing_Tissue.update_Adhesion();
 		}
-	//	cout << "stationary" << endl;
-	//	if(Ti >= calibStart){
-	//		growing_Tissue.set_Stationary_Points(Ti);
-	//	}
-	//	cout << "compression" << endl;
-	//	if(Ti >= calibStart) {
-	//		growing_Tissue.compression_Test();	
-	//	}
 		if(Ti%1000 == 999) {
 			growing_Tissue.add_cyt_node();
 		}
 		//Calculate new forces on cells and nodes
-//		cout << "forces" << endl;
+		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
 	
-//		cout << "locations" << endl;
+		//cout << "locations" << endl;
 		//Update node positions
 		growing_Tissue.update_Cell_Locations();
-//		cout << "Finished" << endl;
-//		growing_Tissue.cell_area();
+		//cout << "Finished" << endl;
+		//growing_Tissue.cell_area();
 }
-//	growing_Tissue.pressure();
-	//for output during  calibration of elastic modulus
-	//growing_Tissue.make_Vectors();
 	
 	int stop = clock();
 
