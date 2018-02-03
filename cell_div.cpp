@@ -107,8 +107,6 @@ Cell* Cell::division() {
 	//	-"this" will keep its entity as the left sister
 	//	this functoin will create a sister cell to the right
 	//	and return it to the tissue
-	cout << "Made new cell pointer" << endl;
-	cout << "my tissue" << my_tissue << endl;
 	Cell* sister = new Cell(my_tissue);
 	double center_x = this->cell_center.get_X();
 	double center_y = this->cell_center.get_Y();
@@ -121,84 +119,10 @@ Cell* Cell::division() {
 	Wall_Node* next = NULL;
 	Wall_Node* orig = curr;
 	
-/*	//get values of stress tensor
-	double a = compute_Stress_Tensor_X();
-//	cout << "a " << a << endl;
-	double b = compute_Stress_Tensor_XY();
-//	cout << "b " << b << endl;
-	double c = compute_Stress_Tensor_XY();
-//	cout << "c " << c << endl;
-	double d = compute_Stress_Tensor_Y();
-//	cout << "d " << d << endl;
-//	cout << "Got stress tensor" << endl;
-	//vector to hold eigenvector from stress tensor
-	vector<double>eigen_vector;
-//	cout << "eigen vector" << endl;
-	//uses computed stress tensor to get eigenvector
-	//associated with the largest eigenvalue
-	stress_Tensor_Eigenvalues(a,b,c,d,eigen_vector);
-//	cout << "Fill eigenvector" << endl;
-	//to get the values of the line that goes 
-	//through center of the cell and is parallel to 
-	//the computed eigenvector above
-	double a_line = eigen_vector.at(0);
-//	cout << "a" << endl;
-	double b_line = eigen_vector.at(1);
-//	cout << "b" << endl;
-	double c_line = -1*eigen_vector.at(0)*cell_center.get_X() + -1*eigen_vector.at(1)*cell_center.get_Y();
-//	cout << "c" << endl;
-//	cout << "Made line equation" << endl;
 
-	double distance;
-	double min_distance = 100;
-	
-	//find closest node to line
-	do {
-		next = curr->get_Left_Neighbor();
-		distance = fabs(a_line*curr->get_Location().get_X() + b_line*curr->get_Location().get_Y() + c_line)/(pow(a_line,2) + pow(b_line,2));
-		if(distance < min_distance) {
-			min_distance = distance;
-			closest = curr;
-		}
-		curr = next;
-	} while (next != orig);
-
-//	cout<< "Found closest" << endl;
-	
-	min_distance = 100;
-	curr = closest->get_Left_Neighbor();
-	orig = closest;
-
-	//find next closest node to line
-	do {
-		next = curr->get_Left_Neighbor();
-		distance = fabs(a_line*curr->get_Location().get_X() + b_line*curr->get_Location().get_Y() + c_line)/(pow(a_line,2) + pow(b_line,2));
-		if((curr->get_Location() - closest->get_Location()).length() > 2) {
-			if(distance < min_distance) {
-				min_distance = distance;
-				next_closest = curr;
-			}
-		}
-		curr = next;
-	} while (next != orig);
-	
-//	cout << "Found next closest" << endl;
-//	cout << "Closest: " << closest << endl;
-//	cout << "Next closest: " << next_closest << endl;
-*/
 	Wall_Node* start = NULL;
 	Wall_Node* end = NULL;
-
-/*	if(closest->get_Location().get_Y() >= next_closest->get_Location().get_Y()) {
-		end = closest;
-		start = next_closest;
-	}
-	else {
-		end = next_closest; 
-		start = closest; 
-	}
-*/
-	//determine where closest and next closest are located in cell	
+	
 	cout << "Find gaps " << endl;
 	find_Largest_Length_Div(start,end);
 	double counter = 0;
@@ -239,12 +163,6 @@ Cell* Cell::division() {
 	delete end;
 
 	cout << "Deleted" << endl;
-//  double left_slope = (left_end->get_Location().get_Y() - left_start->get_Location().get_Y())/(left_end->get_Location().get_X() - left_start->get_Location().get_X());
-//	double right_slope = (right_end->get_Location().get_Y() - right_start->get_Location().get_Y())/(right_end->get_Location().get_X() - right_start->get_Location().get_X());
-	
-//	double b_left = left_end->get_Location().get_Y()-left_slope*left_end->get_Location().get_X();
-//	double b_right = right_end->get_Location().get_Y()-right_slope*right_end->get_Location().get_X();
-
 	cout << "lengths" << endl;
 	double left_length = (left_end->get_Location() - left_start->get_Location()).length();
 	double right_length = (right_end->get_Location() - right_start->get_Location()).length();
@@ -392,26 +310,9 @@ Cell* Cell::division() {
 	this->K_LINEAR = Coord(K_LINEAR_X, K_LINEAR_Y);
 	
 	sister->set_K_LINEAR(K_LINEAR_X,K_LINEAR_Y);
-	//	cout << "update layer" << endl;
-	//update layer information
-//	cout << "update growth rate" << endl;
-//	sister->set_growth_rate(this->growth_rate);
-	
-//	this->area = calc_Area();
-//	double new_area = sister->calc_Area();
-//	sister->set_Area(new_area);
-	
-//	this->reset_Cell_Progress();
-//	sister->reset_Cell_Progress();
-//	this->Cell_Progress_add_node = area;
-//	sister->set_Cell_Progress_add_node(new_area);
 	double new_damping = this->get_Damping();
 	sister->set_Damping(new_damping);
-//	cout << "Updated Angles and cell centers"<< endl;
-	
-	//distribute cyt nodes between sister cells
-//	cout << "deleting cyt nodes" << endl;
-	
+
 	//delete all old cyt nodes
 	int num_cyts = cyt_nodes.size();
 	int new_cyt_cnt = num_cyts/2;

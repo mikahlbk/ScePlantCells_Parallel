@@ -90,9 +90,9 @@ int main(int argc, char* argv[]) {
 		//cout << "updated cell cycle" << endl;	
 		//cout << "add new cell wall nodes if needed" << endl;
 		//adds one new cell wall node in the biggest gap
-		//if(Ti%200==0) {
+		if(Ti%200==0) {
 		growing_Tissue.update_Wall();
-		//}
+		}
 		if (Ti% 100 == 0) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();

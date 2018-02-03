@@ -507,39 +507,49 @@ void Cell::update_Cell_Progress(int& Ti) {
 //	cout << "Rank: " << this->rank << "and Progress: " << Cell_Progress << " and life length: " << life_length << endl;
 	//division check
 //	cout << "Sigma"<< sigma << endl;
-/*	if(Ti==5000) { //(this->Cell_Progress >= 1) && (curr_area >= AREA_THRESH)) {
-		cout << "Cell Prog" << Cell_Progress << endl;
+	if((Ti==1000)&&(rank == 0)) { //(this->Cell_Progress >= 1) && (curr_area >= AREA_THRESH)) {
+		//cout << "Cell Prog" << Cell_Progress << endl;
 		new_Cell = this->divide();
-		Cell_Progress_div = Ti;
-		new_Cell->set_div_time(Ti);
 		cout << "division success" << endl;
 		if(new_Cell == NULL) {
 			cout << "womp womp" << endl;
 		}
+		my_tissue->update_Num_Cells(new_Cell);
+		//setting info about new cell
 		new_Cell->set_Rank(number_cells);
 		cout << "set rank" << endl;
 		cout << "Parent rank: " << this->rank << endl;
 		cout << "sister rank: " << new_Cell->get_Rank() << endl;
-		my_tissue->update_Num_Cells(new_Cell);
-		cout << "added cell" << endl;
-		this->update_Neighbor_Cells();
-		this->update_adhesion_springs();
-		cout << "updated neighbor" << endl;
-		this->life_length = 0;
-		this->Cell_Progress = 0;
-		this->Cell_Progress_add_node = 0;
-		this-> counter = 0;
-		this->get_Neighbor_Cells(neighbor_cells);
-		for(unsigned int i=0; i < neighbor_cells.size(); i++) {
+		//layer in division function		
+		//damping in division function
+		//life length set to 0 in constructor
+		//cyt nodes in divison function
+		//wall nodes in division function
+		//all cell progress set to 0 in constructor
+		new_Cell->update_Cell_Progress_div(Ti);
+		//cell center in division function
+		//cyt and wus in division function
+		//k linear in division function
+		//left corner in divison function  
+		new_Cell->update_Neighbor_Cells();
+		//cout << "new cell neighbor update" << endl;
+		new_Cell->update_adhesion_springs();
+		//cout << "new cell adhesion update" << endl;
+		new_Cell->get_Neighbor_Cells(neighbor_cells);
+		#pragma omp parallel for schedule(static,1)
+		for(unsigned int i = 0; i< neighbor_cells.size(); i++) {
 			neighbor_cells.at(i)->update_adhesion_springs();
 		}
-		cout << "updated adhesion" << endl;
-		new_Cell->update_Neighbor_Cells();
-		cout << "new cell neighbor update" << endl;
-		new_Cell->update_adhesion_springs();
-		cout << "new cell adhesion update" << endl;
-		new_Cell->get_Neighbor_Cells(neighbor_cells);
-		for(unsigned int i = 0; i< neighbor_cells.size(); i++) {
+		this->life_length = 0;	
+		this->Cell_Progress =0;		
+		this->Cell_Progress_add_node = 0;
+		this->Cell_Progress_div = Ti; 
+		this->update_Neighbor_Cells();
+		this->update_adhesion_springs();
+		//cout << "updated neighbor" << endl;
+		this->get_Neighbor_Cells(neighbor_cells);
+		#pragma omp parallel for schedule(static, 1)
+		for(unsigned int i=0; i < neighbor_cells.size(); i++) {
 			neighbor_cells.at(i)->update_adhesion_springs();
 		}
 	}
@@ -557,7 +567,7 @@ void Cell::update_Cell_Progress(int& Ti) {
 		}
 	
 	//cout << "Cell Prog: " << Cell_Progress_add_node << endl;
-*/	return;
+	return;
 }
 
 double Cell::calc_Area() {

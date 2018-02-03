@@ -29,7 +29,7 @@ const double K_BEND = 2;
 //Adhesion spring mechanical params
 const double K_ADH = 20;
 const double MembrEquLen_ADH = 0.6;
-const double ADHThresh = .8;
+const double ADHThresh = .78125;
 
 //Calibration parameters
 const double EXTERNAL_FORCE = .001;
