@@ -22,14 +22,14 @@ using namespace std;
 
 //============================
 
-int main(int argc, char* argv[]) {
+int main() { //int argc, char* argv[]) {
 
 
-	string anim_folder = argv[1];
+	//string anim_folder = argv[1];
 
 	int start = clock();
 	
-	string init_tissue = "cell_start.txt";
+	string init_tissue = "new_cells.txt";
 	
 	//make new cell objects in tissue
 	Tissue growing_Tissue(init_tissue);
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 	int digits;
 	string format = ".vtk";
 	string Number;
-	string initial = "/Plant_Cell_";
+	string initial = "Animation/Plant_Cell_";
 	string Filename;
 	ofstream ofs;
 	int out = 0; //counter for creating output/vtk files
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 		//for now only one cell
 		//cout << "Ti = " << Ti << endl;
 		//Print to dataOutput and VTK files
-		if (Ti % 100 == 0) {
+		if (Ti % 5 == 0) {
 			
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 				Number = "0" + to_string(out);
 			}
 
-			Filename = anim_folder + initial + Number + format;
+			Filename = initial + Number + format;
 
 			ofs.open(Filename.c_str());
 			growing_Tissue.print_VTK_File(ofs);
@@ -90,9 +90,9 @@ int main(int argc, char* argv[]) {
 		//cout << "updated cell cycle" << endl;	
 		//cout << "add new cell wall nodes if needed" << endl;
 		//adds one new cell wall node in the biggest gap
-		if(Ti%200==0) {
-		growing_Tissue.update_Wall();
-		}
+		//if(Ti%200==0) {
+			growing_Tissue.update_Wall();
+		//}
 		if (Ti% 100 == 0) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();

@@ -63,6 +63,7 @@ class Cell {
 		int get_wall_count() {return num_wall_nodes;}
 		int get_cyt_count() {return num_cyt_nodes;}
 		void get_Wall_Nodes_Vec(vector<Wall_Node*>& walls);
+		void add_wall_node_vec(Wall_Node* curr);
 		void get_Cyt_Nodes_Vec(vector<Cyt_Node*>& cyts);
 		double get_Cell_Progress() {return Cell_Progress;}
 		void reset_Cell_Progress();

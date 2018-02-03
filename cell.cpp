@@ -208,6 +208,10 @@ void Cell::get_Wall_Nodes_Vec(vector<Wall_Node*>& walls) {
 	walls = wall_nodes;
 	return;
 }
+void Cell::add_wall_node_vec(Wall_Node* curr) {
+	wall_nodes.push_back(curr);
+	return;
+}
 void Cell::get_Cyt_Nodes_Vec(vector<Cyt_Node*>& cyts) {
 	cyts = cyt_nodes;
 	return;
@@ -430,8 +434,10 @@ void Cell::update_Wall_Angles() {
 //	do {
 	#pragma omp parallel for schedule(static,1)
 	for(unsigned int i=0; i< walls.size();i++) {
+		//cout<< "updating" <<endl;
 		walls.at(i)->update_Angle();
 	}
+//	cout << "Success" << endl;
 	return;
 }
 
@@ -507,7 +513,7 @@ void Cell::update_Cell_Progress(int& Ti) {
 //	cout << "Rank: " << this->rank << "and Progress: " << Cell_Progress << " and life length: " << life_length << endl;
 	//division check
 //	cout << "Sigma"<< sigma << endl;
-	if((Ti==1000)&&(rank == 0)) { //(this->Cell_Progress >= 1) && (curr_area >= AREA_THRESH)) {
+	if((Ti==5000)&&(rank == 0)) { //(this->Cell_Progress >= 1) && (curr_area >= AREA_THRESH)) {
 		//cout << "Cell Prog" << Cell_Progress << endl;
 		new_Cell = this->divide();
 		cout << "division success" << endl;
