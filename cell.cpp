@@ -77,8 +77,8 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	double K_LINEAR_Y;
 	
 	if(this->layer == 1) {
-		K_LINEAR_Y = 150;
-		K_LINEAR_X = 450;
+		K_LINEAR_Y = 450;
+		K_LINEAR_X = 150;
 	}	
 	else {
 		K_LINEAR_X = 450;
@@ -129,7 +129,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	orig->set_Right_Neighbor(currW);
 
 	//insert cytoplasm nodes
-	int	num_init_cyt_nodes = Init_Num_Cyt_Nodes;
+	int num_init_cyt_nodes = Init_Num_Cyt_Nodes;
 	double scal_x_offset = 0.8;
 	//Coord location;
 	Cyt_Node* cyt;
@@ -288,6 +288,7 @@ void Cell::update_Neighbor_Cells() {
 		Cell* curr = NULL;
 		Coord curr_Cent;
 		Coord distance;
+		//vector<Cell*>my_neighbs;
 		#pragma omp for schedule(static,1)
 		for (unsigned int i = 0; i < all_Cells.size(); i++) {
 			curr = all_Cells.at(i);
@@ -297,13 +298,14 @@ void Cell::update_Neighbor_Cells() {
 				distance = me->cell_center - curr_Cent;
 				//cout << "Distance = " << distance << endl;
 				if ( distance.length() < prelim_threshold ) {
-//					#pragma omp critical
+					#pragma omp critical
 					neigh_cells.push_back(curr);
-				//cout << rank << "has neighbor" << curr->get_Rank() << endl;
+					//cout << rank << "has neighbor" << curr->get_Rank() << endl;
 				}
 			
 			}
 			//else you're pointing at yourself and shouldnt do anything
+	
 		}
 	}	
 	
@@ -594,6 +596,7 @@ void Cell::add_Wall_Node() {
 		left = right->get_Left_Neighbor();
 		location  = (right->get_Location() + left->get_Location())*0.5;
 		added_node = new Wall_Node(location, this, left, right);
+		wall_nodes.push_back(added_node);
 		//cout << "made new node" << endl;
 		right->set_Left_Neighbor(added_node);
 		left->set_Right_Neighbor(added_node);

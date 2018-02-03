@@ -273,16 +273,19 @@ Coord Wall_Node::calc_Morse_DC() {
 	//cout << "getting neighbors" << endl;
 	Wall_Node* curr = NULL;
 	Wall_Node* orig = NULL;
-	for (unsigned int i = 0; i < cells.size(); i++) {
-		curr = cells.at(i)->get_Wall_Nodes();
-		//cout << "getting wall nodes" << endl;
-		orig = curr;
-		do {
-			Fdc += morse_Equation(curr);
-			//cout << "morse" << endl;
-			curr = curr->get_Left_Neighbor();
-			//cout << "left neighbor" << endl;
-		} while (curr != orig);
+	#pragma omp parallel 
+	{
+		vector<Wall_Node*> walls;
+		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+		#pragma omp for collapse(2) reduction(+:Fdc) schedule(static,1)
+		for (unsigned int i = 0; i < cells.size(); i++) {
+			for(unsigned int j =0; j< walls.size(); j++) {
+				cells.at(i)->get_Wall_Nodes_Vec(walls);
+				//cout << "getting wall nodes" << endl;
+				Fdc += morse_Equation(walls.at(j));
+				//cout << "morse" << endl;
+			}
+		}
 	}
 	//cout << "made it out of loop" << endl;
 	//cout << closest << endl;
