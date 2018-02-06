@@ -76,13 +76,13 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	double K_LINEAR_X;
 	double K_LINEAR_Y;
 	
-	if(this->layer == 1) {
-		K_LINEAR_Y = 450;
-		K_LINEAR_X = 150;
+	if((this->layer == 1)||(this->layer == 2)) {
+		K_LINEAR_Y = 600;
+		K_LINEAR_X = 100;
 	}	
 	else {
 		K_LINEAR_X = 450;
-		K_LINEAR_Y = 150;
+		K_LINEAR_Y = 200;
 	}	
 
 	this->K_LINEAR = Coord(K_LINEAR_X, K_LINEAR_Y);
@@ -487,16 +487,17 @@ void Cell::update_Cell_Center() {
 void Cell::update_Cell_Progress(int& Ti) {
 	//update life length of the current cell
 	this->update_Life_Length();
-//	if(Ti%217 == 0) {
-//		if(Cell_Progress_div > 0) {
-//			if(Ti-Cell_Progress_div > 1000) {
-//				this->wall_Node_Check();
-//			}
-//		}
-//		else {
-//			this->wall_Node_Check();
-//		}
+	//if((this->layer == 1)){
+	//	if(Ti%1000 == 999) {
+	//		this->add_Cyt_Node();
+	//	}
 //	}
+//	else {
+//		if ((Ti%2000 == 1999)){
+//			this->add_Cyt_Node();
+//		}
+//	}	
+	
 	//variables needed if division occurs
 	Cell* new_Cell= NULL;
 	vector<Cell*> cells;
@@ -513,7 +514,7 @@ void Cell::update_Cell_Progress(int& Ti) {
 //	cout << "Rank: " << this->rank << "and Progress: " << Cell_Progress << " and life length: " << life_length << endl;
 	//division check
 //	cout << "Sigma"<< sigma << endl;
-	if((Ti==5000)&&(rank == 0)) { //(this->Cell_Progress >= 1) && (curr_area >= AREA_THRESH)) {
+/*	if((Ti==500000)&&(rank == 27)) { //(this->Cell_Progress >= 1) && (curr_area >= AREA_THRESH)) {
 		//cout << "Cell Prog" << Cell_Progress << endl;
 		new_Cell = this->divide();
 		cout << "division success" << endl;
@@ -573,7 +574,7 @@ void Cell::update_Cell_Progress(int& Ti) {
 		}
 	
 	//cout << "Cell Prog: " << Cell_Progress_add_node << endl;
-	return;
+*/	return;
 }
 
 double Cell::calc_Area() {

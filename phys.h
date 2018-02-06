@@ -16,7 +16,7 @@
 // Simulation Constants
 const double dt = .00075;
 const int Init_Num_Cyt_Nodes = 20;
-const int Init_Wall_Nodes = 350;
+const int Init_Wall_Nodes = 300;
 
 const double AREA_THRESH = 64;
 const double GROWTH_RATE = .000001;
@@ -37,12 +37,12 @@ const double INIT_AREA = .018;
 const double GROWTH = 0.018;
 
 //linear spring equilibrium length
-const double MembrEquLen = .0625; 
-const double MEMBR_THRESH_LENGTH = 0.095; 
+const double MembrEquLen = .07; 
+const double MEMBR_THRESH_LENGTH = 0.2; 
 
 
 ///// Subcellular element parameters for membrane - membrane interactions
-const double U_MM =  3.90625;
+const double U_MM =  3.9;
 const double W_MM =  0;
 const double xsi_MM = 0.125;
 const double gamma_MM = 1.5625;	

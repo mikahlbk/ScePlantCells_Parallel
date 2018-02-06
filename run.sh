@@ -4,7 +4,7 @@
 #$ -m abe
 #$ -pe smp 1-64
 #$ -q  long				# Specify queue
-#$ -N  run_Animate3   	 	# Specify job name
+#$ -N  run_Animate9	 	# Specify job name
 
-mkdir Animate3
-./program Animate3
+mkdir Animate9
+./program Animate9
