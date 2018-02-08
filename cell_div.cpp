@@ -312,7 +312,8 @@ Cell* Cell::division() {
 	this->calc_Total_Signal();
 	sister->calc_Total_Signal();
 	sister->set_Layer(this->layer);
-
+	this->set_growth_rate();
+	sister->set_growth_rate();
 	double K_LINEAR = -3.3673*(this->cytokinin) + 5.7335*(this->wuschel) + 269.4673;
 	double K_LINEAR_X;
 	double K_LINEAR_Y;

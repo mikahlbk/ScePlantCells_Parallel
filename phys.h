@@ -34,8 +34,8 @@ const double ADHThresh = .78125;
 //Calibration parameters
 const double EXTERNAL_FORCE = .001;
 const double INIT_AREA = .018;
-const double GROWTH = 0.018;
-
+const double HIGH_GROWTH = 0.0000012;
+const double LOW_GROWTH = 0.00000093;
 //linear spring equilibrium length
 const double MembrEquLen = .07; 
 const double MEMBR_THRESH_LENGTH = 0.2; 

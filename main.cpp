@@ -29,14 +29,14 @@ int main(int argc, char* argv[]) {
 
 	int start = clock();
 	
-	string init_tissue = "cell_start.txt";
+	string init_tissue = "cell_start_square.txt";
 	
 	//make new cell objects in tissue
 	Tissue growing_Tissue(init_tissue);
 	cout << "Finished creating Cells" << endl;
 	//parameters for time step
 	 double numSteps = 500;
-
+	srand(time(0));
 	// Variable for dataoutput
 	int digits;
 	string format = ".vtk";
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 		//for now only one cell
 		//cout << "Ti = " << Ti << endl;
 		//Print to dataOutput and VTK files
-		if (Ti % 100 == 0) {
+		if (Ti % 500 == 0) {
 			
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
@@ -86,7 +86,9 @@ int main(int argc, char* argv[]) {
 		//cout << "update cell cycle of each cell" << endl;
 		//this includes a check for division and addition
 		//of new internal nodes according to growth rate
-		growing_Tissue.update_Cell_Cycle(Ti);
+	//	if(Ti > 2500){
+			growing_Tissue.update_Cell_Cycle(Ti);
+	//	}
 		//cout << "updated cell cycle" << endl;	
 		//cout << "add new cell wall nodes if needed" << endl;
 		//adds one new cell wall node in the biggest gap
@@ -97,13 +99,13 @@ int main(int argc, char* argv[]) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}
-		if(Ti% 500 == 0) {
+		if(Ti% 200 == 0) {
 			//cout << "Finding adhesion points" << endl;
 			growing_Tissue.update_Adhesion();
 		}
-		if(Ti%1000 == 999) {
-			growing_Tissue.add_cyt_node();
-		}
+		//if(Ti%1000 == 999) {
+		//	growing_Tissue.add_cyt_node();
+		//}
 		//Calculate new forces on cells and nodes
 		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);

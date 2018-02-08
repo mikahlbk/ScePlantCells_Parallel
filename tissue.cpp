@@ -94,7 +94,7 @@ void Tissue::update_Num_Cells(Cell*& new_Cell) {
 void Tissue::update_Cell_Cycle(int Ti) {
 	//cout << "Current number of cells: " << cells.size() << endl; 
 	int number_cells = cells.size();
-	#pragma omp parallel for schedule(static,1)
+//	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < number_cells; i++) {
 		//cout << "updating cell" << i << endl;
 		cells.at(i)->update_Cell_Progress(Ti);
@@ -240,7 +240,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << "SCALARS magnitude double " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_CYT(ofs);
+		cells.at(i)->print_VTK_Scalars_Force(ofs);
 	}
 
 	ofs << endl;

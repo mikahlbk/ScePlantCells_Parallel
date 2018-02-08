@@ -27,6 +27,7 @@ class Cell {
 		int layer;
 		double damping;
 		int life_length;
+		double growth_rate;
 		int num_cyt_nodes;
 		int num_wall_nodes;
 		double Cell_Progress;
@@ -75,6 +76,7 @@ class Cell {
 		double get_WUS_concentration() {return wuschel;}
 		double get_CYT_concentration() {return cytokinin;}
 		double get_total_concentration() {return total_signal;}
+		void set_growth_rate();
 		Coord get_K_LINEAR() {return K_LINEAR;}
 		void set_K_LINEAR(double& x, double& y);
 		Wall_Node* get_Wall_Nodes() {return left_Corner;}
