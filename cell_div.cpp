@@ -75,7 +75,7 @@ void Cell::find_Largest_Length_Div(Wall_Node*& right_one, Wall_Node*& right_two)
 	
 	Wall_Node* new_start = right_one;
 	Wall_Node* new_end = right_one;
-	for(unsigned int i = 0; i < 80; i++) {
+	for(unsigned int i = 0; i < (num_wall_nodes*.5); i++) {
 			new_start = new_start->get_Left_Neighbor();
 			new_end = new_end->get_Right_Neighbor();
 	}

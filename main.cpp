@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
 	int start = clock();
 	
-	string init_tissue = "cell_start_square.txt";
+	string init_tissue = "cell_start.txt";
 	
 	//make new cell objects in tissue
 	Tissue growing_Tissue(init_tissue);
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 		//for now only one cell
 		//cout << "Ti = " << Ti << endl;
 		//Print to dataOutput and VTK files
-		if (Ti % 500 == 0) {
+		if (Ti % 100 == 0) {
 			
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}
-		if(Ti% 200 == 0) {
+		if(Ti% 500 == 0) {
 			//cout << "Finding adhesion points" << endl;
 			growing_Tissue.update_Adhesion();
 		}

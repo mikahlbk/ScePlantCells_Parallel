@@ -271,19 +271,19 @@ void Cell::calc_Total_Signal() {
 }
 void Cell::set_growth_rate() {
 	if(this->wuschel < 13){
-		this->growth_rate = unifRand(0.0000015,0.0000012);
+		this->growth_rate = unifRand(0.00015,0.00012);
 	}
 	else if((this->wuschel >= 13) &&(this->wuschel < 15)) {
-		this->growth_rate = unifRand(0.0000012, 0.00000093);
+		this->growth_rate = unifRand(0.00012, 0.000093);
 	}
 	else if((this->wuschel >= 15) && (this->wuschel < 17)){
-		this->growth_rate = unifRand(0.00000093, 0.00000077);
+		this->growth_rate = unifRand(0.000093, 0.000077);
 	}
 	else if ((this->wuschel >= 17) && (this->wuschel < 19)){
-		this->growth_rate = unifRand(0.00000077, 0.00000066);
+		this->growth_rate = unifRand(0.000077, 0.000066);
 	}
 	else if(this->wuschel >= 19) {
-		this->growth_rate = unifRand(0.00000066, 0.00000058);
+		this->growth_rate = unifRand(0.000066, 0.000058);
 	}
 
 	return;
@@ -361,7 +361,6 @@ void Cell::update_adhesion_springs() {
 	Wall_Node* next_Node = NULL;
 	Wall_Node* curr_Closest = NULL;
 	double curr_len = 0;
-//	for(int i = 0; i<num_wall_nodes;i++) {
 	curr_Node = left_Corner;
 	do {
 		next_Node = curr_Node->get_Left_Neighbor();
@@ -369,7 +368,7 @@ void Cell::update_adhesion_springs() {
 		curr_Node->make_Connection(curr_Closest);
 		curr_Node = next_Node;
 	} while(next_Node != left_Corner);
-	//}
+		
 	return;
 }
 

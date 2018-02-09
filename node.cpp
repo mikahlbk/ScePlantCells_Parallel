@@ -538,28 +538,11 @@ Wall_Node* Wall_Node::find_Closest_Node(vector<Cell*>& neighbors) {
 void Wall_Node::make_Connection(Wall_Node* curr_Closest) {
 	double curr_dist = 0;
 	if(curr_Closest != NULL) {
-		//cout << "Making connection" << endl;
-		if(curr_Closest->get_Closest() != NULL) {
-			curr_dist = (this->get_Location() - curr_Closest->get_Location()).length();
-			if(curr_dist < this->closest_len) {
-				this->closest_len = curr_dist;
-				this->closest = curr_Closest;
-			//	curr_Closest->get_Closest()->set_Closest(NULL,100);
-				curr_Closest->set_Closest(this, curr_dist);
-			}
-			else if (curr_dist > this->closest_len) {
-				//do nothing
-			}
-		}
-
-		else {
-			this->closest_len = curr_dist;
-			this->closest = curr_Closest;
-			curr_Closest->set_Closest(this, curr_dist);
-		}
-	}
+		this->closest = curr_Closest;
+		this->closest_len = curr_dist;
+	}	
 	return;
-}
+	}
 
 //==========================================================
 // End of node.cpp
