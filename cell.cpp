@@ -30,6 +30,7 @@ Cell::Cell(Tissue* tissue) {
 	//damping calculated in div function
 	//just divided so reset life length
 	life_length = 0;
+	//growth_rate = unifRand(LOW_GROWTH,HIGH_GROWTH);
 	//cyt nodes created in division function
 	//start at zero
 	num_cyt_nodes = 0;
@@ -71,18 +72,18 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	this->calc_WUS();
 	this->calc_CYT();
 	this->calc_Total_Signal();
-
-	double K_LINEAR = -3.3673*(this->cytokinin) + 5.7335*(this->wuschel) + 269.4673;
+	this->set_growth_rate();
+	//double K_LINEAR = -3.3673*(this->cytokinin) + 5.7335*(this->wuschel) + 269.4673;
 	double K_LINEAR_X;
 	double K_LINEAR_Y;
 	
-	if(this->layer == 1) {
-		K_LINEAR_Y = 450;
-		K_LINEAR_X = 150;
+	if((this->layer == 1)||(this->layer == 2)) {
+		K_LINEAR_Y = 600;
+		K_LINEAR_X = 100;
 	}	
 	else {
 		K_LINEAR_X = 450;
-		K_LINEAR_Y = 150;
+		K_LINEAR_Y = 250;
 	}	
 
 	this->K_LINEAR = Coord(K_LINEAR_X, K_LINEAR_Y);
@@ -268,6 +269,26 @@ void Cell::calc_Total_Signal() {
 	}
 	return;
 }
+void Cell::set_growth_rate() {
+	if(this->wuschel < 13){
+		this->growth_rate = unifRand(0.00015,0.00012);
+	}
+	else if((this->wuschel >= 13) &&(this->wuschel < 15)) {
+		this->growth_rate = unifRand(0.00012, 0.000093);
+	}
+	else if((this->wuschel >= 15) && (this->wuschel < 17)){
+		this->growth_rate = unifRand(0.000093, 0.000077);
+	}
+	else if ((this->wuschel >= 17) && (this->wuschel < 19)){
+		this->growth_rate = unifRand(0.000077, 0.000066);
+	}
+	else if(this->wuschel >= 19) {
+		this->growth_rate = unifRand(0.000066, 0.000058);
+	}
+
+	return;
+}
+
 
 //=============================================================
 //=========================================
@@ -340,7 +361,6 @@ void Cell::update_adhesion_springs() {
 	Wall_Node* next_Node = NULL;
 	Wall_Node* curr_Closest = NULL;
 	double curr_len = 0;
-//	for(int i = 0; i<num_wall_nodes;i++) {
 	curr_Node = left_Corner;
 	do {
 		next_Node = curr_Node->get_Left_Neighbor();
@@ -348,7 +368,7 @@ void Cell::update_adhesion_springs() {
 		curr_Node->make_Connection(curr_Closest);
 		curr_Node = next_Node;
 	} while(next_Node != left_Corner);
-	//}
+		
 	return;
 }
 
@@ -487,16 +507,7 @@ void Cell::update_Cell_Center() {
 void Cell::update_Cell_Progress(int& Ti) {
 	//update life length of the current cell
 	this->update_Life_Length();
-//	if(Ti%217 == 0) {
-//		if(Cell_Progress_div > 0) {
-//			if(Ti-Cell_Progress_div > 1000) {
-//				this->wall_Node_Check();
-//			}
-//		}
-//		else {
-//			this->wall_Node_Check();
-//		}
-//	}
+
 	//variables needed if division occurs
 	Cell* new_Cell= NULL;
 	vector<Cell*> cells;
@@ -504,16 +515,14 @@ void Cell::update_Cell_Progress(int& Ti) {
 	this->my_tissue->get_Cells(cells);
 	int number_cells = cells.size();
 	//variables for determining growth rate
-	double sigma = (((double) rand()/(double) RAND_MAX))+.004;
-//	double rate = (.004 + sigma)*exp(GROWTH_RATE*life_length);
-	double rate = 1;	
-//	this->curr_area = this->calc_Area();
-	//update cell progress
-	Cell_Progress = Cell_Progress + rate*dt;
-//	cout << "Rank: " << this->rank << "and Progress: " << Cell_Progress << " and life length: " << life_length << endl;
-	//division check
-//	cout << "Sigma"<< sigma << endl;
-	if((Ti==5000)&&(rank == 0)) { //(this->Cell_Progress >= 1) && (curr_area >= AREA_THRESH)) {
+	//if(Ti > 2500) {
+	//	double growth = unifRand(LOW_GROWTH,HIGH_GROWTH);
+		//cout << "This is cell: " << this-> rank << "and sigma is" << sigma << endl;	
+		//double growth = sigma*(HIGH_GROWTH-LOW_GROWTH)+LOW_GROWTH;	
+		//cout << growth << endl;
+		Cell_Progress = Cell_Progress + growth_rate;
+
+	if((this->Cell_Progress > 1)){
 		//cout << "Cell Prog" << Cell_Progress << endl;
 		new_Cell = this->divide();
 		cout << "division success" << endl;
@@ -562,16 +571,18 @@ void Cell::update_Cell_Progress(int& Ti) {
 	//if no division check if internal node should be added
 	else {
 	
-//		if(Cell_Progress - Cell_Progress_add_node > 2.5) { 
-    	//	this->add_Cyt_Node();
-		
-		//	this->counter = counter +1;
-			//cout << "added cyt node" << this->counter << endl;
-		//	cout << curr_area << " is area" << endl;
-		//	cout << "time: " << Ti << endl;
-//			Cell_Progress_add_node = Cell_Progress;
-		}
+	if((Cell_Progress - Cell_Progress_add_node) > .05) { 
+    			this->add_Cyt_Node();
+			cout << "Progress" << (Cell_Progress - Cell_Progress_add_node) << endl;  
 	
+			cout << "added cyt node" << this->rank << endl;
+			//cout << curr_area << " is area" << endl;
+			cout << "time: " << Ti << endl;
+			Cell_Progress_add_node = Cell_Progress;
+	}
+	}
+
+	//}	
 	//cout << "Cell Prog: " << Cell_Progress_add_node << endl;
 	return;
 }

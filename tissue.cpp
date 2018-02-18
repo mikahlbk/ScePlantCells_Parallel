@@ -94,7 +94,7 @@ void Tissue::update_Num_Cells(Cell*& new_Cell) {
 void Tissue::update_Cell_Cycle(int Ti) {
 	//cout << "Current number of cells: " << cells.size() << endl; 
 	int number_cells = cells.size();
-	#pragma omp parallel for schedule(static,1)
+//	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < number_cells; i++) {
 		//cout << "updating cell" << i << endl;
 		cells.at(i)->update_Cell_Progress(Ti);
@@ -141,7 +141,7 @@ void Tissue::update_Neighbor_Cells() {
 }
 //updates adhesion springs for each cell
 void Tissue::update_Adhesion() {
-	#pragma omp parallel for schedule(static,1)
+	//#pragma omp parallel for schedule(static,1)
 	for(unsigned int i=0;i<cells.size();i++) {
 		//cout << "Updating adhesion for cell" << endl;
 		cells.at(i)->update_adhesion_springs();
@@ -178,7 +178,7 @@ int Tissue::update_VTK_Indices() {
 }
 
 void Tissue::print_VTK_File(ofstream& ofs) {
-//	int rel_cnt = update_VTK_Indices();
+	int rel_cnt = update_VTK_Indices();
 
 
 	ofs << "# vtk DataFile Version 3.0" << endl;
@@ -205,7 +205,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	}
 
 	ofs << endl;
-	ofs << "CELLS " << cells.size() << ' ' << (num_Points + start_points.size())  << endl;
+	ofs << "CELLS " << cells.size()+rel_cnt << ' ' << (num_Points + start_points.size())+(rel_cnt*3)  << endl;
 
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		ofs << cells.at(i)->get_Node_Count();
@@ -217,21 +217,21 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	}
 	
 //	//output pairs of node indices to draw adh line
-	//for(unsigned int i = 0; i < cells.size(); i++) {
-	//	cells.at(i)->print_VTK_Adh(ofs);
-	//}
+	for(unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Adh(ofs);
+	}
 
 	ofs << endl;
 
-	ofs << "CELL_TYPES " << start_points.size() << endl;
+	ofs << "CELL_TYPES " << start_points.size() + rel_cnt<< endl;
 	for (unsigned int i = 0; i < start_points.size(); i++) {
 		ofs << 2 << endl;
 	}
 
-//	for(unsigned int i = 0; i < rel_cnt; i++) {
+	for(unsigned int i = 0; i < rel_cnt; i++) {
 //		//type for adh relationship
-//		ofs << 3 << endl;
-//	}
+		ofs << 3 << endl;
+	}
 
 	ofs << endl;
 
@@ -240,7 +240,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << "SCALARS magnitude double " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_CYT(ofs);
+		cells.at(i)->print_VTK_Scalars_Force(ofs);
 	}
 
 	ofs << endl;

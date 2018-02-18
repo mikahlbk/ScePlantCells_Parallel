@@ -75,7 +75,7 @@ void Cell::find_Largest_Length_Div(Wall_Node*& right_one, Wall_Node*& right_two)
 	
 	Wall_Node* new_start = right_one;
 	Wall_Node* new_end = right_one;
-	for(unsigned int i = 0; i < 150; i++) {
+	for(unsigned int i = 0; i < (num_wall_nodes*.5); i++) {
 			new_start = new_start->get_Left_Neighbor();
 			new_end = new_end->get_Right_Neighbor();
 	}
@@ -167,9 +167,9 @@ Cell* Cell::division() {
 	double left_length = (left_end->get_Location() - left_start->get_Location()).length();
 	double right_length = (right_end->get_Location() - right_start->get_Location()).length();
 
-	double total_num_left_dbl = (left_length/(MembrEquLen*4));
+	double total_num_left_dbl = (left_length/(MembrEquLen*2));
 	int total_num_left = (int) total_num_left_dbl -1;
-	double total_num_right_dbl = (right_length/(MembrEquLen*4));
+	double total_num_right_dbl = (right_length/(MembrEquLen*2));
 	int total_num_right = (int) total_num_right_dbl -1;
 	cout << "Total num right" << total_num_right << endl;	
 	cout << "Total num left" << total_num_left << endl;	
@@ -312,7 +312,8 @@ Cell* Cell::division() {
 	this->calc_Total_Signal();
 	sister->calc_Total_Signal();
 	sister->set_Layer(this->layer);
-
+	this->set_growth_rate();
+	sister->set_growth_rate();
 	double K_LINEAR = -3.3673*(this->cytokinin) + 5.7335*(this->wuschel) + 269.4673;
 	double K_LINEAR_X;
 	double K_LINEAR_Y;
