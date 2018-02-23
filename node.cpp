@@ -169,6 +169,12 @@ Wall_Node::~Wall_Node() {
 	left = NULL;
 	right = NULL;
 	closest = NULL;
+	//Wall_Node* wall = NULL;
+	/*while ( !closest_vec.empty()) {
+		wall = closest_vec.at(closest_vec.size() - 1);
+		delete wall;
+		closest_vec.pop_back();
+	}*/
 }
 
 //  Getters and Setters--------------------
@@ -218,13 +224,21 @@ void Wall_Node::update_Equi_Angle(double new_theta) {
 
 	return;
 }
+//void Wall_Node::clear_Closest_Vec() {
+//	while ( !closest_vec.empty()) {
+//		closest_vec.pop_back();
+//	}
+//}
 
+//void Wall_Node::set_Closest_Vec(Wall_Node* closest) {
+//	this->closest_vec.push_back(closest);
+//	return;
+//}
 void Wall_Node::set_Closest(Wall_Node*  closest, double closest_len) {
 	this->closest = closest;
 	this->closest_len = closest_len;
 	return;
 }
-
 // Calc Force Functions -----------------------
 void Wall_Node::calc_Forces(int Ti) {
 	// Initialize force sum to zero by default constructor
@@ -385,8 +399,14 @@ Coord Wall_Node::bending_Equation_Center() {
 		return F_center;
 	}
 	else {
-		self_Constant = K_BEND*(my_angle - equi_angle)/(sqrt(1-pow(cos(my_angle),2)));
+		//if((this->get_My_Cell()->get_Layer() == 1) || (this->get_My_Cell()->get_Layer() ==2)){
+		//	self_Constant = K_BEND_L1*(my_angle - equi_angle)/(sqrt(1-pow(cos(my_angle),2)));
+		//}
+		//else {
+			self_Constant = K_BEND*(my_angle - equi_angle)/(sqrt(1-pow(cos(my_angle),2)));
+		//}
 	}
+
 
 	Coord left_vect = left->get_Location() - my_loc;
 	Coord right_vect = right->get_Location() - my_loc;
@@ -416,8 +436,14 @@ Coord Wall_Node::bending_Equation_Left() {
 		return F_left;
 	}
 	else {
-		left_Constant = K_BEND*(left_angle - left_equi_angle)/(sqrt(1-pow(cos(left_angle),2)));
+		//if((this->get_My_Cell()->get_Layer() == 1) || (this->get_My_Cell()->get_Layer() ==2)){
+		//	left_Constant = K_BEND_L1*(left_angle - left_equi_angle)/(sqrt(1-pow(cos(left_angle),2)));
+		//}
+		//else {
+			left_Constant = K_BEND*(left_angle - left_equi_angle)/(sqrt(1-pow(cos(left_angle),2)));
+		//}
 	}
+		
 
 	Coord left_vect = left->get_Location() - my_loc;
 	double left_len = left_vect.length();
@@ -445,7 +471,12 @@ Coord Wall_Node::bending_Equation_Right() {
 		return F_right;
 	}
 	else {
-		right_Constant = K_BEND*(right_angle-right_equ_angle)/(sqrt(1-pow(cos(right_angle),2)));
+		//if((this->get_My_Cell()->get_Layer() == 1) || (this->get_My_Cell()->get_Layer() ==2)) {
+		///	right_Constant = K_BEND_L1*(right_angle-right_equ_angle)/(sqrt(1-pow(cos(right_angle),2)));
+		//}
+		//else{
+			right_Constant = K_BEND*(right_angle-right_equ_angle)/(sqrt(1-pow(cos(right_angle),2)));
+		//}
 	}
 
 	Coord right_vect = right->get_Location() - my_loc;
@@ -486,9 +517,12 @@ Coord Wall_Node::linear_Equation(Wall_Node* wall) {
 
 Coord Wall_Node::linear_Equation_ADH(Wall_Node*& wall) {
 	//cout << "wall node is: " << wall << endl;
+	//Wall_Node* wall = NULL;
+//	for(unsigned int i = 0;i < closest_nodes.size();i++){
+//		wall = closest_nodes.at(i);
 	if (wall == NULL) {
 		cout << "Problems for days" << endl;
-	}
+	};
 	Coord F_lin;
 //	cout << "compute diff vec" << endl;
 	Coord wall_loc = wall->get_Location();
@@ -498,7 +532,13 @@ Coord Wall_Node::linear_Equation_ADH(Wall_Node*& wall) {
 	Coord diff_vect = wall->get_Location() - my_loc;
 //	cout << "coord diff is : " << diff_vect << endl;
 	double diff_len = diff_vect.length();
-	F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
+	//if((wall->get_My_Cell()->get_Layer() == 1) || (this->get_My_Cell()->get_Layer() == 1)) {
+	//	F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
+	//}
+	//else {
+		F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
+	//}
+//	}
 
 	return F_lin;
 }
@@ -538,11 +578,41 @@ Wall_Node* Wall_Node::find_Closest_Node(vector<Cell*>& neighbors) {
 void Wall_Node::make_Connection(Wall_Node* curr_Closest) {
 	double curr_dist = 0;
 	if(curr_Closest != NULL) {
-		this->closest = curr_Closest;
-		this->closest_len = curr_dist;
-	}	
-	return;
+		curr_dist = (this->get_Location() - curr_Closest->get_Location()).length();
+		if(curr_dist < curr_Closest->get_Closest_Len()){
+			this->closest = curr_Closest;
+			this->closest_len = curr_dist;
+			curr_Closest->set_Closest(this,curr_dist);
+			
+		}
+	
+	/*	else if((this->get_Closest() == NULL) && (curr_Closest->get_Closest() != NULL)) {
+			if(curr_dist < curr_Closest->get_Closest_Len()) {
+				this->closest = curr_Closest;
+				this->closest_len = curr_dist;
+				curr_Closest->get_Closest()->set_Closest(NULL,100);
+				curr_Closest->set_Closest(this,curr_dist);
+			}
+		}
+		else if((this->get_Closest()!= NULL) && (curr_Closest->get_Closest() != NULL)) {
+			if(this->closest == curr_Closest->get_Closest()) {
+				//do nothin
+			}
+			else if(curr_dist < this->closest_len) {
+				if(curr_dist < curr_Closest->get_Closest_Len()) {
+					this->closest->set_Closest(NULL,100);
+					this->closest = curr_Closest;
+					this->closest_len = curr_dist;
+					curr_Closest->get_Closest()->set_Closest(NULL,100);
+					curr_Closest->set_Closest(this,curr_dist);
+				}
+		
+			}
+			
+		}*/
 	}
+	return;
+}
 
 //==========================================================
 // End of node.cpp

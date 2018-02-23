@@ -11,7 +11,7 @@
 ////=====================
 //
 //// Simulation Constants
-const double dt = .00075;
+const double dt = .0002;
 const int Init_Num_Cyt_Nodes = 20;
 const int Init_Wall_Nodes = 300;
 //
@@ -22,9 +22,11 @@ const double pi = acos(-1.0);
 const int calibStart = 50000;
 /////// Cell wall mechanical parameters
 const double K_BEND = 2;
+//const double K_BEND_L1 =2;
 //
 ////Adhesion spring mechanical params
 const double K_ADH = 20;
+//const double K_ADH_L1 = 20;
 const double MembrEquLen_ADH = 0.6;
 const double ADHThresh = .78125;
 //

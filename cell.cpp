@@ -66,7 +66,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	//wall nodes initialized further down
 	num_wall_nodes = 0;
 	this->cell_center = center;
-	Cell_Progress = 0;
+	Cell_Progress = 0;//unifRandInt(0,15);
 	Cell_Progress_add_node = 0;
 	Cell_Progress_div = 0;
 	this->calc_WUS();
@@ -130,7 +130,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	orig->set_Right_Neighbor(currW);
 
 	//insert cytoplasm nodes
-	int num_init_cyt_nodes = Init_Num_Cyt_Nodes;
+	int num_init_cyt_nodes = Init_Num_Cyt_Nodes;//+Cell_Progress;
 	double scal_x_offset = 0.8;
 	//Coord location;
 	Cyt_Node* cyt;
@@ -247,10 +247,13 @@ void Cell::set_Wall_Count(int& number_nodes) {
 	return;
 }
 void Cell::calc_WUS() {
-	this->wuschel = -0.229814360326137*pow(cell_center.length(),2) + 9.2927997842538854*cell_center.length() + -26.5308519096016;
+	this->wuschel = 109.6*exp(-0.03127*cell_center.length());
+
+/*-0.189814360326137*pow(cell_center.length(),2) + 11.2927997842538854*cell_center.length() + -90.5308519096016;
 	if(wuschel < 0) {
 		wuschel = 0;
 	}
+*/
 	//cout << "wuschel: " << wuschel << endl;
 	return;
 }
@@ -270,21 +273,22 @@ void Cell::calc_Total_Signal() {
 	return;
 }
 void Cell::set_growth_rate() {
-	if(this->wuschel < 13){
-		this->growth_rate = unifRand(0.00015,0.00012);
+	this->growth_rate = 700;
+	/*if(this->wuschel < 15){
+		this->growth_rate = unifRandInt(3240, 4320);;
 	}
-	else if((this->wuschel >= 13) &&(this->wuschel < 15)) {
-		this->growth_rate = unifRand(0.00012, 0.000093);
+	else if((this->wuschel >= 15) &&(this->wuschel < 30)) {
+		this->growth_rate = unifRandInt(4320, 5400);
 	}
-	else if((this->wuschel >= 15) && (this->wuschel < 17)){
-		this->growth_rate = unifRand(0.000093, 0.000077);
+	else if((this->wuschel >= 30) && (this->wuschel <45)){
+		this->growth_rate = unifRandInt(5400, 6480);
 	}
-	else if ((this->wuschel >= 17) && (this->wuschel < 19)){
-		this->growth_rate = unifRand(0.000077, 0.000066);
+	else if ((this->wuschel >= 45) && (this->wuschel < 60)){
+		this->growth_rate = unifRandInt(6480,7560);
 	}
-	else if(this->wuschel >= 19) {
-		this->growth_rate = unifRand(0.000066, 0.000058);
-	}
+	else if(this->wuschel >=60 ) {
+		this->growth_rate = unifRandInt(7560,8640);
+	}*/
 
 	return;
 }
@@ -340,6 +344,7 @@ void Cell::update_Neighbor_Cells() {
 }
 
 void Cell::update_adhesion_springs() {
+	//cout << "Cell level" << endl;
 	//Wall_Node* curr = left_Corner;
 	//Wall_Node* orig = curr;
 	//Wall_Node* next = NULL;
@@ -352,23 +357,34 @@ void Cell::update_adhesion_springs() {
 		#pragma omp for schedule(static,1)	
 		for(unsigned int i=0; i< walls.size();i++) {
 			walls.at(i)->set_Closest(NULL, 100);
+		//	walls.at(i)->clear_Closest_Vec();	
 		}
 	}
-
+	cout << "cleared" << endl;
 	vector<Cell*>neighbors;
 	this->get_Neighbor_Cells(neighbors);
 	Wall_Node* curr_Node = NULL;
-	Wall_Node* next_Node = NULL;
-	Wall_Node* curr_Closest = NULL;
-	double curr_len = 0;
+        Wall_Node* next_Node = NULL;
+        Wall_Node* curr_Closest = NULL;
+        double curr_len = 0;
 	curr_Node = left_Corner;
 	do {
 		next_Node = curr_Node->get_Left_Neighbor();
-		curr_Closest = curr_Node->find_Closest_Node(neighbors);
-		curr_Node->make_Connection(curr_Closest);
-		curr_Node = next_Node;
-	} while(next_Node != left_Corner);
-		
+                curr_Closest = curr_Node->find_Closest_Node(neighbors);
+                curr_Node->make_Connection(curr_Closest);
+                curr_Node = next_Node;
+       	} while(next_Node != left_Corner);
+	/*#pragma omp parallel 
+	{
+		Wall_Node* curr_Closest = NULL;
+		#pragma omp for schedule(static,1)
+		for(unsigned int i=0; i < walls.size(); i++) {
+			curr_Closest = walls.at(i)->find_Closest_Node(neighbors);
+		//	cout << "found closest" << endl;			
+			walls.at(i)->make_Connection(curr_Closest);
+		//	cout << "made connection" << endl;
+		}	
+	}*/
 	return;
 }
 
@@ -515,14 +531,13 @@ void Cell::update_Cell_Progress(int& Ti) {
 	this->my_tissue->get_Cells(cells);
 	int number_cells = cells.size();
 	//variables for determining growth rate
-	//if(Ti > 2500) {
-	//	double growth = unifRand(LOW_GROWTH,HIGH_GROWTH);
-		//cout << "This is cell: " << this-> rank << "and sigma is" << sigma << endl;	
-		//double growth = sigma*(HIGH_GROWTH-LOW_GROWTH)+LOW_GROWTH;	
-		//cout << growth << endl;
-		Cell_Progress = Cell_Progress + growth_rate;
-
-	if((this->Cell_Progress > 1)){
+	//if(Ti >= 0) {
+		if(Ti%growth_rate == (growth_rate -1)) {
+			this->add_Cyt_Node();
+			Cell_Progress = Cell_Progress + 1;
+		}
+	/*if((this->Cell_Progress > 40)) {//&& (this->calc_Area() > 50)){
+	//	if(this->rank == 41) {
 		//cout << "Cell Prog" << Cell_Progress << endl;
 		new_Cell = this->divide();
 		cout << "division success" << endl;
@@ -567,11 +582,12 @@ void Cell::update_Cell_Progress(int& Ti) {
 		for(unsigned int i=0; i < neighbor_cells.size(); i++) {
 			neighbor_cells.at(i)->update_adhesion_springs();
 		}
+	//	}
 	}
 	//if no division check if internal node should be added
 	else {
 	
-	if((Cell_Progress - Cell_Progress_add_node) > .05) { 
+	if((Cell_Progress - Cell_Progress_add_node) >= 1) { 
     			this->add_Cyt_Node();
 			cout << "Progress" << (Cell_Progress - Cell_Progress_add_node) << endl;  
 	
@@ -581,8 +597,9 @@ void Cell::update_Cell_Progress(int& Ti) {
 			Cell_Progress_add_node = Cell_Progress;
 	}
 	}
-
-	//}	
+	}
+	*/
+		
 	//cout << "Cell Prog: " << Cell_Progress_add_node << endl;
 	return;
 }
@@ -630,6 +647,10 @@ void Cell::add_Wall_Node() {
 		num_wall_nodes++;
 		update_Wall_Equi_Angles();
 		update_Wall_Angles();
+		//vector<Cell*> neighbs;
+		//this->get_Neighbor_Cells(neighbs);
+		//Wall_Node* curr_Closest = added_node->find_Closest_Node(neighbs);
+		//added_node->make_Connection(curr_Closest);
 	}
 	else {
 		//cout << "null" << endl;
@@ -694,7 +715,7 @@ double Cell::find_radius() {
 	return min_distance;
 }
 
-void Cell::add_Cyt_Node_Div(double radius) {
+void Cell::add_Cyt_Node_Div(double radius_x,double radius_y) {
 	//USING POSITIONS OF CELL CENTER FOR CYT NODE ALLOCATION
 	// ---distributes more evenly throughout start cell
 	double offset = .8;
@@ -702,10 +723,11 @@ void Cell::add_Cyt_Node_Div(double radius) {
 	Cyt_Node* cyt;
 	double x;
 	double y;
-	double rand_radius = unifRand()*offset*radius; 
-	double rand_angle = unifRand()*2*pi;
-	x = cell_center.get_X()+ rand_radius*cos(rand_angle);
-	y = cell_center.get_Y()+ rand_radius*sin(rand_angle);
+	double rand_radius_x = unifRand(0.0,1.0)*offset*radius_x; 
+	double rand_angle = unifRand(0.0,1.0)*2*pi;
+	double rand_radius_y = unifRand(0.0,1.0)*offset*radius_y;
+	x = cell_center.get_X()+ rand_radius_x*cos(rand_angle);
+	y = cell_center.get_Y()+ rand_radius_y*sin(rand_angle);
 	location = Coord(x,y);
 	cout << location << endl;
 	cyt = new Cyt_Node(location,this);
@@ -713,8 +735,146 @@ void Cell::add_Cyt_Node_Div(double radius) {
 	num_cyt_nodes++;
 	return;
 }
-
-/*double Cell::compute_Stress_Tensor_X() {
+void Cell::compute_Main_Strain_Direction(double& x_length, double& y_length) {
+	//double x_length = 0;
+	//double y_length = 0;
+	vector<Wall_Node*>walls;
+	this->get_Wall_Nodes_Vec(walls);
+	#pragma omp parallel
+	{	
+		#pragma omp for reduction(+:x_length) reduction(+:y_length) schedule(static,1)
+		for(unsigned int i = 0; i< walls.size();i++) {
+			x_length += fabs(walls.at(i)->get_Location().get_X() - walls.at(i)->get_Left_Neighbor()->get_Location().get_X());
+			y_length += fabs(walls.at(i)->get_Location().get_Y() - walls.at(i)->get_Left_Neighbor()->get_Location().get_Y());
+		}
+	}
+	return;
+}
+		
+void Cell::find_Largest_Length_Div(Wall_Node*& right, Wall_Node*& second_right) {
+	vector<Wall_Node*> walls; 
+	this->get_Wall_Nodes_Vec(walls);
+	double max_len = 0;
+//	Wall_Node* right = NULL;
+	#pragma omp parallel 
+	{
+		Wall_Node* left_neighbor;
+		double curr_len = 0;
+		#pragma omp for schedule(static,1)
+		for(unsigned int i=0; i < walls.size(); i++) {
+			left_neighbor = walls.at(i)->get_Left_Neighbor();
+			curr_len = (walls.at(i)->get_Location()-left_neighbor->get_Location()).length();
+			if(curr_len > max_len) {
+				#pragma omp critical
+				max_len = curr_len;
+				right = walls.at(i);
+			}
+		}
+	}
+	Wall_Node* start = right;	
+	Wall_Node* end = right;
+	Wall_Node* left_neighbor = NULL;
+	double second_max_len = 0;
+	double curr_len = 0;
+	for(unsigned int i = 0; i < 150; i++) {
+		start = start->get_Left_Neighbor();
+		end = end->get_Right_Neighbor();
+	}
+	do {
+		left_neighbor = start->get_Left_Neighbor();
+		curr_len = (start->get_Location()-left_neighbor->get_Location()).length();
+		if(curr_len > second_max_len) {
+			second_max_len = curr_len;
+			second_right = start;
+		}
+		start = start->get_Left_Neighbor();
+	} while(left_neighbor != end);
+		
+		
+	//cout << "Cell " << rank << " -- big gaps: " << big_gaps << endl;
+	return;
+}
+Wall_Node* Cell::find_closest_node_top() {
+	double x_val_center = this->cell_center.get_X();
+	double y_val_center = this->cell_center.get_Y();
+	Wall_Node* curr = this->left_Corner;
+	Wall_Node* orig = curr;
+	Wall_Node* closest = NULL;
+	double  curr_diff = 0;
+	double smallest_diff =100;
+	do {
+		if(curr->get_Location().get_Y() < y_val_center) {
+			curr_diff = fabs(x_val_center - curr->get_Location().get_X()); 
+			if(curr_diff < smallest_diff) {
+				smallest_diff = curr_diff;
+				closest = curr;
+			}
+		}
+		curr = curr->get_Left_Neighbor();
+	} while(curr != orig);	
+	return closest;
+}
+Wall_Node* Cell::find_closest_node_bottom() {
+	double x_val_center = this->cell_center.get_X();
+	double y_val_center = this->cell_center.get_Y();
+	Wall_Node* curr = this->left_Corner;
+	Wall_Node* orig = curr;
+	Wall_Node* closest = NULL;
+	double  curr_diff = 0;
+	double smallest_diff = 100;
+	do {
+		if(curr->get_Location().get_Y() > y_val_center) {
+			curr_diff = fabs(x_val_center - curr->get_Location().get_X()); 
+			if(curr_diff < smallest_diff) {
+				smallest_diff = curr_diff;
+				closest = curr;
+			}
+		}
+		curr = curr->get_Left_Neighbor();
+	} while(curr != orig);	
+	return closest;
+}
+Wall_Node* Cell::find_closest_node_left() {
+	double x_val_center = this->cell_center.get_X();
+	double y_val_center = this->cell_center.get_Y();
+	Wall_Node* curr = this->left_Corner;
+	Wall_Node* orig = curr;
+	Wall_Node* closest = NULL;
+	double  curr_diff = 0;
+	double smallest_diff = 100;
+	do {
+		if(curr->get_Location().get_X() < x_val_center) {
+			curr_diff = fabs(y_val_center - curr->get_Location().get_Y()); 
+			if(curr_diff < smallest_diff) {
+				smallest_diff = curr_diff;
+				closest = curr;
+			}
+		}
+		curr = curr->get_Left_Neighbor();
+	} while(curr != orig);	
+	return closest;
+}
+Wall_Node* Cell::find_closest_node_right() {
+	double x_val_center = this->cell_center.get_X();
+	double y_val_center = this->cell_center.get_Y();
+	Wall_Node* curr = this->left_Corner;
+	Wall_Node* orig = curr;
+	Wall_Node* closest = NULL;
+	double  curr_diff = 0;
+	double smallest_diff = 100;
+	do {
+		if(curr->get_Location().get_X() > x_val_center) {
+			curr_diff = fabs(y_val_center - curr->get_Location().get_Y()); 
+			if(curr_diff < smallest_diff) {
+				smallest_diff = curr_diff;
+				closest = curr;
+			}
+		}
+		curr = curr->get_Left_Neighbor();
+	} while(curr != orig);	
+	return closest;
+}
+double Cell::compute_Stress_Tensor_X() {
 	Wall_Node* curr = left_Corner;
 	Wall_Node* next = NULL;
 	Wall_Node* orig = curr;
@@ -847,7 +1007,7 @@ void Cell::stress_Tensor_Eigenvalues(double& a, double& b, double & c, double& d
 	}
 	//cout << "Eigen values: 1 " << eigen_Max.at(0) << " 2 " << eigen_Max.at(1) << endl; 
 	return;
-}*/
+}
 //===========================================================
 //==================================
 // Output Functions

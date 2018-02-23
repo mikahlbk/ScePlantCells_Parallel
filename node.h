@@ -67,7 +67,9 @@ class Wall_Node: public Node {
 		double cross_Prod;
 		Coord cyt_force;
 		Wall_Node* closest;
-    		double closest_len;
+		double closest_len;
+		//vector<Wall_Node*> closest_vec;
+    		//double closest_len;
     public:
     //function that you want performed on all wall nodes
 		// Constructors
@@ -85,12 +87,14 @@ class Wall_Node: public Node {
 		void update_Angle();
 		void update_Equi_Angle(double new_theta);
 		void update_Cell(Cell* new_cell);
-		Wall_Node* get_Closest() {return closest;}
+		Wall_Node* get_Closest(){return closest;}
 		double get_Closest_Len() {return closest_len;}
 		Wall_Node* find_Closest_Node(vector<Cell*>& neighbors);
 		void make_Connection(Wall_Node* curr_Closest);
 		//Coord get_Ext_Force() {return f_EXT;}
 		void set_Closest(Wall_Node* closest, double closest_len);
+		void set_Closest_Vec(Wall_Node* closest);
+		void clear_Closest_Vec();
 		Coord get_CytForce() {return cyt_force;}
       		
 		//Force Calculations

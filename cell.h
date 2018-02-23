@@ -27,7 +27,7 @@ class Cell {
 		int layer;
 		double damping;
 		int life_length;
-		double growth_rate;
+		int growth_rate;
 		int num_cyt_nodes;
 		int num_wall_nodes;
 		double Cell_Progress;
@@ -104,17 +104,22 @@ class Cell {
 		double calc_Area();
 		void wall_Node_Check();
 		void add_Wall_Node();
+		void compute_Main_Strain_Direction(double& x_length, double& y_length); 
+		Wall_Node* find_closest_node_top(); 
+		Wall_Node* find_closest_node_bottom();
+		Wall_Node* find_closest_node_left();
+		Wall_Node* find_closest_node_right();
 		void find_Largest_Length(Wall_Node*& right);
-		void find_Largest_Length_Div(Wall_Node*& right_one, Wall_Node*& right_two);
+		void find_Largest_Length_Div(Wall_Node*& right, Wall_Node*& second_right);
 		void add_Cyt_Node();
 		
 		//Functions for Division
 		double find_radius();
-		void add_Cyt_Node_Div(double radius);
-		//void stress_Tensor_Eigenvalues(double& a, double& b, double& c, double& d, vector<double>& eigen_Max);	
-		//double compute_Stress_Tensor_XY();
-		//double compute_Stress_Tensor_Y();
-		//double compute_Stress_Tensor_X();
+		void add_Cyt_Node_Div(double radius_x,double radius_y);
+		void stress_Tensor_Eigenvalues(double& a, double& b, double& c, double& d, vector<double>& eigen_Max);	
+		double compute_Stress_Tensor_XY();
+		double compute_Stress_Tensor_Y();
+		double compute_Stress_Tensor_X();
 		
 		
 		//Output Functions
