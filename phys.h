@@ -11,7 +11,7 @@
 ////=====================
 //
 //// Simulation Constants
-const double dt = .0002;
+const double dt = .00075;
 const int Init_Num_Cyt_Nodes = 20;
 const int Init_Wall_Nodes = 300;
 //
@@ -26,7 +26,7 @@ const double K_BEND = 2;
 //
 ////Adhesion spring mechanical params
 const double K_ADH = 20;
-//const double K_ADH_L1 = 20;
+const double K_ADH_L1 = 20;
 const double MembrEquLen_ADH = 0.6;
 const double ADHThresh = .78125;
 //
@@ -36,15 +36,15 @@ const double INIT_AREA = .018;
 const double HIGH_GROWTH = 0.0000012;
 const double LOW_GROWTH = 0.00000093;
 ////linear spring equilibrium length
-const double MembrEquLen = .07; 
-const double MEMBR_THRESH_LENGTH = 0.2; 
+const double MembrEquLen = .0625;
+const double MEMBR_THRESH_LENGTH = 0.09375; 
 //
 //
 /////// Subcellular element parameters for membrane - membrane interactions
 const double U_MM =  3.9;
 const double W_MM =  0;
 const double xsi_MM = 0.125;
-const double gamma_MM = 1.5625;	
+const double gamma_MM = .125;	
 //
 /////// Subcellular element parameters for membrane  - internal interactions
 const double U_MI = 45;

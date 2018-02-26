@@ -78,12 +78,12 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	double K_LINEAR_Y;
 	
 	if((this->layer == 1)||(this->layer == 2)) {
-		K_LINEAR_Y = 600;
-		K_LINEAR_X = 100;
+		K_LINEAR_Y = 850;
+		K_LINEAR_X = 150;
 	}	
 	else {
-		K_LINEAR_X = 450;
-		K_LINEAR_Y = 250;
+		K_LINEAR_X = 650;
+		K_LINEAR_Y = 150;
 	}	
 
 	this->K_LINEAR = Coord(K_LINEAR_X, K_LINEAR_Y);
@@ -273,22 +273,33 @@ void Cell::calc_Total_Signal() {
 	return;
 }
 void Cell::set_growth_rate() {
-	this->growth_rate = 700;
-	/*if(this->wuschel < 15){
-		this->growth_rate = unifRandInt(3240, 4320);;
+	if(this->wuschel < 30){
+		this->growth_rate = unifRandInt(1200, 1500);;
 	}
-	else if((this->wuschel >= 15) &&(this->wuschel < 30)) {
-		this->growth_rate = unifRandInt(4320, 5400);
+	else if((this->wuschel >= 30) &&(this->wuschel < 50)) {
+		this->growth_rate = unifRandInt(1500, 1800);
 	}
-	else if((this->wuschel >= 30) && (this->wuschel <45)){
-		this->growth_rate = unifRandInt(5400, 6480);
+	else if((this->wuschel >= 50) && (this->wuschel <70)){
+		this->growth_rate = unifRandInt(1800, 2100);
 	}
-	else if ((this->wuschel >= 45) && (this->wuschel < 60)){
-		this->growth_rate = unifRandInt(6480,7560);
+	else if ((this->wuschel >= 70) && (this->wuschel < 90)){
+		this->growth_rate = unifRandInt(2100,2400);
 	}
-	else if(this->wuschel >=60 ) {
-		this->growth_rate = unifRandInt(7560,8640);
+	else if ((this->wuschel >= 90) && (this->wuschel < 110)){
+		this->growth_rate = unifRandInt(2400,2700);
+	}	
+	/*else if ((this->wuschel >= 70) && (this->wuschel < 80)){
+		this->growth_rate = unifRandInt(1950,2200);
+	}
+	else if ((this->wuschel >= 80) && (this->wuschel < 90)){
+		this->growth_rate = unifRandInt(2200,2450);
+	}
+	else if ((this->wuschel >= 90) && (this->wuschel < 108)){
+		this->growth_rate = unifRandInt(2450,2700);
 	}*/
+	else if(this->wuschel >=110) {
+		this->growth_rate = unifRandInt(2500,2700);
+	}
 
 	return;
 }
@@ -308,7 +319,7 @@ void Cell::update_Neighbor_Cells() {
 
 	
 	// Empty variables for holding info about other cells
-	double prelim_threshold = 18;
+	double prelim_threshold = 12;
 	//double sec_threshold = 1;
 	Cell* me = this;
 	// iterate through all cells
@@ -368,13 +379,13 @@ void Cell::update_adhesion_springs() {
         Wall_Node* curr_Closest = NULL;
         double curr_len = 0;
 	curr_Node = left_Corner;
-	do {
+	/*do {
 		next_Node = curr_Node->get_Left_Neighbor();
                 curr_Closest = curr_Node->find_Closest_Node(neighbors);
                 curr_Node->make_Connection(curr_Closest);
                 curr_Node = next_Node;
-       	} while(next_Node != left_Corner);
-	/*#pragma omp parallel 
+       	} while(next_Node != left_Corner);*/
+	#pragma omp parallel 
 	{
 		Wall_Node* curr_Closest = NULL;
 		#pragma omp for schedule(static,1)
@@ -384,7 +395,7 @@ void Cell::update_adhesion_springs() {
 			walls.at(i)->make_Connection(curr_Closest);
 		//	cout << "made connection" << endl;
 		}	
-	}*/
+	}
 	return;
 }
 

@@ -101,6 +101,7 @@ class Wall_Node: public Node {
 		void calc_Forces(int Ti);
 		Coord calc_Morse_SC();
 		Coord calc_Morse_DC();
+		Coord neighbor_nodes(Cell* neighbor);
 		Coord calc_Bending();
 		Coord calc_Linear();
 			

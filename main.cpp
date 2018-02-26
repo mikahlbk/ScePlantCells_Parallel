@@ -97,18 +97,18 @@ int main(int argc, char* argv[]) {
 		//if(Ti< 2000) {
 		//	growing_Tissue.update_Wall();
 		//}
-		if(Ti%200 ==0) {
-		//	if(Ti%200==0) {
+	//	if(Ti%200 ==0) {
+			if(Ti%200==0) {
 				growing_Tissue.update_Wall();
-		//	}
-		}
-		if (Ti% 500 == 0) {
+			}
+	//	}
+		if (Ti% 1000 == 0) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}
 		//if(Ti< 30000) {
 			//cout << "Finding adhesion points" << endl;
-		if(Ti%200 == 0) {
+		if(Ti%1000 == 0) {
 			growing_Tissue.update_Adhesion();
 		}
 	//	}

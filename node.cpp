@@ -114,7 +114,7 @@ Coord Cyt_Node::morse_Equation(Cyt_Node* cyt) {
     	Coord Fii;
     	Coord diff_vect = cyt->get_Location() - my_loc;
     	double diff_len = diff_vect.length();
-   	 double attract = (U_II/xsi_II)*exp(diff_len*(-1)/xsi_II);
+   	double attract = (U_II/xsi_II)*exp(diff_len*(-1)/xsi_II);
     	double repel = (W_II/gamma_II)*exp(diff_len*(-1)/gamma_II);
     
 //	Fii = diff_vect * (1*ALPHA*DELTA*(1-exp(-ALPHA*(diff_len -MORSE_EQ)))*(exp(-ALPHA*(diff_len-MORSE_EQ)))*(1.0/diff_len));
@@ -134,7 +134,7 @@ Coord Cyt_Node::morse_Equation(Wall_Node* wall) {
 	Coord diff_vect = wall->get_Location() - my_loc; 
 	double diff_len = diff_vect.length();
 	double attract = (U_MI/xsi_MI)*exp(diff_len*(-1)/xsi_MI);
-   	 double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
+   	double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
     	//Fmi = diff_vect * (1*ALPHA_MI*DELTA_MI*(1-exp(-ALPHA_MI*(diff_len -MORSE_EQ_MI)))*(exp(-ALPHA_MI*(diff_len-MORSE_EQ_MI)))*(1.0/diff_len));
   	 Fmi = diff_vect*((-attract + repel)/diff_len);
 	return Fmi;
@@ -284,23 +284,25 @@ Coord Wall_Node::calc_Morse_DC() {
 	Coord Fdc;
 	vector<Cell*> cells;
 	my_cell->get_Neighbor_Cells(cells);	
+	vector<Wall_Node*> walls;
 	//cout << "getting neighbors" << endl;
 	Wall_Node* curr = NULL;
 	Wall_Node* orig = NULL;
 	#pragma omp parallel 
 	{
-		vector<Wall_Node*> walls;
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
-		#pragma omp for collapse(2) reduction(+:Fdc) schedule(static,1)
+		#pragma omp for reduction(+:Fdc) schedule(static,1) 
 		for (unsigned int i = 0; i < cells.size(); i++) {
-			for(unsigned int j =0; j< walls.size(); j++) {
-				cells.at(i)->get_Wall_Nodes_Vec(walls);
-				//cout << "getting wall nodes" << endl;
-				Fdc += morse_Equation(walls.at(j));
-				//cout << "morse" << endl;
-			}
-		}
+			//for(unsigned int j = 0; j <300/* cells.at(i)->get_wall_count()*/; j ++) {
+				//cells.at(i)->get_Wall_Nodes_Vec(walls);
+				//Fdc += morse_Equation(walls.at(j));
+			//}
+		//}
+			
+			Fdc += neighbor_nodes(cells.at(i));
 	}
+	}
+
 	//cout << "made it out of loop" << endl;
 	//cout << closest << endl;
 	if(this->closest != NULL){
@@ -314,6 +316,23 @@ Coord Wall_Node::calc_Morse_DC() {
 	return Fdc;
 }
 
+Coord Wall_Node::neighbor_nodes(Cell* neighbor) {
+	Coord sum;
+	vector<Wall_Node*> walls;
+	neighbor->get_Wall_Nodes_Vec(walls);
+	#pragma omp parallel
+	{
+		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+		#pragma omp for reduction(+:sum) schedule(static,1) 
+		for(unsigned int j =0; j< walls.size(); j++) {
+			//cout << "getting wall nodes" << endl;
+			sum += morse_Equation(walls.at(j));
+			//cout << "morse" << endl;
+		}
+	}
+
+	return sum;
+}			
 
 //bending force of node
 Coord Wall_Node::calc_Bending() {
@@ -374,8 +393,8 @@ Coord Wall_Node::morse_Equation(Wall_Node* wall) {
 	}
 
 	//use Mem-Mem variables
-   	 Coord Fmmd;
-   	 Coord diff_vect = wall->get_Location() - my_loc;
+   	Coord Fmmd;
+   	Coord diff_vect = wall->get_Location() - my_loc;
     	double diff_len = diff_vect.length();
     	double attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
     	double repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
@@ -532,12 +551,12 @@ Coord Wall_Node::linear_Equation_ADH(Wall_Node*& wall) {
 	Coord diff_vect = wall->get_Location() - my_loc;
 //	cout << "coord diff is : " << diff_vect << endl;
 	double diff_len = diff_vect.length();
-	//if((wall->get_My_Cell()->get_Layer() == 1) || (this->get_My_Cell()->get_Layer() == 1)) {
-	//	F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
-	//}
-	//else {
+	if((wall->get_My_Cell()->get_Layer() == 1) && (this->get_My_Cell()->get_Layer() == 1)) {
+		F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
+	}
+	else {
 		F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
-	//}
+	}
 //	}
 
 	return F_lin;
@@ -579,12 +598,32 @@ void Wall_Node::make_Connection(Wall_Node* curr_Closest) {
 	double curr_dist = 0;
 	if(curr_Closest != NULL) {
 		curr_dist = (this->get_Location() - curr_Closest->get_Location()).length();
-		if(curr_dist < curr_Closest->get_Closest_Len()){
+		
+	//	if(curr_Closest->get_Closest() ==NULL) {
+	//		if(this->closest != NULL) {
+	//			this->closest->set_Closest(NULL,100);
+	//		}
 			this->closest = curr_Closest;
 			this->closest_len = curr_dist;
-			curr_Closest->set_Closest(this,curr_dist);
-			
-		}
+	//		curr_Closest->set_Closest(this,curr_dist);
+	//	}	
+	//	else {
+	//		if(curr_Closest->get_Closest()== this) {
+	//			this->closest = curr_Closest;
+	//			this->closest_len = curr_dist;
+	//		}
+	//		else if(curr_dist < curr_Closest->get_Closest_Len()) { 
+	//			if(this->closest != NULL) {
+	//				this->closest->set_Closest(NULL,100);
+	//			}
+	//			
+	//			this->closest = curr_Closest;
+	//			this->closest_len = curr_dist;
+	//			curr_Closest->get_Closest()->set_Closest(NULL,100);
+	//			curr_Closest->set_Closest(this,curr_dist);
+	//		
+	//		}
+	//	}
 	
 	/*	else if((this->get_Closest() == NULL) && (curr_Closest->get_Closest() != NULL)) {
 			if(curr_dist < curr_Closest->get_Closest_Len()) {

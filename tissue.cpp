@@ -141,7 +141,7 @@ void Tissue::update_Neighbor_Cells() {
 }
 //updates adhesion springs for each cell
 void Tissue::update_Adhesion() {
-	//#pragma omp parallel for schedule(static,1)
+	#pragma omp parallel for schedule(static,1)
 	for(unsigned int i=0;i<cells.size();i++) {
 		//cout << "Updating adhesion for cell" << endl;
 		cells.at(i)->update_adhesion_springs();
