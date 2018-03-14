@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <stdio.h>
+#include <omp.h>
 //=========================
 #include "phys.h"
 #include "coord.h"
@@ -68,7 +70,7 @@ Coord Cyt_Node::calc_Morse_II() {
 	}
 	my_cell->get_Cyt_Nodes_Vec(cyts);
 	Cyt_Node* me = this;
-	#pragma omp parallel
+	#pragma omp parallel num_threads(8)
 	{	
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
 		#pragma omp for reduction(+:Fii) schedule(static,1)
@@ -114,8 +116,8 @@ Coord Cyt_Node::morse_Equation(Cyt_Node* cyt) {
     	Coord Fii;
     	Coord diff_vect = cyt->get_Location() - my_loc;
     	double diff_len = diff_vect.length();
-   	double attract = (U_II/xsi_II)*exp(diff_len*(-1)/xsi_II);
-    	double repel = (W_II/gamma_II)*exp(diff_len*(-1)/gamma_II);
+   	double attract = (U_II/xsi_II)*exp((diff_len*(-1.0))/xsi_II);
+    	double repel = (W_II/gamma_II)*exp((diff_len*(-1.0))/gamma_II);
     
 //	Fii = diff_vect * (1*ALPHA*DELTA*(1-exp(-ALPHA*(diff_len -MORSE_EQ)))*(exp(-ALPHA*(diff_len-MORSE_EQ)))*(1.0/diff_len));
 	Fii = diff_vect*((-attract + repel)/diff_len);
@@ -133,8 +135,8 @@ Coord Cyt_Node::morse_Equation(Wall_Node* wall) {
 	Coord Fmi;
 	Coord diff_vect = wall->get_Location() - my_loc; 
 	double diff_len = diff_vect.length();
-	double attract = (U_MI/xsi_MI)*exp(diff_len*(-1)/xsi_MI);
-   	double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
+	double attract = (U_MI/xsi_MI)*exp((diff_len*(-1.0))/xsi_MI);
+   	double repel = (W_MI/gamma_MI)*exp((diff_len*(-1.0))/gamma_MI);
     	//Fmi = diff_vect * (1*ALPHA_MI*DELTA_MI*(1-exp(-ALPHA_MI*(diff_len -MORSE_EQ_MI)))*(exp(-ALPHA_MI*(diff_len-MORSE_EQ_MI)))*(1.0/diff_len));
   	 Fmi = diff_vect*((-attract + repel)/diff_len);
 	return Fmi;
@@ -288,19 +290,21 @@ Coord Wall_Node::calc_Morse_DC() {
 	//cout << "getting neighbors" << endl;
 	Wall_Node* curr = NULL;
 	Wall_Node* orig = NULL;
-	#pragma omp parallel 
+	#pragma omp parallel
 	{
+		
+//	printf("third region Thread ID == %d\n", omp_get_thread_num());
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
 		#pragma omp for reduction(+:Fdc) schedule(static,1) 
 		for (unsigned int i = 0; i < cells.size(); i++) {
-			//for(unsigned int j = 0; j <300/* cells.at(i)->get_wall_count()*/; j ++) {
-				//cells.at(i)->get_Wall_Nodes_Vec(walls);
-				//Fdc += morse_Equation(walls.at(j));
-			//}
-		//}
+			/*for(unsigned int j = 0; j <300 cells.at(i)->get_wall_count(); j ++) {
+				cells.at(i)->get_Wall_Nodes_Vec(walls);
+				Fdc += morse_Equation(walls.at(j));
+			}
+		}*/
 			
 			Fdc += neighbor_nodes(cells.at(i));
-	}
+		}
 	}
 
 	//cout << "made it out of loop" << endl;
@@ -322,6 +326,8 @@ Coord Wall_Node::neighbor_nodes(Cell* neighbor) {
 	neighbor->get_Wall_Nodes_Vec(walls);
 	#pragma omp parallel
 	{
+		
+//	printf("fourth region Thread ID == %d\n", omp_get_thread_num());
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
 		#pragma omp for reduction(+:sum) schedule(static,1) 
 		for(unsigned int j =0; j< walls.size(); j++) {
@@ -377,8 +383,8 @@ Coord Wall_Node::morse_Equation(Cyt_Node* cyt) {
 	Coord Fmi;
 	Coord diff_vect = cyt->get_Location() - my_loc;
 	double diff_len = diff_vect.length();
-	double attract = (U_MI/xsi_MI)*exp(diff_len*(-1)/xsi_MI);
-	double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
+	double attract = (U_MI/xsi_MI)*exp((diff_len*(-1.0))/xsi_MI);
+	double repel = (W_MI/gamma_MI)*exp((diff_len*(-1.0))/gamma_MI);
 
 	//Fmi = diff_vect * (1*ALPHA_MI*DELTA_MI*(1-exp(-ALPHA_MI*(diff_len -MORSE_EQ_MI)))*(exp(-ALPHA_MI*(diff_len-MORSE_EQ_MI)))*(1.0/diff_len));
   	 Fmi = diff_vect*((-attract + repel)/diff_len);
@@ -396,8 +402,8 @@ Coord Wall_Node::morse_Equation(Wall_Node* wall) {
    	Coord Fmmd;
    	Coord diff_vect = wall->get_Location() - my_loc;
     	double diff_len = diff_vect.length();
-    	double attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
-    	double repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
+    	double attract = (U_MM/xsi_MM)*exp((diff_len*(-1.0))/xsi_MM);
+    	double repel = (W_MM/gamma_MM)*exp((diff_len*(-1.0))/gamma_MM);
     
    	 //Fmmd =  diff_vect*(0);//(-attract + repel)/diff_len);
 	 Fmmd = diff_vect*((-attract + repel)/diff_len);
@@ -607,23 +613,23 @@ void Wall_Node::make_Connection(Wall_Node* curr_Closest) {
 			this->closest_len = curr_dist;
 	//		curr_Closest->set_Closest(this,curr_dist);
 	//	}	
-	//	else {
-	//		if(curr_Closest->get_Closest()== this) {
-	//			this->closest = curr_Closest;
-	//			this->closest_len = curr_dist;
-	//		}
-	//		else if(curr_dist < curr_Closest->get_Closest_Len()) { 
-	//			if(this->closest != NULL) {
-	//				this->closest->set_Closest(NULL,100);
-	//			}
-	//			
-	//			this->closest = curr_Closest;
-	//			this->closest_len = curr_dist;
-	//			curr_Closest->get_Closest()->set_Closest(NULL,100);
-	//			curr_Closest->set_Closest(this,curr_dist);
-	//		
-	//		}
-	//	}
+		/*else {
+			if(curr_Closest->get_Closest()== this) {
+				this->closest = curr_Closest;
+				this->closest_len = curr_dist;
+			}
+			else if(curr_dist < curr_Closest->get_Closest_Len()) { 
+				if(this->closest != NULL) {
+					this->closest->set_Closest(NULL,100);
+				}
+				
+				this->closest = curr_Closest;
+				this->closest_len = curr_dist;
+				curr_Closest->get_Closest()->set_Closest(NULL,100);
+				curr_Closest->set_Closest(this,curr_dist);
+			
+			}
+		}*/
 	
 	/*	else if((this->get_Closest() == NULL) && (curr_Closest->get_Closest() != NULL)) {
 			if(curr_dist < curr_Closest->get_Closest_Len()) {

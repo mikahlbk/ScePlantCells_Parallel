@@ -10,6 +10,7 @@
 #include <fstream>
 #include <ctime>
 #include <stdio.h>
+#include <omp.h>
 
 #include "phys.h"
 #include "coord.h"
@@ -53,7 +54,7 @@ int main(int argc, char* argv[]) {
 		//for now only one cell
 		//cout << "Ti = " << Ti << endl;
 		//Print to dataOutput and VTK files
-		if (Ti % 500 == 0) {
+		if (Ti % 1000 == 0) {
 			
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
@@ -90,7 +91,8 @@ int main(int argc, char* argv[]) {
 	//	if(Ti > 2500){
 			growing_Tissue.update_Cell_Cycle(Ti);
 	//	}
-		//cout << "updated cell cycle" << endl;	
+		//cout << ":wq
+		//updated cell cycle" << endl;	
 		//cout << "add new cell wall nodes if needed" << endl;
 		//adds one new cell wall node in the biggest gap
 		
@@ -98,31 +100,31 @@ int main(int argc, char* argv[]) {
 		//	growing_Tissue.update_Wall();
 		//}
 	//	if(Ti%200 ==0) {
-			if(Ti%200==0) {
-				growing_Tissue.update_Wall();
-			}
+		//if(Ti%200==0) {
+			growing_Tissue.update_Wall();
+		//}	
 	//	}
-		if (Ti% 1000 == 0) {
+		if (Ti%200 == 0) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}
 		//if(Ti< 30000) {
 			//cout << "Finding adhesion points" << endl;
-		if(Ti%1000 == 0) {
-			growing_Tissue.update_Adhesion();
-		}
+		//if(Ti%200 ==199) {
+		//	growing_Tissue.update_Adhesion();
+		//}
 	//	}
 	//	if(Ti>= 30000) {
-	//		if (Ti%10000 == 9999) {
-	//			growing_Tissue.update_Adhesion();
-	//		}
+		if (Ti%200 == 0) {
+			growing_Tissue.update_Adhesion();
+		}
 	//	}
 		
 		//if(Ti%1000 == 999) {
 		//	growing_Tissue.add_cyt_node();
 		//}
 		//Calculate new forces on cells and nodes
-		cout << "forces" << endl;
+		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
 	
 		//cout << "locations" << endl;

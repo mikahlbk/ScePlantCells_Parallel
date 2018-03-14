@@ -1,12 +1,12 @@
 #!/bin/csh
 
 #$ -M mbkuhn@math.ucr.edu
-#$ -m abe
-#$ -pe smp 1-64
-#$ -q  long			# Specify queue
-#$ -N  run_Animate67
+#$ -m ab
+#$ -pe smp 12
+#$ -q  long		# Specify queue
+#$ -N  run_Animate5
 
 
-mkdir Animate67
-./program Animate67
-
+setenv OMP_NUM_THREADS 16
+mkdir Animate5
+./program Animate5

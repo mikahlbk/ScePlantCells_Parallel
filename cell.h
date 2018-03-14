@@ -104,12 +104,14 @@ class Cell {
 		double calc_Area();
 		void wall_Node_Check();
 		void add_Wall_Node();
+		void delete_Wall_Node();
 		void compute_Main_Strain_Direction(double& x_length, double& y_length); 
 		Wall_Node* find_closest_node_top(); 
 		Wall_Node* find_closest_node_bottom();
 		Wall_Node* find_closest_node_left();
 		Wall_Node* find_closest_node_right();
 		void find_Largest_Length(Wall_Node*& right);
+		void find_Smallest_Length(Wall_Node*& right);
 		void find_Largest_Length_Div(Wall_Node*& right, Wall_Node*& second_right);
 		void add_Cyt_Node();
 		

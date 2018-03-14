@@ -11,6 +11,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <random>
+#include <stdio.h>
+#include <omp.h>
 
 #include "phys.h"
 #include "coord.h"
@@ -78,12 +80,12 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	double K_LINEAR_Y;
 	
 	if((this->layer == 1)||(this->layer == 2)) {
-		K_LINEAR_Y = 850;
-		K_LINEAR_X = 150;
+		K_LINEAR_Y = 650;
+		K_LINEAR_X = 100;
 	}	
 	else {
-		K_LINEAR_X = 650;
-		K_LINEAR_Y = 150;
+		K_LINEAR_X = 250;
+		K_LINEAR_Y = 250;
 	}	
 
 	this->K_LINEAR = Coord(K_LINEAR_X, K_LINEAR_Y);
@@ -273,7 +275,8 @@ void Cell::calc_Total_Signal() {
 	return;
 }
 void Cell::set_growth_rate() {
-	if(this->wuschel < 30){
+	 this->growth_rate = 1000;
+	/*if(this->wuschel < 30){
 		this->growth_rate = unifRandInt(1200, 1500);;
 	}
 	else if((this->wuschel >= 30) &&(this->wuschel < 50)) {
@@ -288,7 +291,7 @@ void Cell::set_growth_rate() {
 	else if ((this->wuschel >= 90) && (this->wuschel < 110)){
 		this->growth_rate = unifRandInt(2400,2700);
 	}	
-	/*else if ((this->wuschel >= 70) && (this->wuschel < 80)){
+	else if ((this->wuschel >= 70) && (this->wuschel < 80)){
 		this->growth_rate = unifRandInt(1950,2200);
 	}
 	else if ((this->wuschel >= 80) && (this->wuschel < 90)){
@@ -296,10 +299,10 @@ void Cell::set_growth_rate() {
 	}
 	else if ((this->wuschel >= 90) && (this->wuschel < 108)){
 		this->growth_rate = unifRandInt(2450,2700);
-	}*/
+	}
 	else if(this->wuschel >=110) {
 		this->growth_rate = unifRandInt(2500,2700);
-	}
+	}*/
 
 	return;
 }
@@ -319,7 +322,7 @@ void Cell::update_Neighbor_Cells() {
 
 	
 	// Empty variables for holding info about other cells
-	double prelim_threshold = 12;
+	double prelim_threshold = 18;
 	//double sec_threshold = 1;
 	Cell* me = this;
 	// iterate through all cells
@@ -371,7 +374,7 @@ void Cell::update_adhesion_springs() {
 		//	walls.at(i)->clear_Closest_Vec();	
 		}
 	}
-	cout << "cleared" << endl;
+	//cout << "cleared" << endl;
 	vector<Cell*>neighbors;
 	this->get_Neighbor_Cells(neighbors);
 	Wall_Node* curr_Node = NULL;
@@ -385,16 +388,18 @@ void Cell::update_adhesion_springs() {
                 curr_Node->make_Connection(curr_Closest);
                 curr_Node = next_Node;
        	} while(next_Node != left_Corner);*/
-	#pragma omp parallel 
+	#pragma omp parallel
 	{
 		Wall_Node* curr_Closest = NULL;
 		#pragma omp for schedule(static,1)
 		for(unsigned int i=0; i < walls.size(); i++) {
-			curr_Closest = walls.at(i)->find_Closest_Node(neighbors);
-		//	cout << "found closest" << endl;			
-			walls.at(i)->make_Connection(curr_Closest);
-		//	cout << "made connection" << endl;
-		}	
+		//	if(walls.at(i)->get_Closest() == NULL) {
+				curr_Closest = walls.at(i)->find_Closest_Node(neighbors);
+				//	cout << "found closest" << endl;			
+				walls.at(i)->make_Connection(curr_Closest);
+				//	cout << "made connection" << endl;
+		//	}
+		}
 	}
 	return;
 }
@@ -404,9 +409,11 @@ void Cell::update_adhesion_springs() {
 //  Forces and Positioning
 //============================
 //===============================================================
-void Cell::calc_New_Forces(int Ti) {
+void Cell::calc_New_Forces(int Ti) { 
 	#pragma omp parallel for
 	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+		//printf("second region Thread ID == %d\n", omp_get_thread_num());
+	
 		cyt_nodes.at(i)->calc_Forces();
 	}
 
@@ -416,7 +423,7 @@ void Cell::calc_New_Forces(int Ti) {
 
 	//Wall_Node* curr = left_Corner; 
 	//Wall_Node* orig = curr;
-	//int counter = 0;
+	//int counter = 0;i
 	//do {
 	#pragma omp parallel
 	{
@@ -543,10 +550,12 @@ void Cell::update_Cell_Progress(int& Ti) {
 	int number_cells = cells.size();
 	//variables for determining growth rate
 	//if(Ti >= 0) {
+//	if (this->Cell_Progress < 40) {	
 		if(Ti%growth_rate == (growth_rate -1)) {
 			this->add_Cyt_Node();
 			Cell_Progress = Cell_Progress + 1;
 		}
+//	}
 	/*if((this->Cell_Progress > 40)) {//&& (this->calc_Area() > 50)){
 	//	if(this->rank == 41) {
 		//cout << "Cell Prog" << Cell_Progress << endl;
@@ -637,6 +646,7 @@ double Cell::calc_Area() {
 void Cell::wall_Node_Check() {
 	//cout << "adding a wall node" << endl;
 	add_Wall_Node();
+	delete_Wall_Node();
 	return;
 }
 void Cell::add_Wall_Node() {
@@ -668,6 +678,59 @@ void Cell::add_Wall_Node() {
 	}
 	return;
 }
+void Cell::delete_Wall_Node() {
+	//find node to the right of largest spring
+	Wall_Node* left = NULL;
+	Wall_Node* right = NULL;
+	Wall_Node* small = NULL;
+	find_Smallest_Length(small);
+	if(small != NULL) {
+		//cout << "wasnt null" << endl;
+		left = small->get_Left_Neighbor();
+		right = small->get_Right_Neighbor();
+		
+		if(this->left_Corner == small) {
+			this->set_Left_Corner(left);
+		}
+		left->set_Right_Neighbor(right);
+		right->set_Left_Neighbor(left);
+		this->wall_nodes.clear();
+		this->num_wall_nodes = 0;
+		//Wall_Node* adhesion_connection = NULL;
+		if(small->get_Closest()!= NULL) {
+			small->get_Closest()->set_Closest(NULL,100);
+		}
+		//cout << "delete wall node" << endl;
+		delete small;	
+		//cout << "is it clear: " << wall_nodes.size() << endl;	
+		Wall_Node* curr = this->left_Corner;
+		Wall_Node* next = NULL;
+		Wall_Node* orig = curr;
+		//cout << "For loop" << endl;
+		do {
+			//cout << "Push back" << endl;
+			this->wall_nodes.push_back(curr);
+			//cout << "to the next" << endl;
+			next = curr->get_Left_Neighbor();
+			//cout << "count the walls" << endl;
+			this->num_wall_nodes++;
+			curr = next;
+			//cout << "end loop" << endl;
+		}while(next != orig);
+		//cout << "out of loop" << endl;
+		update_Wall_Equi_Angles();
+		update_Wall_Angles();
+		update_adhesion_springs();
+		//vector<Cell*> neighbs;
+		//this->get_Neighbor_Cells(neighbs);
+		//Wall_Node* curr_Closest = added_node->find_Closest_Node(neighbs);
+		//added_node->make_Connection(curr_Closest);
+	}
+//	else {
+		//cout << "null" << endl;
+//	}
+	return;
+}
 void Cell::find_Largest_Length(Wall_Node*& right) {
 	vector<Wall_Node*> walls; 
 	this->get_Wall_Nodes_Vec(walls);
@@ -683,6 +746,31 @@ void Cell::find_Largest_Length(Wall_Node*& right) {
 			curr_len = (walls.at(i)->get_Location()-left_neighbor->get_Location()).length();
 			if(curr_len > MEMBR_THRESH_LENGTH) {			
 				if(curr_len > max_len) {
+					#pragma omp critical
+					max_len = curr_len;
+					right = walls.at(i);
+				}
+			}
+		}		
+	//cout << "Cell " << rank << " -- big gaps: " << big_gaps << endl;
+	}
+	return;
+}
+void Cell::find_Smallest_Length(Wall_Node*& right) {
+	vector<Wall_Node*> walls; 
+	this->get_Wall_Nodes_Vec(walls);
+	double max_len = 100;
+//	Wall_Node* right = NULL;
+	#pragma omp parallel 
+	{
+		Wall_Node* left_neighbor;
+		double curr_len = 0;
+		#pragma omp for schedule(static,1)
+		for(unsigned int i=0; i < walls.size(); i++) {
+			left_neighbor = walls.at(i)->get_Left_Neighbor();
+			curr_len = (walls.at(i)->get_Location()-left_neighbor->get_Location()).length();
+			if(curr_len < .06) {			
+				if(curr_len < max_len) {
 					#pragma omp critical
 					max_len = curr_len;
 					right = walls.at(i);
