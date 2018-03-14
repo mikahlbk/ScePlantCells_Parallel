@@ -410,6 +410,7 @@ void Cell::update_adhesion_springs() {
 //============================
 //===============================================================
 void Cell::calc_New_Forces(int Ti) { 
+	cout << "cyt node force" << endl;
 	#pragma omp parallel for
 	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
 		//printf("second region Thread ID == %d\n", omp_get_thread_num());
@@ -423,22 +424,23 @@ void Cell::calc_New_Forces(int Ti) {
 
 	//Wall_Node* curr = left_Corner; 
 	//Wall_Node* orig = curr;
-	//int counter = 0;i
+	int counter = 0;
 	//do {
+	cout << "wall node forces" << endl;
 	#pragma omp parallel
 	{
 		Wall_Node* curr;
-		//counter++;
+		counter++;
 		#pragma omp for schedule(static,1)
 		for(unsigned int i=0; i < walls.size(); i++) {
 			curr = walls.at(i);
-//			cout << "Wall node number: " << counter << endl;
+			cout << "Wall node number: " << counter << endl;
 			curr->calc_Forces(Ti);
-//			cout << "Forces calculated" << endl;
+			cout << "Forces calculated" << endl;
 			//curr = curr->get_Left_Neighbor();
 	
 		} //while (curr != orig);
-	//cout << "out of forces function" << endl;
+	cout << "out of forces function" << endl;
 	}
 	return;
 }
@@ -646,7 +648,7 @@ double Cell::calc_Area() {
 void Cell::wall_Node_Check() {
 	//cout << "adding a wall node" << endl;
 	add_Wall_Node();
-	delete_Wall_Node();
+	//delete_Wall_Node();
 	return;
 }
 void Cell::add_Wall_Node() {
@@ -692,17 +694,15 @@ void Cell::delete_Wall_Node() {
 		if(this->left_Corner == small) {
 			this->set_Left_Corner(left);
 		}
+		cout << "delete wall node" << endl;
+		delete small;	
+		
 		left->set_Right_Neighbor(right);
 		right->set_Left_Neighbor(left);
 		this->wall_nodes.clear();
 		this->num_wall_nodes = 0;
 		//Wall_Node* adhesion_connection = NULL;
-		if(small->get_Closest()!= NULL) {
-			small->get_Closest()->set_Closest(NULL,100);
-		}
-		//cout << "delete wall node" << endl;
-		delete small;	
-		//cout << "is it clear: " << wall_nodes.size() << endl;	
+		cout << "is it clear: " << wall_nodes.size() << endl;	
 		Wall_Node* curr = this->left_Corner;
 		Wall_Node* next = NULL;
 		Wall_Node* orig = curr;
@@ -717,7 +717,8 @@ void Cell::delete_Wall_Node() {
 			curr = next;
 			//cout << "end loop" << endl;
 		}while(next != orig);
-		//cout << "out of loop" << endl;
+		cout << "out of loop" << wall_nodes.size() << endl;
+		
 		update_Wall_Equi_Angles();
 		update_Wall_Angles();
 		update_adhesion_springs();

@@ -85,15 +85,14 @@ int main(int argc, char* argv[]) {
 	
 		// Tissue Growth
 		
-		//cout << "update cell cycle of each cell" << endl;
+		cout << "update cell cycle of each cell" << endl;
 		//this includes a check for division and addition
 		//of new internal nodes according to growth rate
 	//	if(Ti > 2500){
 			growing_Tissue.update_Cell_Cycle(Ti);
 	//	}
-		//cout << ":wq
-		//updated cell cycle" << endl;	
-		//cout << "add new cell wall nodes if needed" << endl;
+		cout << "updated cell cycle" << endl;	
+		cout << "add new cell wall nodes if needed" << endl;
 		//adds one new cell wall node in the biggest gap
 		
 		//if(Ti< 2000) {
@@ -105,11 +104,11 @@ int main(int argc, char* argv[]) {
 		//}	
 	//	}
 		if (Ti%200 == 0) {
-			//cout << "Find Neighbors" << endl;
+			cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}
 		//if(Ti< 30000) {
-			//cout << "Finding adhesion points" << endl;
+			cout << "Finding adhesion points" << endl;
 		//if(Ti%200 ==199) {
 		//	growing_Tissue.update_Adhesion();
 		//}
@@ -124,10 +123,10 @@ int main(int argc, char* argv[]) {
 		//	growing_Tissue.add_cyt_node();
 		//}
 		//Calculate new forces on cells and nodes
-		//cout << "forces" << endl;
+		cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
 	
-		//cout << "locations" << endl;
+		cout << "locations" << endl;
 		//Update node positions
 		growing_Tissue.update_Cell_Locations();
 		//cout << "Finished" << endl;

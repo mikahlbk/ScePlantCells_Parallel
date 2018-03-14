@@ -155,6 +155,7 @@ Wall_Node::Wall_Node(Coord loc, Cell* my_cell) : Node(loc) {
 	this->my_cell = my_cell;
 	this->closest = NULL;
 	this->closest_len = 100;
+	//this->side = side;
 }
 
 Wall_Node::Wall_Node(Coord loc, Cell* my_cell, Wall_Node* left, Wall_Node* right) : Node(loc)   {
@@ -246,15 +247,15 @@ void Wall_Node::calc_Forces(int Ti) {
 	// Initialize force sum to zero by default constructor
 	Coord sum;
 	sum += calc_Morse_SC();
-//	cout << "SC success" << endl;	
+	cout << "SC success" << endl;	
 	cyt_force = sum;
 
 	sum += calc_Morse_DC();
-//	cout << "DC" << calc_Morse_DC() << endl;
+	cout << "DC" << calc_Morse_DC() << endl;
 	sum += calc_Linear();
-//	cout << "linear" << endl;
+	cout << "linear" << endl;
 	sum += calc_Bending();
-//	cout << "bending" << endl;
+	cout << "bending" << endl;
 
 	// Update new_force variable for location updating
 	new_force = sum;
@@ -287,7 +288,7 @@ Coord Wall_Node::calc_Morse_DC() {
 	vector<Cell*> cells;
 	my_cell->get_Neighbor_Cells(cells);	
 	vector<Wall_Node*> walls;
-	//cout << "getting neighbors" << endl;
+	cout << "getting neighbors dc" << endl;
 	Wall_Node* curr = NULL;
 	Wall_Node* orig = NULL;
 	#pragma omp parallel
@@ -310,17 +311,18 @@ Coord Wall_Node::calc_Morse_DC() {
 	//cout << "made it out of loop" << endl;
 	//cout << closest << endl;
 	if(this->closest != NULL){
-	//	cout << "closest not null" << endl;
+		cout << "closest not null" << endl;
 		closest->get_Location();
-	//	cout << "got location" << endl;
+		cout << "got location" << endl;
 		Fdc += linear_Equation_ADH(this->closest);
-	//	cout << "computed adh successfully" << endl;
+		cout << "computed adh successfully" << endl;
 	}
 	//cout << " morse_DC: " << Fdc << endl;
 	return Fdc;
 }
 
 Coord Wall_Node::neighbor_nodes(Cell* neighbor) {
+	cout << "neighbor nodes"<< endl;
 	Coord sum;
 	vector<Wall_Node*> walls;
 	neighbor->get_Wall_Nodes_Vec(walls);
@@ -331,9 +333,9 @@ Coord Wall_Node::neighbor_nodes(Cell* neighbor) {
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
 		#pragma omp for reduction(+:sum) schedule(static,1) 
 		for(unsigned int j =0; j< walls.size(); j++) {
-			//cout << "getting wall nodes" << endl;
+			cout << "getting wall nodes" << endl;
 			sum += morse_Equation(walls.at(j));
-			//cout << "morse" << endl;
+			cout << "morse" << endl;
 		}
 	}
 
@@ -524,7 +526,7 @@ Coord Wall_Node::linear_Equation(Wall_Node* wall) {
 	
 	//use spring constant variables
 	Coord F_lin;
-	Coord k_linear = this->get_My_Cell()->get_K_LINEAR();
+	Coord  k_linear = this->get_My_Cell()->get_K_LINEAR();
 //	Coord K_LINEAR;
 //	if(this->get_My_Cell()->get_Layer() == 1) {
 //		K_LINEAR = K_LINEAR_WIDE;

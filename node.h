@@ -68,6 +68,7 @@ class Wall_Node: public Node {
 		Coord cyt_force;
 		Wall_Node* closest;
 		double closest_len;
+		//string side;
 		//vector<Wall_Node*> closest_vec;
     		//double closest_len;
     public:
@@ -96,7 +97,7 @@ class Wall_Node: public Node {
 		void set_Closest_Vec(Wall_Node* closest);
 		void clear_Closest_Vec();
 		Coord get_CytForce() {return cyt_force;}
-      		
+      		//string get_Side() {return side;}
 		//Force Calculations
 		void calc_Forces(int Ti);
 		Coord calc_Morse_SC();
