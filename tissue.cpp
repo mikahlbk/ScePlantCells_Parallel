@@ -103,22 +103,45 @@ void Tissue::update_Cell_Cycle(int Ti) {
 	return;
 }
 //adds node to cell wall if needed for each cell
-void Tissue::update_Wall() {
+void Tissue::add_Wall() {
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->wall_Node_Check();
+		cells.at(i)->add_Wall_Node();
 		//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
 	}
+	return;
+}
+void Tissue::delete_Wall() {
+	vector<Cell*> neighbors;
+	#pragma omp parallel for schedule(static,1)
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->delete_Wall_Node();
+	}	
+	for(unsigned int i= 0; i < cells.size();i++){
+		if(cells.at(i)->return_is_deleted()){
+			cells.at(i)->update_adhesion_springs();
+			cells.at(i)->get_Neighbor_Cells(neighbors);
+			//cout<< "neighbors loop" << endl;
+			for(unsigned int j =0; j< neighbors.size();j++){
+				neighbors.at(j)->update_adhesion_springs();
+			}
+		}
+	}	
+	//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
 	return;
 }
 //calculates the forces for nodes of  each cell 
 void Tissue::calc_New_Forces(int Ti) {
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
+		//if(i == 62) {
 		//cout << "Calc forces for cell: " << i << endl;
+		//}
 		cells.at(i)->calc_New_Forces(Ti);
+		//if(i == 62) {
 		//cout << "success for cell: " << i << endl;
-	}
+		//}
+	}	
 	return;
 }
 
@@ -178,7 +201,7 @@ int Tissue::update_VTK_Indices() {
 }
 
 void Tissue::print_VTK_File(ofstream& ofs) {
-	//int rel_cnt = update_VTK_Indices();
+	int rel_cnt = update_VTK_Indices();
 
 
 	ofs << "# vtk DataFile Version 3.0" << endl;
@@ -205,8 +228,9 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	}
 
 	ofs << endl;
-	ofs << "CELLS " << cells.size()<< ' ' << (num_Points + start_points.size())  << endl;
-
+	//ofs << "CELLS " << cells.size()<< ' ' << (num_Points + start_points.size())  << endl;
+	
+	ofs << "CELLS " << cells.size()+rel_cnt<< ' ' << (num_Points + start_points.size())+(rel_cnt*3)  << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		ofs << cells.at(i)->get_Node_Count();
 
@@ -217,21 +241,23 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	}
 	
 //	//output pairs of node indices to draw adh line
-	/*for(unsigned int i = 0; i < cells.size(); i++) {
+	for(unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Adh(ofs);
-	}*/
+	}
 
 	ofs << endl;
 
-	ofs << "CELL_TYPES " << start_points.size() << endl;
+	//ofs << "CELL_TYPES " << start_points.size() << endl;
+	ofs << "CELL_TYPES " << start_points.size()+rel_cnt << endl;
+	
 	for (unsigned int i = 0; i < start_points.size(); i++) {
 		ofs << 2 << endl;
 	}
 
-	/*for(unsigned int i = 0; i < rel_cnt; i++) {
+	for(unsigned int i = 0; i < rel_cnt; i++) {
 //		//type for adh relationship
 		ofs << 3 << endl;
-	}*/
+	}
 
 	ofs << endl;
 

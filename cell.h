@@ -41,6 +41,7 @@ class Cell {
 		vector<Wall_Node*> wall_nodes;
 		vector<Cyt_Node*> cyt_nodes;
 		vector<Cell*> neigh_cells;
+		bool is_deleted;
 		Wall_Node* left_Corner;	
 	public:
 		
@@ -63,6 +64,7 @@ class Cell {
 		int get_Node_Count();
 		int get_wall_count() {return num_wall_nodes;}
 		int get_cyt_count() {return num_cyt_nodes;}
+		bool return_is_deleted() {return is_deleted;}
 		void get_Wall_Nodes_Vec(vector<Wall_Node*>& walls);
 		void add_wall_node_vec(Wall_Node* curr);
 		void get_Cyt_Nodes_Vec(vector<Cyt_Node*>& cyts);
@@ -102,13 +104,16 @@ class Cell {
 		//Growth of a cell
 		void update_Cell_Progress(int& Ti);
 		double calc_Area();
-		void wall_Node_Check();
+		void add_wall_Node_Check();
+		void delete_wall_Node_Check();
 		void add_Wall_Node();
+		void delete_Wall_Node();
 		void compute_Main_Strain_Direction(double& x_length, double& y_length); 
 		Wall_Node* find_closest_node_top(); 
 		Wall_Node* find_closest_node_bottom();
 		Wall_Node* find_closest_node_left();
 		Wall_Node* find_closest_node_right();
+		void find_Smallest_Length(Wall_Node*& right);
 		void find_Largest_Length(Wall_Node*& right);
 		void find_Largest_Length_Div(Wall_Node*& right, Wall_Node*& second_right);
 		void add_Cyt_Node();

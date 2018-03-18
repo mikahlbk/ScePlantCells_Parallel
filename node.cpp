@@ -153,6 +153,7 @@ Wall_Node::Wall_Node(Coord loc, Cell* my_cell) : Node(loc) {
 	this->my_cell = my_cell;
 	this->closest = NULL;
 	this->closest_len = 100;
+	this->is_delete = false;
 }
 
 Wall_Node::Wall_Node(Coord loc, Cell* my_cell, Wall_Node* left, Wall_Node* right) : Node(loc)   {
@@ -162,6 +163,7 @@ Wall_Node::Wall_Node(Coord loc, Cell* my_cell, Wall_Node* left, Wall_Node* right
 	this->closest = NULL;
 	this->closest_len = 100;
 	update_Angle();
+	this->is_delete = false;
 }
 
 Wall_Node::~Wall_Node() {
@@ -192,7 +194,15 @@ void Wall_Node::set_Right_Neighbor(Wall_Node* new_Right) {
 	this->right = new_Right;
 	return;
 }
-
+void Wall_Node::set_Delete(int y) {
+	if(y == 0){
+		this->is_delete = false;
+	}
+	if(y==1){
+		this->is_delete = true;
+	}
+	return;
+}
 void Wall_Node::update_Angle() {
 	Coord left_vect = get_Left_Neighbor()->get_Location() - get_Location();
 	Coord right_vect = get_Right_Neighbor()->get_Location() - get_Location();
@@ -243,17 +253,30 @@ void Wall_Node::set_Closest(Wall_Node*  closest, double closest_len) {
 void Wall_Node::calc_Forces(int Ti) {
 	// Initialize force sum to zero by default constructor
 	Coord sum;
+	/*if(this->get_My_Cell()->get_Rank()== 62){
 	sum += calc_Morse_SC();
-//	cout << "SC success" << endl;	
+	cout << "SC success" << endl;	
 	cyt_force = sum;
 
 	sum += calc_Morse_DC();
-//	cout << "DC" << calc_Morse_DC() << endl;
+	cout << "DC" << calc_Morse_DC() << endl;
 	sum += calc_Linear();
-//	cout << "linear" << endl;
+	cout << "linear" << endl;
 	sum += calc_Bending();
-//	cout << "bending" << endl;
+	cout << "bending" << endl;
+	}*/
+	//else {
+	sum += calc_Morse_SC();
+	//cout << "SC success" << endl;	
+	cyt_force = sum;
 
+	sum += calc_Morse_DC();
+	//cout << "DC" << calc_Morse_DC() << endl;
+	sum += calc_Linear();
+	//cout << "linear" << endl;
+	sum += calc_Bending();
+	//cout << "bending" << endl;
+	//}
 	// Update new_force variable for location updating
 	new_force = sum;
 
@@ -304,7 +327,9 @@ Coord Wall_Node::calc_Morse_DC() {
 	}
 
 	//cout << "made it out of loop" << endl;
-	//cout << closest << endl;
+	/*if(this->get_My_Cell()->get_Rank()== 62){
+	cout << "adhesion" << endl;
+	}*/
 	if(this->closest != NULL){
 	//	cout << "closest not null" << endl;
 		closest->get_Location();
@@ -337,15 +362,30 @@ Coord Wall_Node::neighbor_nodes(Cell* neighbor) {
 //bending force of node
 Coord Wall_Node::calc_Bending() {
 	Coord F_bend;
-
+	/*if(this->get_My_Cell()->get_Rank() == 62) {
+	cout << "center" << endl;
 	F_bend += bending_Equation_Center();
+	cout << "left" << endl;
 	F_bend += bending_Equation_Left();
+	cout << "right" << endl;
 	F_bend += bending_Equation_Right();
-	
+	cout << "done" << endl;
+	}*/
+	//else{
+	//cout << "center" << endl;
+	F_bend += bending_Equation_Center();
+	//cout << "left" << endl;
+	F_bend += bending_Equation_Left();
+	//cout << "right" << endl;
+	F_bend += bending_Equation_Right();
+	//cout << "done" << endl;
+	//}	
 	if (cross_Prod < 0.0) {
 		F_bend = F_bend*(-1);
 	}	
-//	cout << "	bending: " << F_bend << endl;
+	/*if(this->get_My_Cell()->get_Rank() == 62) {
+	cout << "	bending: " << F_bend << endl;
+	}*/
 	return F_bend;
 }
 

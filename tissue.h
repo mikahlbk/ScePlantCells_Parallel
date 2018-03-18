@@ -30,7 +30,8 @@ class Tissue {
 		void get_Cells(vector<Cell*>& cells);
 		void update_Num_Cells(Cell*& new_Cell);
 		void update_Cell_Cycle(int Ti);
-		void update_Wall();
+		void add_Wall();
+		void delete_Wall();
 		void calc_New_Forces(int Ti);
 		void update_Cell_Locations();
 		void update_Neighbor_Cells();

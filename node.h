@@ -68,6 +68,7 @@ class Wall_Node: public Node {
 		Coord cyt_force;
 		Wall_Node* closest;
 		double closest_len;
+		bool is_delete;
 		//vector<Wall_Node*> closest_vec;
     		//double closest_len;
     public:
@@ -83,6 +84,7 @@ class Wall_Node: public Node {
 		void set_Equi_Angle(double angle);
 		void set_Left_Neighbor(Wall_Node* new_Left);
 		void set_Right_Neighbor(Wall_Node* new_Right);
+		void set_Delete(int y);
 		Cell* get_My_Cell() {return my_cell;}
 		void update_Angle();
 		void update_Equi_Angle(double new_theta);
