@@ -28,14 +28,16 @@ class Tissue {
 	public:
 		Tissue(string filename);
 		void get_Cells(vector<Cell*>& cells);
+		int  get_num_cells() {return num_cells;}
 		void update_Num_Cells(Cell*& new_Cell);
 		void update_Cell_Cycle(int Ti);
-		void add_Wall();
-		void delete_Wall();
+		void add_Wall(int Ti);
+		void delete_Wall(int Ti);
 		void calc_New_Forces(int Ti);
 		void update_Cell_Locations();
 		void update_Neighbor_Cells();
-		void update_Adhesion();
+		void update_Adhesion(int Ti);
+		void update_Microfibrils(int Ti);
 		void compression_Test();
 		void pressure();
 		void add_cyt_node();
@@ -43,6 +45,7 @@ class Tissue {
 		void stretching_Test();
 		void elastic_mod_measurements();
 		void cell_area();
+		void nematic_output(ofstream& ofs);
 		//void cell_strain();
 		void make_Vectors();
 		void print_Data_Output(ofstream& ofs);

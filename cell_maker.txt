@@ -1,341 +1,341 @@
 CellRank:0
-Center:-10,-35
+Center:-10,-45
 Radius:3.75
 Layer:6
 End_Cell
  
 CellRank:1
-Center:-0.8,-35
+Center:-0.8,-45
 Radius:3.75
 Layer:6
 End_Cell
  
 CellRank:2
-Center:8.4,-35
+Center:8.4,-45
 Radius:3.75
 Layer:6
 End_Cell
  
 CellRank:3
-Center:-10,-25.8
+Center:-10,-35.8
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:4
-Center:-0.8,-25.8
+Center:-0.8,-35.8
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:5
-Center:8.4,-25.8
+Center:8.4,-35.8
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:6
-Center:-19.2,-16.6
+Center:-19.2,-26.6
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:7
-Center:-10,-16.6
+Center:-10,-26.6
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:8
-Center:-0.8,-16.6
+Center:-0.8,-26.6
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:9
-Center:8.4,-16.6
+Center:8.4,-26.6
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:10
-Center:17.6,-16.6
+Center:17.6,-26.6
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:11
-Center:-19.2,-7.4
+Center:-19.2,-17.4
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:12
-Center:-10,-7.4
+Center:-10,-17.4
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:13
-Center:-0.8,-7.4
+Center:-0.8,-17.4
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:14
-Center:8.4,-7.4
+Center:8.4,-17.4
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:15
-Center:17.6,-7.4
+Center:17.6,-17.4
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:16
-Center:-19.2,1.8
+Center:-19.2,-8.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:17
-Center:-10,1.8
+Center:-10,-8.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:18
-Center:-0.8,1.8
+Center:-0.8,-8.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:19
-Center:8.4,1.8
+Center:8.4,-8.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:20
-Center:17.6,1.8
+Center:17.6,-8.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:21
-Center:-28.4,11
+Center:-28.4,1
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:22
-Center:-19.2,11
+Center:-19.2,1
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:23
-Center:-10,11
+Center:-10,1
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:24
-Center:-0.8,11
+Center:-0.8,1
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:25
-Center:8.4,11
+Center:8.4,1
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:26
-Center:17.6,11
+Center:17.6,1
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:27
-Center:26.8,11
+Center:26.8,1
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:28
-Center:-28.4,20.2
+Center:-28.4,10.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:29
-Center:-19.2,20.2
+Center:-19.2,10.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:30
-Center:-10,20.2
+Center:-10,10.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:31
-Center:-0.8,20.2
+Center:-0.8,10.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:32
-Center:8.4,20.2
+Center:8.4,10.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:33
-Center:17.6,20.2
+Center:17.6,10.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:34
-Center:26.8,20.2
+Center:26.8,10.2
 Radius:3.75
 Layer:3
 End_Cell
  
 CellRank:35
-Center:-46.8,29.4
+Center:-46.8,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:36
-Center:-37.6,29.4
+Center:-37.6,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:37
-Center:-28.4,29.4
+Center:-28.4,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:38
-Center:-19.2,29.4
+Center:-19.2,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:39
-Center:-10,29.4
+Center:-10,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:40
-Center:-0.8,29.4
+Center:-0.8,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:41
-Center:8.4,29.4
+Center:8.4,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:42
-Center:17.6,29.4
+Center:17.6,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:43
-Center:26.8,29.4
+Center:26.8,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:44
-Center:36,29.4
+Center:36,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:45
-Center:45.2,29.4
+Center:45.2,19.4
 Radius:3.75
-Layer:1
+Layer:2
 End_Cell
  
 CellRank:46
-Center:-46.8,38.6
+Center:-46.8,28.6
 Radius:3.75
 Layer:1
 End_Cell
  
 CellRank:47
-Center:-37.6,38.6
+Center:-37.6,28.6
 Radius:3.75
 Layer:1
 End_Cell
  
 CellRank:48
-Center:-28.4,38.6
+Center:-28.4,28.6
 Radius:3.75
 Layer:1
 End_Cell
  
 CellRank:49
-Center:-19.2,38.6
+Center:-19.2,28.6
 Radius:3.75
 Layer:1
 End_Cell
  
 CellRank:50
-Center:-10,38.6
+Center:-10,28.6
 Radius:3.75
 Layer:1
 End_Cell
  
 CellRank:51
-Center:-0.8,38.6
+Center:-0.8,28.6
 Radius:3.75
 Layer:1
 End_Cell
  
 CellRank:52
-Center:8.4,38.6
+Center:8.4,28.6
 Radius:3.75
 Layer:1
 End_Cell
  
 CellRank:53
-Center:17.6,38.6
+Center:17.6,28.6
 Radius:3.75
 Layer:1
 End_Cell
  
 CellRank:54
-Center:26.8,38.6
+Center:26.8,28.6
 Radius:3.75
 Layer:1
 End_Cell
  
 CellRank:55
-Center:36,38.6
+Center:36,28.6
 Radius:3.75
 Layer:1
 End_Cell
  
 CellRank:56
-Center:45.2,38.6
+Center:45.2,28.6
 Radius:3.75
 Layer:1
 End_Cell

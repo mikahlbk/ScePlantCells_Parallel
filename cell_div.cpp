@@ -17,7 +17,7 @@
 #include "cell.h"
 #include "tissue.h"
 //==========================
-
+//extra need to get rid of this function
 Cell* Cell::divide() {
 	Cell* sister = NULL;
 	//calculate area
@@ -38,164 +38,175 @@ Cell* Cell::divide() {
 	//	}
 	return sister;
 }
+//find the nodes to set up the division plane
+void  Cell::find_nodes_for_div_plane(Coord& direction, vector<Wall_Node*>& nodes) {
+	vector<Wall_Node*> walls;
+	this->get_Wall_Nodes_Vec(walls);
+        double theta = 0;
+        double costheta = 0;
+	double curr_len = 0;
+	double growth_len = 0;
+	Coord curr_vec;	
+	double curr_diff = 100;
+	double smallest_1 = 100;
+	double smallest_2 = 100;
+	Wall_Node* first = NULL;
+	Wall_Node* second = NULL;
+	//find first node that makes 90 degree angle
+	for(unsigned int i = 0; i < walls.size();i++) {	
+		curr_vec = walls.at(i)->get_Location() - cell_center;
+		//cout << walls.at(i)->get_Location() << endl;
+		//cout << "center" << cell_center << endl;
+		//cout << "curr vec" << curr_vec << endl;
+		curr_len = curr_vec.length();	
+		//cout << "curr len" << curr_len << endl;
+		growth_len = direction.length();
+		//cout << "growth len" << growth_len << endl;
+		costheta = direction.dot(curr_vec)/(curr_len*growth_len);
+		//cout << "cos" << costheta << endl;
+		theta = acos( min( max(costheta,-1.0), 1.0) );
+		//cout << "theta " << theta << endl;
+		
+		curr_diff = fabs(theta-1.5708);
+		//cout << curr_diff << "curr_diff" << endl;
+	//	if(curr_diff < .1){
+			if(curr_diff<smallest_1){
+				smallest_1 = curr_diff;
+				first = walls.at(i);
+			}
+	//	}
+	
+	}
+	Coord flipped_dir = direction*(-1);
+	for(unsigned int i = 0; i < walls.size();i++) {	
+		curr_vec = walls.at(i)->get_Location() - cell_center;
+		//cout << walls.at(i)->get_Location() << endl;
+		//cout << "center" << cell_center << endl;
+		//cout << "curr vec" << curr_vec << endl;
+		curr_len = curr_vec.length();	
+		//cout << "curr len" << curr_len << endl;
+		growth_len = flipped_dir.length();
+		//cout << "growth len" << growth_len << endl;
+		costheta = flipped_dir.dot(curr_vec)/(curr_len*growth_len);
+		//cout << "cos" << costheta << endl;
+		theta = acos( min( max(costheta,-1.0), 1.0) );
+		//cout << "theta " << theta << endl;
+		
+		curr_diff = fabs(theta-1.5708);
+		//cout << curr_diff << "curr_diff" << endl;
+	//	if(curr_diff < .1){
+			if(curr_diff<smallest_2){
+				if(walls.at(i) != first){
+				smallest_2 = curr_diff;
+				second = walls.at(i);
+				}
+			}
+	//	}
+	}
+	//cout << "first" << first << endl;
+	//cout << "second" << second << endl;
+	nodes.push_back(first);
+	nodes.push_back(second);
+	return;	
+}
+
 Cell* Cell::division() {
 	//current cell will split into two daughter cells
 	//	-"this" will keep its entity as the left sister
 	//	this functoin will create a sister cell to the right
 	//	and return it to the tissue
 	Cell* sister = new Cell(my_tissue);
-	double center_x = this->cell_center.get_X();
-	double center_y = this->cell_center.get_Y();
-
-	cout << "Made new cell pointer" << endl;
-	
-	Wall_Node* closest = NULL;
-	Wall_Node* next_closest = NULL;
-	Wall_Node* curr = left_Corner;
+	//pointers for while loops throughout function
+	cout << num_wall_nodes << endl;
+	Wall_Node* curr = NULL;
 	Wall_Node* next = NULL;
-	Wall_Node* orig = curr;
-
-
-/*	double a = compute_Stress_Tensor_X();
-	//cout << "a " << a << endl;
-	double b = compute_Stress_Tensor_XY();
-	//cout << "b " << b << endl;
-	double c = compute_Stress_Tensor_XY();
-	//cout << "c " << c << endl;
-	double d = compute_Stress_Tensor_Y();
-	//cout << "d " << d << endl;
-	//cout << "Got stress tensor" << endl;
-	//vector to hold eigenvector from stress tensor
-	vector<double>eigen_vector;
-	//cout << "eigen vector" << endl;
-	//uses computed stress tensor to get eigenvector
-	//associated with the largest eigenvalue
-	stress_Tensor_Eigenvalues(a,b,c,d,eigen_vector);
-	//cout << "Fill eigenvector" << endl;
-	//to get the values of the line that goes 
-	//through center of the cell and is parallel to 
-	//the computed eigenvector above
-	double a_line = eigen_vector.at(0);
-	//cout << "a" << endl;
-	double b_line = eigen_vector.at(1);
-	//cout << "b" << endl;
-	double c_line = -1*eigen_vector.at(0)*cell_center.get_X() + -1*eigen_vector.at(1)*cell_center.get_Y();
-	//cout << "c" << endl;
-	//cout << "Made line equation" << endl; 
-	double distance;
-	double min_distance = 100;
+	Wall_Node* orig = NULL;
 	
-	//find closest node to line
-	do {
-		next = curr->get_Left_Neighbor();
-		distance = fabs(a_line*curr->get_Location().get_X() + b_line*curr->get_Location().get_Y() + c_line)/(pow(a_line,2) + pow(b_line,2));
-		if(distance < min_distance) {
-			min_distance = distance;
-			closest = curr;
-		}
-		curr = next;
-	} while (next != orig);
-	
-	
-	//cout<< "Found closest" << endl;
-	min_distance = 100;
-	curr = closest->get_Left_Neighbor();
-	orig = closest;
-	
-	//find next closest node to line
-	do {
-		next = curr->get_Left_Neighbor();
-		distance = fabs(a_line*curr->get_Location().get_X() + b_line*curr->get_Location().get_Y() + c_line)/(pow(a_line,2) + pow(b_line,2));
-		if((curr->get_Location() - closest->get_Location()).length() > 2) {		
-			if(distance < min_distance) {																		     	min_distance = distance;																		     next_closest = curr;
-			}
-																						              }
-		curr = next;																			     } while (next != orig);
-
-	
-	//cout << "Found next closest" << endl;
-	//cout << "Closest: " << closest << endl;
-	//cout << "Next closest: " << next_closest << endl;
+	vector<Wall_Node*>nodes;
 	Wall_Node* start = NULL;
 	Wall_Node* end = NULL;
-	if(closest->get_Location().get_Y() >= next_closest->get_Location().get_Y()) {
-		end = closest;
-		start = next_closest;
-	}
-	else {
-		end = next_closest; 
-		start = closest; 
-	}
-	*/
-	double x_length = 0;
-	double y_length = 0;
-	bool anticlinal = false;
-	bool periclinal = false;
-	//this->compute_Main_Strain_Direction(x_length,y_length);
-	if((this->layer == 1) || (this->layer == 2) ) { //x_length > y_length) {
-		anticlinal = true;
-	}
-	else {
-		periclinal = true;
-	}
-	Wall_Node* start = NULL;
-	Wall_Node* end = NULL;
+	Coord horizontal = Coord(1,0);
+	Coord vertical = Coord(0,1);
 	
-	if(anticlinal) {
-		start = find_closest_node_bottom();
-		end = find_closest_node_top();
+	if((this->get_Layer() != 1)&&(this->get_Layer()!=2)) {
+		find_nodes_for_div_plane(horizontal,nodes);
 	}
 	else {
-		start = find_closest_node_left();
-		end = find_closest_node_right();
+		find_nodes_for_div_plane(vertical,nodes);
 	}
-	if((start==NULL)||(end==NULL)
-) {
-		cout << "pointer problem"<< endl;
+	start = nodes.at(0);
+	end = nodes.at(1);
+	cout << "got start and end" << endl;	
+	if((start==NULL)||(end==NULL)) {
+		cout << "pointer problem in division"<< endl;
 	}
-	cout << "Deleting for goodness" << endl;
+	cout << "Setting new start and end Points" << endl;
 	Wall_Node* left_start = start;
+	cout << "left start broke" << left_start << endl;
 	Wall_Node* left_end = end;
+	cout << "left end broke" << left_end << endl;
 	Wall_Node* right_start = start;
+	cout << "right start broke" << right_start << endl;
 	Wall_Node* right_end = end;
-	Wall_Node* curr_one = start;
-	Wall_Node* curr_two = start;
-	Wall_Node* curr_three = end;
-	Wall_Node* curr_four = end;
+	cout << "right end broke" << right_end << endl;
+	//move start and end pointers to correct location
+	//dont woory about deletion
+	//will delete nodes in the whole vector and start over
+/*	cout << "left" << endl;	
+	left_start = left_start->get_Right_Neighbor()->get_Right_Neighbor()->get_Right_Neighbor();
+	delete  left_start->get_Right_Neighbor()->get_Right_Neighbor();
+	delete  left_start->get_Right_Neighbor();
+	//delete  left_start;
+	cout << "right" << endl;
+	right_start = right_start->get_Left_Neighbor()->get_Left_Neighbor()->get_Left_Neighbor();
+	delete  right_start->get_Left_Neighbor()->get_Left_Neighbor();
+	delete  right_start->get_Left_Neighbor();
+	delete  start;	
+	cout << "left" << endl;
+	left_end = left_end->get_Left_Neighbor()->get_Left_Neighbor()->get_Left_Neighbor();
+	delete  left_end->get_Left_Neighbor()->get_Left_Neighbor();
+	delete  left_end->get_Left_Neighbor();	
+
+	cout << "right" << endl;
+	right_end = right_end->get_Right_Neighbor()->get_Right_Neighbor()->get_Right_Neighbor();
+	delete  right_end->get_Right_Neighbor()->get_Right_Neighbor();
+	delete  right_end->get_Right_Neighbor();
+	delete  end;
+*/	
+	//delete  right_end;
+	Wall_Node* currD = NULL;
 	for(unsigned int i = 0; i < 3; i++) {
+		cout << "left start" << left_start << endl;
+		currD = left_start;
 		left_start = left_start->get_Right_Neighbor();
-	//	delete left_start->get_Left_Neighbor();
-
 		right_start = right_start->get_Left_Neighbor();
-		if(i > 0) {
-	//		delete right_start->get_Right_Neighbor();
-		}		
+		cout << "delete" << currD << endl;
+		delete currD;
+		currD = left_end;
+		cout << "left end" << left_end << endl;
 		left_end = left_end->get_Left_Neighbor();
-	//	delete left_end->get_Right_Neighbor();
-
+		cout << "between" << endl;
 		right_end = right_end->get_Right_Neighbor();
-	//	if(i > 0) {
-	//		delete right_end->get_Left_Neighbor();
-	//	}
+		cout << "before" << endl;
+		cout << "currD" << currD << endl;
+		delete currD;
+		cout << "delete" << endl;
 	}
 		
-
-	cout << "deleted" << endl;
-
+	
 	cout << "lengths" << endl;
+	//Coord left_center = (left_start->get_Location() + left_end->get_Location())*.5;
+	//Coord right_center = (right_start->get_Location() + right_end->get_Location())*.5;
 	double left_length = (left_end->get_Location() - left_start->get_Location()).length();
 	double right_length = (right_end->get_Location() - right_start->get_Location()).length();
 
-	double total_num_left_dbl = (left_length/(MembrEquLen*2));
-	int total_num_left = (int) total_num_left_dbl -1;
-	double total_num_right_dbl = (right_length/(MembrEquLen*2));
-	int total_num_right = (int) total_num_right_dbl -1;
-	cout << "Total num right" << total_num_right << endl;	
-	cout << "Total num left" << total_num_left << endl;	
+	//double total_num_left_dbl = (left_length/(MembrEquLen*2));
+	int total_num_left = static_cast<int>(left_length/(MembrEquLen*2));
+	//double total_num_right_dbl = (right_length/(MembrEquLen*2));
+	int total_num_right = static_cast<int>(right_length/(MembrEquLen*2));
+	//cout << "Total num right" << total_num_right << endl;	
+	//cout << "Total num left" << total_num_left << endl;	
 	
-	//bool left = false;
-	//bool right = false;
-
 	double x_left = left_end->get_Location().get_X() - left_start->get_Location().get_X();
 	double x_right = right_end->get_Location().get_X() - right_start->get_Location().get_X();
 	//cout << x_left << endl;
@@ -204,123 +215,250 @@ Cell* Cell::division() {
 	 
 	double delta_x_left = (double)x_left/(double)total_num_left;
 	double delta_x_right = (double)x_right/(double)total_num_right;
-	//cout <<delta_x_left<< endl;
+	cout <<delta_x_left<< endl;
+	cout << delta_x_right << endl;
 	double delta_y_left = (double)y_left/(double)total_num_left;
 	double delta_y_right = (double)y_right/(double)total_num_left;
-
-	double start_x_left = left_start->get_Location().get_X();
-	double start_x_right = right_start->get_Location().get_X();
-	double start_y_left = left_start->get_Location().get_Y();
-	double start_y_right = right_start->get_Location().get_Y();
+	cout << delta_y_left << endl;
+	cout << delta_y_right << endl;
+	//double start_x_left = left_center.get_X();
+	//double start_x_right = right_center.get_X();
+	//double start_y_left = left_center.get_Y();
+	//double start_y_right = right_center.get_Y();
 	
-	
-	cout << "make left side" << endl;
-	curr = NULL;
-	double curr_x = start_x_left;
-	double curr_y = start_y_left;
-	Coord curr_coord = Coord(curr_x+delta_x_left,curr_y+delta_y_left);
-	Wall_Node* prev = left_start;
-	
-	for(unsigned int i = 0; i < total_num_left-2; i++) {
-		curr_coord = curr_coord + Coord(delta_x_left, delta_y_left);
-		cout << curr_coord << endl;
-		curr = new Wall_Node(curr_coord, this);
-//		cout << "Setting neighbors: " << i << endl;
-		prev->set_Left_Neighbor(curr);
-		curr->set_Right_Neighbor(prev);
-		prev = curr;
+	//here i will make line from center to left start
+	//left side
+	//Wall_Node* left_center_node = new Wall_Node(left_center,this);
+	Wall_Node* currW = left_start;
+	Coord location = left_start->get_Location();
+	Wall_Node* prevW = left_start;
+	double curr_X = left_start->get_Location().get_X()+2*delta_x_left;
+	double curr_Y = left_start->get_Location().get_Y()+2*delta_y_left;
+	//int counter = 0;
+	//int num_nodes = floor(total_num_left*.5)-3;
+	for(unsigned int i = 0; i< total_num_left-4; i++){
+		curr_X = curr_X + delta_x_left;
+		curr_Y = curr_Y + delta_y_left;
+		location = Coord(curr_X,curr_Y);
+	//	cout << "location" << location << endl;
+		currW = new Wall_Node(location,this);
+		currW->set_Right_Neighbor(prevW);
+		prevW->set_Left_Neighbor(currW);
+		prevW = currW;
+		//counter++;
+		//cout << counter << endl;	
 	}
-	curr->set_Left_Neighbor(left_end);
-	left_end->set_Right_Neighbor(curr);
-	left_Corner = left_start;
-
-	cout << "make right side" << endl;;
-	prev = right_start;
-	curr_y = start_y_right;
-	curr_x = start_x_right;
-	curr_coord = Coord(curr_x+delta_x_right, curr_y+delta_y_right);
-//	cout << total_num_right << endl;
-	for(unsigned int j = 0; j< total_num_right-2; j++) {
-		curr_coord = curr_coord + Coord(delta_x_right,delta_y_right);;
-		cout << curr_coord << endl;
-		curr = new Wall_Node(curr_coord, sister);
-//		cout << "Setting neighbors: " << j << endl;
-		prev->set_Right_Neighbor(curr);
-		//cout << "prev" << endl;
-		curr->set_Left_Neighbor(prev);
-		//cout<< "curr" << endl;
-		prev = curr;
-		//cout << "prev = curr" << endl;
+	currW->set_Left_Neighbor(left_end);
+	left_end->set_Right_Neighbor(currW);
+	this->left_Corner = left_start;
+	//here i will make line from center to left end
+	/*currW = left_center_node;
+	location = left_center;
+	prevW = currW;
+	curr_X = start_x_left;
+	curr_Y = start_y_left;
+	for(unsigned int i = 0; i< num_nodes; i++){
+		curr_X = curr_X + delta_x_left;
+		curr_Y = curr_Y + delta_y_left;
+		location = Coord(curr_X,curr_Y);
+		currW = new Wall_Node(location,this);
+		currW->set_Right_Neighbor(prevW);
+		prevW->set_Left_Neighbor(currW);
+		prevW = currW;	
 	}
-	curr->set_Right_Neighbor(right_end);
-	right_end->set_Left_Neighbor(curr);
+	currW->set_Left_Neighbor(left_end);
+	left_end->set_Right_Neighbor(currW);
+	this->left_Corner = left_start;*/
+
+	//right side
+	//line from center to right start
+	//Wall_Node* right_center_node = new Wall_Node(right_center,sister);
+	currW = right_start;
+	location = right_start->get_Location();;
+	prevW = right_start;
+	curr_X = location.get_X()+2*delta_x_right;
+	curr_Y = location.get_Y()+2*delta_y_right;
+	//num_nodes = floor(total_num_right*.5)-3;
+	for(unsigned int i = 0; i< total_num_right-4; i++){
+		curr_X = curr_X + delta_x_right;
+		curr_Y = curr_Y + delta_y_right;
+		location = Coord(curr_X,curr_Y);
+	//	cout << "location" << location << endl;
+		currW = new Wall_Node(location,sister);
+		currW->set_Left_Neighbor(prevW);
+		prevW->set_Right_Neighbor(currW);
+		prevW = currW;	
+	}
+	currW->set_Right_Neighbor(right_end);
+	right_end->set_Left_Neighbor(currW);
 	sister->set_Left_Corner(right_start);
-
-	//count wall nodes
-	cout << "begin delete wall nodes" << endl;
-	//Wall_Node* wall = NULL;
-	while(!wall_nodes.empty()) {
-	//	cout << "step 1" << endl;
-
-	//	wall = wall_nodes.at(wall_nodes.size() -1);
-	//	cout << "step 2" << endl;
-	//	delete wall;
-	//	cout << "step three " << endl;
-		wall_nodes.pop_back();
-	//	cout << "Step four " << endl;
-		num_wall_nodes--;
+	//here i will make line from center to left end
+	/*currW = right_center_node;
+	location = right_center;
+	prevW = currW;
+	curr_X = start_x_right;
+	curr_Y = start_y_right;
+	for(unsigned int i = 0; i< num_nodes; i++){
+		curr_X = curr_X + delta_x_right;
+		curr_Y = curr_Y + delta_y_right;
+		location = Coord(curr_X,curr_Y);
+		currW = new Wall_Node(location,sister);
+		currW->set_Left_Neighbor(prevW);
+		prevW->set_Right_Neighbor(currW);
+		prevW = currW;	
 	}
-
-	curr = this->left_Corner;
-	next = NULL;
-	orig = curr;
-	int number_nodes_A = 0;
-	cout << "cell a counting" << endl;
-	do {
-		number_nodes_A++;
-		curr->update_Cell(this);
-		cout << "add new node " << endl;
-		wall_nodes.push_back(curr);
-		next = curr->get_Left_Neighbor();
-	//	cout << number_nodes_A << endl;
-		if(next == NULL) {
-			cout << "notlinked" << endl;
-			exit(1);
-		}
-		curr = next;
-	} while(next != orig);
-//	cout << "done cell a counting" << endl;	
-	this->set_Wall_Count(number_nodes_A);
-	cout << "Parent nodes: " << number_nodes_A << endl;	
+	currW->set_Right_Neighbor(right_end);
+	right_end->set_Left_Neighbor(currW);
+	sister->set_Left_Corner(right_start);	*/
+	//here i will make the left side
+	//find the angle of the starting node
+	/*Coord vector_to_start_node = left_start->get_Location()-cell_center;
+	Coord vector_to_end_node = left_end->get_Location()-cell_center;
+	Coord x_axis = Coord(1,0);
+	double start_len = vector_to_start_node.length();	
+	double end_len= vector_to_end_node.length();
+	double start_costheta = x_axis.dot(vector_to_start_node)/(start_len);
+	double end_costheta =2 x_axis.dot(vector_to_end_node)/(end_len);	
+	double start_theta = acos( min( max(start_costheta,-1.0), 1.0) );
+	double end_theta = acos( min( max(end_costheta,-1.0), 1.0) );	
+	double total_angle = start_theta+end_theta;
+	double angle_increment = total_angle/total_num_left;
+	
+	double curr_theta = start_theta;
+	double curr_X = 0;
+	double curr_Y = 0;
+	double center_x = (left_start->get_Location().get_X() + left_end->get_Location().get_X())*.5;
+	double center_y = (left_start->get_Location().get_Y() + left_end->get_Location().get_Y())*.5;
+	Coord location;
+	Wall_Node* currW = NULL;
+	Wall_Node* prevW = left_start;
+	double width = min(left_start->get_Location().get_X()-center_x,left_end->get_Location().get_X()-center_x)-.5; 
+	double length = .01;//(fabs(left_start->get_Location().get_Y()-cell_center.get_Y())+ fabs(left_end->get_Location().get_Y()-cell_center.get_Y()))*.5;
+	
+	for(unsigned int i = 0; i < total_num_left; i++) {
+		curr_theta = curr_theta + angle_increment;
+		curr_X = center_x + width*cos(curr_theta);
+		curr_Y = center_y + length*sin(curr_theta);
+		location = Coord(curr_X,curr_Y);
+		currW = new Wall_Node(location, this);
+		prevW->set_Left_Neighbor(currW);
+		currW->set_Right_Neighbor(prevW);
+		prevW = currW;
+	}
+	currW->set_Left_Neighbor(left_end);
+	left_end->set_Right_Neighbor(currW);
+	left_Corner = left_start;
+	
+	vector_to_start_node = right_start->get_Location()-cell_center;
+	vector_to_end_node = right_end->get_Location()-cell_center;
+	x_axis = Coord(1,0);
+	start_len = vector_to_start_node.length();	
+	end_len= vector_to_end_node.length();
+	start_costheta = x_axis.dot(vector_to_start_node)/(start_len);
+	end_costheta = x_axis.dot(vector_to_end_node)/(end_len);	
+	start_theta = acos( min( max(start_costheta,-1.0), 1.0) );
+	end_theta = acos( min( max(end_costheta,-1.0), 1.0) );	
+	total_angle = start_theta+end_theta;
+	angle_increment = total_angle/total_num_right;
+	
+	curr_theta = end_theta;
+	curr_X = 0;
+	curr_Y = 0;
+	center_x = (right_start->get_Location().get_X() + right_end->get_Location().get_X())*.5;
+	center_y = (right_start->get_Location().get_Y() + right_end->get_Location().get_Y())*.5;
+	location;
+	currW = NULL;
+	prevW = right_end;
+	width = min(right_start->get_Location().get_X()-center_x, right_end->get_Location().get_X()-center_x)-.5; 
+	length = .01;//(fabs(right_start->get_Location().get_Y()-cell_center.get_Y())+ fabs(right_end->get_Location().get_Y()-cell_center.get_Y()))*.5;
+	
+	for(unsigned int i = 0; i < total_num_right; i++) {
+		curr_theta = curr_theta + angle_increment;
+		curr_X = center_x + width*cos(curr_theta);
+		curr_Y = center_y + length*sin(curr_theta);
+		location = Coord(curr_X,curr_Y);
+		currW = new Wall_Node(location, this);
+		prevW->set_Left_Neighbor(currW);
+		currW->set_Right_Neighbor(prevW);
+		prevW = currW;
+	}
+	currW->set_Left_Neighbor(right_start);
+	right_start->set_Right_Neighbor(currW);
+	sister->set_Left_Corner(right_start);
+*/
+	//count wall nodes
+	//cout << "begin delete wall nodes" << endl;
+	//Wall_Node* wall = NULL;
+	cout << "made wall nodes" << endl;
 	curr = sister->get_Left_Corner();
 	next = NULL;
 	orig = curr;
+	double k_lin = 0;
 	int number_nodes_B = 0;
-//	cout << "Cell b counting" << endl;
+	cout << "Cell b counting" << endl;
 	do {
 		number_nodes_B++;
 		curr->update_Cell(sister);
-		cout << "add new node sister " << endl;
+		k_lin = 250;//150 + 500*(1-pow(costheta,2));//162.1142*pow(theta,2) + -509.2962*theta + 650;
+		curr->set_K_LINEAR(k_lin);
+	
+		//cout << "add new node sister " << endl;
 		sister->add_wall_node_vec(curr);
+		//cout << "before vec" << endl;
 		next = curr->get_Left_Neighbor();
-	//	cout << number_nodes_B << endl;
+		//cout << number_nodes_B << endl;
 		if(next == NULL) {
 			cout << "notlinked" << endl;
 			exit(1);
 		}
 		curr = next;
 	} while (next != orig);
-//	cout << "done counting cell b" << endl;
+	cout << "done counting cell b" << endl;
 	sister->set_Wall_Count(number_nodes_B);
 	cout << "Sister: " << number_nodes_B << endl;
-	cout << "updating angles" << endl;
+	
+	//this->wall_nodes.clear();
+	//num_wall_nodes = 0;
+	Wall_Node* current = NULL;
+	while(!wall_nodes.empty()) {
+		//current = current.at(wall_nodes.size() -1);
+		wall_nodes.pop_back();
+		num_wall_nodes--;
+	}	
+	curr = this->left_Corner;
+	next = NULL;
+	orig = this->left_Corner;
+	int number_nodes_A = 0;
+	cout << "cell a counting" << endl;
+	do {
+		number_nodes_A++;
+		curr->update_Cell(this);
+		//cout << "add new node " << endl;
+		this->add_wall_node_vec(curr);
+		curr = curr->get_Left_Neighbor();
+		k_lin = 250;//150 + 500*(1-pow(costheta,2));//162.1142*pow(theta,2) + -509.2962*theta + 650;
+		curr->set_K_LINEAR(k_lin);
+	
+		//cout << number_nodes_A << endl;
+		if(curr == NULL) {
+			cout << "notlinked" << endl;
+			exit(1);
+		}
+		//curr = next;
+	} while(curr != orig);
+	cout << "done cell a counting" << endl;	
+	this->set_Wall_Count(number_nodes_A);
+	cout << "Parent nodes: " << number_nodes_A << endl;	
+	//cout << "updating angles" << endl;
 	//update wall angles
 	this->update_Wall_Angles();
 	sister->update_Wall_Angles();
-	cout << "Equi" << endl;
+	//cout << "Equi" << endl;
+	sister->set_growth_direction(this->get_growth_direction());
+	
 	this->update_Wall_Equi_Angles();
 	sister->update_Wall_Equi_Angles();
-	cout << "updating center" << endl;
+	//cout << "updating center div" << endl;
 	//update cell center
 	this->update_Cell_Center();
 	sister->update_Cell_Center();
@@ -333,36 +471,58 @@ Cell* Cell::division() {
 	sister->set_Layer(this->layer);
 	this->set_growth_rate();
 	sister->set_growth_rate();
-	double K_LINEAR = -3.3673*(this->cytokinin) + 5.7335*(this->wuschel) + 269.4673;
-	double K_LINEAR_X;
-	double K_LINEAR_Y;
-		
-	if(this->layer == 1) {
-		K_LINEAR_Y = 850;
-		K_LINEAR_X = 100;
-	}	
-	else {
-		K_LINEAR_X = 250;
-		K_LINEAR_Y = 150;
-	}	
-
-	this->K_LINEAR = Coord(K_LINEAR_X, K_LINEAR_Y);
-	
-	sister->set_K_LINEAR(K_LINEAR_X,K_LINEAR_Y);
+	//sister->set_K_LINEAR(K_LINEAR_X,K_LINEAR_Y);
 	double new_damping = this->get_Damping();
 	sister->set_Damping(new_damping);
-
+	this->life_length = 0;	
+	//this->Cell_Progress =0;		
+	//this->Cell_Progress_add_node = 0;
+	//sister->reset_Cell_Progress(0);
+	//double new_rank = this->get_Tissue()->get_num_cells();
+	//sister->set_Rank(new_rank);
+	//this->get_Tissue()->update_Num_Cells(sister);	
 	//delete all old cyt nodes
-	int num_cyts = cyt_nodes.size();
+	/*int num_cyts = cyt_nodes.size();
 	int new_cyt_cnt = num_cyts/2;
 	Cyt_Node* cyt = NULL;
+	
 	while(!cyt_nodes.empty()) {
 		cyt = cyt_nodes.at(cyt_nodes.size() -1);
 		delete cyt;
 		cyt_nodes.pop_back();
 		num_cyt_nodes--;
-	}	
-	
+	}*/
+	vector<Cyt_Node*> temp_cyts;
+	this->get_Cyt_Nodes_Vec(temp_cyts);
+	//this->cyt_nodes.clear();
+	//this->num_cyt_nodes = 0;
+	Cyt_Node* cyt = NULL;
+	while(!cyt_nodes.empty()) {
+		cyt = cyt_nodes.at(cyt_nodes.size() -1);
+		//delete cyt;
+		cyt_nodes.pop_back();
+		num_cyt_nodes--;
+	}
+	cout << "cyt nodes" << endl;
+	double length_1;
+	double length_2;
+	double counter = 0;
+	for(unsigned int i = 0; i < temp_cyts.size(); i++) {
+		length_1 = (temp_cyts.at(i)->get_Location()-this->cell_center).length();
+		length_2 = (temp_cyts.at(i)->get_Location()-sister->get_Cell_Center()).length();	
+		if(length_1 < length_2) {
+			temp_cyts.at(i)->update_Cell(this);
+			this->update_cyt_node_vec(temp_cyts.at(i));
+		}
+		else{
+			temp_cyts.at(i)->update_Cell(sister);
+			sister->update_cyt_node_vec(temp_cyts.at(i));
+		}
+		counter++;
+		cout << counter << endl;
+	}
+	this->move_cyt_nodes();
+	sister->move_cyt_nodes();
 	cout << "Finished deleting old cyt nodes" << endl;
 	
 //	cout << "get most up/down and left/right for radius" << endl;
@@ -416,27 +576,58 @@ Cell* Cell::division() {
 */
 	//old cell get radius
 	//sister get radius
-	double old_cell_radius_x;
-	double old_cell_radius_y;
+//	double old_cell_radius_x;
+//	double old_cell_radius_y;
 //	this->find_radius(old_cell_radius_x,old_cell_radius_y);
-	old_cell_radius_y = ((this->find_closest_node_top()->get_Location() - this->find_closest_node_bottom()->get_Location()).length())*0.5;	
-	old_cell_radius_y = ((this->find_closest_node_left()->get_Location() - this->find_closest_node_right()->get_Location()).length())*0.5;
-	double sister_cell_radius_x;
-	double sister_cell_radius_y;
+//	old_cell_radius_y = ((this->find_closest_node_top()->get_Location() - this->find_closest_node_bottom()->get_Location()).length())*0.5;	
+//	old_cell_radius_x = ((this->find_closest_node_left()->get_Location() - this->find_closest_node_right()->get_Location()).length())*0.5;
+//	double sister_cell_radius_x;
+//	double sister_cell_radius_y;
 
-	sister_cell_radius_y = ((sister->find_closest_node_top()->get_Location() - sister->find_closest_node_bottom()->get_Location()).length())*0.5;	
-	sister_cell_radius_y = ((sister->find_closest_node_left()->get_Location() - sister->find_closest_node_right()->get_Location()).length())*0.5;
+//	sister_cell_radius_y = ((sister->find_closest_node_top()->get_Location() - sister->find_closest_node_bottom()->get_Location()).length())*0.5;	
+//	sister_cell_radius_x = ((sister->find_closest_node_left()->get_Location() - sister->find_closest_node_right()->get_Location()).length())*0.5;
 
 //	sister->find_radius(sister_cell_radius_x,sister_cell_radius_y)	
 	//create new ones for each cell
-	for(int i = 0; i < new_cyt_cnt; i++) {
-		cout << "adding cytoplasm" << i << endl;
-		this->add_Cyt_Node_Div(old_cell_radius_x,old_cell_radius_y);
-		sister->add_Cyt_Node_Div(sister_cell_radius_x,sister_cell_radius_y);
+//	for(int i = 0; i < new_cyt_cnt; i++) {
+		//cout << "adding cytoplasm" << i << endl;
+//		this->add_Cyt_Node_Div(old_cell_radius_x,old_cell_radius_y);
+//		sister->add_Cyt_Node_Div(sister_cell_radius_x,sister_cell_radius_y);
+//	}
+	//cout << "division function" << endl;
+	//for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+	//		cout << cyt_nodes.at(i)->get_Location() << endl;
+	//}
+	/*vector<Wall_Node*>walls;
+	sister->get_Wall_Nodes_Vec(walls);
+	int counter = 0;	
+	cout << "sister" << endl;
+	for(unsigned int i = 0; i < walls.size(); i++) {
+		cout << walls.at(i)->get_Location() << endl;
+		counter++;
 	}
+	cout << counter << endl;
+	cout << "this" << endl;
+	counter = 0;
+	for(unsigned int i =0; i < wall_nodes.size(); i++) {
+		cout << walls.at(i)->get_Location() << endl;
+		counter++;
+	}
+	cout << counter << endl;*/
 	return sister;
 }
-
+void Cell::move_cyt_nodes(){
+	Coord vector;
+	Coord location;
+	for(unsigned int i=0; i<cyt_nodes.size(); i++){
+		vector = cyt_nodes.at(i)->get_Location()-cell_center;
+	//	if(vector.length() < .4) {
+			location = cell_center + vector*.6;
+			cyt_nodes.at(i)->new_location(location);
+	//	}
+	}
+	return;
+}
 /*Cell* Cell::divide_width_wise() {
 	//current cell will split into two daughter cells
 	//	-"this" will keep its entity as the left sister

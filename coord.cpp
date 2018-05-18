@@ -60,7 +60,14 @@ void Coord::operator-=(const Coord& c) {
 	x -= c.get_X();
 	y -= c.get_Y();
 }
-
+bool Coord::operator==(const Coord&c) {
+	if((x == c.get_X())&&(y==c.get_Y())){
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 Coord Coord::operator/(const double d) const {
 	Coord q( x / d, y / d);
 	return q;

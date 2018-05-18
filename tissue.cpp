@@ -86,6 +86,7 @@ void Tissue::get_Cells(vector<Cell*>& cells) {
 
 void Tissue::update_Num_Cells(Cell*& new_Cell) {
 	num_cells++;
+	cout << num_cells << endl;
 	cells.push_back(new_Cell);
 	return;
 }
@@ -94,7 +95,7 @@ void Tissue::update_Num_Cells(Cell*& new_Cell) {
 void Tissue::update_Cell_Cycle(int Ti) {
 	//cout << "Current number of cells: " << cells.size() << endl; 
 	int number_cells = cells.size();
-	#pragma omp parallel for schedule(static,1)
+	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < number_cells; i++) {
 		//cout << "updating cell" << i << endl;
 		cells.at(i)->update_Cell_Progress(Ti);
@@ -103,19 +104,45 @@ void Tissue::update_Cell_Cycle(int Ti) {
 	return;
 }
 //adds node to cell wall if needed for each cell
-void Tissue::add_Wall() {
-	#pragma omp parallel for schedule(static,1)
-	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->add_Wall_Node();
+void Tissue::add_Wall(int Ti) {
+	//#pragma omp parallel for schedule(static,1)
+	//for (unsigned int i = 0; i < cells.size(); i++) {
+	//	int div_time = cells.at(i)->get_Cell_Progress_div();
+
+	//	if((Ti<div_time+2000)&&(div_time > 0)){
+			//cells.at(i)->add_Wall_Node();
+	//	}
+	//	else if(Ti%200==0){
+	//		cells.at(i)->add_Wall_Node();
+	//	}
 		//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
-	}
+	//}
+	//vector<Cell*>neighbors;
+	//for(unsigned int i= 0; i < cells.size();i++){
+	//	if(cells.at(i)->return_is_added()){
+	//		cells.at(i)->update_adhesion_springs();
+	//		cells.at(i)->get_Neighbor_Cells(neighbors);
+			//cout<< "neighbors loop" << endl;
+	//		for(unsigned int j =0; j< neighbors.size();j++){
+	//			neighbors.at(j)->update_adhesion_springs();
+	//		}
+	//	}
+	//}	
+	
 	return;
 }
-void Tissue::delete_Wall() {
+void Tissue::delete_Wall(int Ti) {
 	vector<Cell*> neighbors;
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->delete_Wall_Node();
+		int div_time = cells.at(i)->get_Cell_Progress_div();
+
+		//if((Ti<div_time+2000)&&(div_time > 0)){
+		//	cells.at(i)->delete_Wall_Node();
+		//}
+		if(Ti%200==0){
+			cells.at(i)->delete_Wall_Node();
+		}
 	}	
 	for(unsigned int i= 0; i < cells.size();i++){
 		if(cells.at(i)->return_is_deleted()){
@@ -163,14 +190,28 @@ void Tissue::update_Neighbor_Cells() {
 	return;
 }
 //updates adhesion springs for each cell
-void Tissue::update_Adhesion() {
+void Tissue::update_Adhesion(int Ti) {
 	#pragma omp parallel for schedule(static,1)
 	for(unsigned int i=0;i<cells.size();i++) {
 		//cout << "Updating adhesion for cell" << endl;
-		cells.at(i)->update_adhesion_springs();
-	}
-}
+		int div_time = cells.at(i)->get_Cell_Progress_div();
+		if((Ti < div_time+1000) && (div_time>0)){
+			cells.at(i)->update_adhesion_springs();
+		}
 
+		else if(Ti%500 == 0) {
+			cells.at(i)->update_adhesion_springs();
+		}
+	}
+
+}
+void Tissue::update_Microfibrils(int Ti) {
+	#pragma omp parallel for schedule(static,1)
+	for(unsigned int i=0; i < cells.size(); i++) {
+		cells.at(i)->update_microfibril_springs();
+	}
+	return;
+}
 void Tissue::add_cyt_node(){
 	#pragma omp parallel for schedule(static,1)
 	for(unsigned int i =0; i < cells.size(); i++) {
@@ -178,11 +219,63 @@ void Tissue::add_cyt_node(){
 	}
 	return;
 }
-//***Functions for VTK output****//
-void Tissue::print_Data_Output(ofstream& ofs) {
+void Tissue::nematic_output(ofstream& ofs){
+	Coord average;
+	double angle;
+	//ofs << "average vec" << endl;
+	for(unsigned int i=0; i < cells.size(); i++) {
+		cells.at(i)->nematic(average, angle);
+		ofs<< average.get_X() << endl;
+	}
+	//ofs << "average vec" << endl;
+	for(unsigned int i=0; i < cells.size(); i++) {
+		cells.at(i)->nematic(average, angle);
+		ofs << average.get_Y() << endl;
+	}
+	//ofs << "angles" << endl;
+	for(unsigned int i=0; i < cells.size(); i++) {
+		cells.at(i)->nematic(average, angle);
+		ofs<< angle << endl;
+	}
+	//ofs<< "centers2" << endl;
+	for(unsigned int i=0; i< cells.size();i++) {
+		if(cells.at(i)->get_Layer() ==2){
+			ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
+		}
+	}
+	for(unsigned int i=0; i< cells.size();i++) {
+		if(cells.at(i)->get_Layer() ==2){
+			ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
+		}
+	}
+	//ofs << "centers1" << endl;
+	for(unsigned int i=0; i< cells.size();i++) {
+		if(cells.at(i)->get_Layer() ==1){
+			ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
+		}
+	}
+	//ofs << "centers1" << endl;
+	for(unsigned int i=0; i< cells.size();i++) {
+		if(cells.at(i)->get_Layer() ==1){
+			ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
+		}
+	}
+	for(unsigned int i=0; i< cells.size();i++) {
+		ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
+		ofs <<cells.at(i)->get_Cell_Center().get_Y() << endl;
+	}
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Scalars_WUS_cell(ofs);
+	}
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Scalars_Average_Pressure_cell(ofs);
+	}
+		
+
+	
 	return;
 }
-
+//***Functions for VTK output****//
 int Tissue::update_VTK_Indices() {
 
 	int id = 0;
@@ -195,7 +288,7 @@ int Tissue::update_VTK_Indices() {
 	}
 
 //	cout << "final ID: " << id << endl;
-//	cout << "rel_cnt: " << rel_cnt << endl;
+	cout << "rel_cnt: " << rel_cnt << endl;
 
 	return rel_cnt;
 }
@@ -255,7 +348,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	}
 
 	for(unsigned int i = 0; i < rel_cnt; i++) {
-//		//type for adh relationship
+		//type for adh relationship
 		ofs << 3 << endl;
 	}
 
@@ -271,9 +364,17 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 
 	ofs << endl;
 
-	ofs << "VECTORS force float" << endl;
+	ofs << "Scalars average_pressure float" << endl;
+	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Vectors(ofs);
+		cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);
+	}
+	ofs << endl;
+
+	ofs << "Scalars wall_pressure float" << endl;
+	ofs << "LOOKUP_TABLE default" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Scalars_Node(ofs);
 	}
 	return;
 }
