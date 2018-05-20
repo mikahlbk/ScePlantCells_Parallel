@@ -71,28 +71,29 @@ class Cell {
 		Coord get_Cell_Center() {return cell_center;}
 		double get_WUS_concentration() {return wuschel;}
 		double get_CYT_concentration() {return cytokinin;}
+		void get_Neighbor_Cells(vector<Cell*>& cells);
+		void set_Left_Corner(Wall_Node*& new_left_corner);
+		void set_Wall_Count(int& number_nodes);
 		void set_growth_rate();
 		void set_growth_direction(Coord gd);
 		Coord get_growth_direction(){return growth_direction;}
 		Wall_Node* get_Wall_Nodes() {return left_Corner;}
 		Wall_Node* get_Left_Corner() {return left_Corner;}		
-		void move_cyt_nodes();
-		void get_Neighbor_Cells(vector<Cell*>& cells);
-		void set_Left_Corner(Wall_Node*& new_left_corner);
-		void set_Wall_Count(int& number_nodes);
 		void calc_WUS();
 		void calc_WUSwildtype();
 		void calc_WUSBAP12hr();
 		void calc_WUSBAP24hr();
-		void calc_CYT();
-		void calc_Total_Signal();
-
+//		void calc_CYT();
+	
+		
 		// Keep track of neighbor cells
 		void update_Neighbor_Cells();
 	//	void update_adhesion_springs();
 	//	void update_microfibril_springs();
 	//	void make_top_bottom_vectors(vector<Wall_Node*>&top,vector<Wall_Node*>&bottom);
 	//	void make_left_right_vectors(vector<Wall_Node*>&left,vector<Wall_Node*>&right);
+		
+	
 		// Forces and Positionsing
 		void calc_New_Forces(int Ti);
 		void update_Node_Locations();
@@ -124,6 +125,8 @@ class Cell {
 		//void find_nodes_for_div_plane_anticlinal(Coord& direction,vector<Wall_Node*>& nodes);
 		void add_Cyt_Node_Div(double radius_x,double radius_y);
 		void stress_Tensor_Eigenvalues(double& a, double& b, double& c, double& d, vector<double>& eigen_Max);	
+		void move_cyt_nodes();
+	
 		double compute_Stress_Tensor_XY();
 		double compute_Stress_Tensor_Y();
 		double compute_Stress_Tensor_X();

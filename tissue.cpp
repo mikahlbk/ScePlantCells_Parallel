@@ -105,18 +105,18 @@ void Tissue::update_Cell_Cycle(int Ti) {
 }
 //adds node to cell wall if needed for each cell
 void Tissue::add_Wall(int Ti) {
-	//#pragma omp parallel for schedule(static,1)
-	//for (unsigned int i = 0; i < cells.size(); i++) {
+	#pragma omp parallel for schedule(static,1)
+	for (unsigned int i = 0; i < cells.size(); i++) {
 	//	int div_time = cells.at(i)->get_Cell_Progress_div();
 
 	//	if((Ti<div_time+2000)&&(div_time > 0)){
-			//cells.at(i)->add_Wall_Node();
+			cells.at(i)->add_Wall_Node();
 	//	}
 	//	else if(Ti%200==0){
 	//		cells.at(i)->add_Wall_Node();
 	//	}
 		//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
-	//}
+	}
 	//vector<Cell*>neighbors;
 	//for(unsigned int i= 0; i < cells.size();i++){
 	//	if(cells.at(i)->return_is_added()){
@@ -135,16 +135,16 @@ void Tissue::delete_Wall(int Ti) {
 	vector<Cell*> neighbors;
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		int div_time = cells.at(i)->get_Cell_Progress_div();
+		//int div_time = cells.at(i)->get_Cell_Progress_div();
 
 		//if((Ti<div_time+2000)&&(div_time > 0)){
 		//	cells.at(i)->delete_Wall_Node();
 		//}
-		if(Ti%200==0){
+		//if(Ti%200==0){
 			cells.at(i)->delete_Wall_Node();
-		}
+		//}
 	}	
-	for(unsigned int i= 0; i < cells.size();i++){
+	/*for(unsigned int i= 0; i < cells.size();i++){
 		if(cells.at(i)->return_is_deleted()){
 			cells.at(i)->update_adhesion_springs();
 			cells.at(i)->get_Neighbor_Cells(neighbors);
@@ -153,7 +153,7 @@ void Tissue::delete_Wall(int Ti) {
 				neighbors.at(j)->update_adhesion_springs();
 			}
 		}
-	}	
+	}*/	
 	//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
 	return;
 }
@@ -190,7 +190,7 @@ void Tissue::update_Neighbor_Cells() {
 	return;
 }
 //updates adhesion springs for each cell
-void Tissue::update_Adhesion(int Ti) {
+/*void Tissue::update_Adhesion(int Ti) {
 	#pragma omp parallel for schedule(static,1)
 	for(unsigned int i=0;i<cells.size();i++) {
 		//cout << "Updating adhesion for cell" << endl;
@@ -211,7 +211,7 @@ void Tissue::update_Microfibrils(int Ti) {
 		cells.at(i)->update_microfibril_springs();
 	}
 	return;
-}
+}*/
 void Tissue::add_cyt_node(){
 	#pragma omp parallel for schedule(static,1)
 	for(unsigned int i =0; i < cells.size(); i++) {
@@ -219,7 +219,7 @@ void Tissue::add_cyt_node(){
 	}
 	return;
 }
-void Tissue::nematic_output(ofstream& ofs){
+/*void Tissue::nematic_output(ofstream& ofs){
 	Coord average;
 	double angle;
 	//ofs << "average vec" << endl;
@@ -267,34 +267,34 @@ void Tissue::nematic_output(ofstream& ofs){
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Scalars_WUS_cell(ofs);
 	}
-	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_Average_Pressure_cell(ofs);
-	}
+//	for (unsigned int i = 0; i < cells.size(); i++) {
+//		cells.at(i)->print_VTK_Scalars_Average_Pressure_cell(ofs);
+//	}
 		
 
 	
 	return;
-}
+}*/
 //***Functions for VTK output****//
-int Tissue::update_VTK_Indices() {
+//int Tissue::update_VTK_Indices() {
 
-	int id = 0;
-	int rel_cnt = 0;
+//	int id = 0;
+//	int rel_cnt = 0;
 
 	//iterate through cells to reassign vtk id's - starting at 0
-	for (unsigned int i = 0; i < cells.size(); i++) {
+//	for (unsigned int i = 0; i < cells.size(); i++) {
 		//iterate through
-		rel_cnt += cells.at(i)->update_VTK_Indices(id);
-	}
+//		rel_cnt += cells.at(i)->update_VTK_Indices(id);
+//	}
 
 //	cout << "final ID: " << id << endl;
-	cout << "rel_cnt: " << rel_cnt << endl;
+//	cout << "rel_cnt: " << rel_cnt << endl;
 
-	return rel_cnt;
-}
+//	return rel_cnt;
+//}
 
 void Tissue::print_VTK_File(ofstream& ofs) {
-	int rel_cnt = update_VTK_Indices();
+//	int rel_cnt = update_VTK_Indices();
 
 
 	ofs << "# vtk DataFile Version 3.0" << endl;
@@ -321,9 +321,9 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	}
 
 	ofs << endl;
-	//ofs << "CELLS " << cells.size()<< ' ' << (num_Points + start_points.size())  << endl;
+	ofs << "CELLS " << cells.size()<< ' ' << (num_Points + start_points.size())  << endl;
 	
-	ofs << "CELLS " << cells.size()+rel_cnt<< ' ' << (num_Points + start_points.size())+(rel_cnt*3)  << endl;
+	//ofs << "CELLS " << cells.size()+rel_cnt<< ' ' << (num_Points + start_points.size())+(rel_cnt*3)  << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		ofs << cells.at(i)->get_Node_Count();
 
@@ -334,23 +334,23 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	}
 	
 //	//output pairs of node indices to draw adh line
-	for(unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Adh(ofs);
-	}
+//	for(unsigned int i = 0; i < cells.size(); i++) {
+//		cells.at(i)->print_VTK_Adh(ofs);
+//	}
 
 	ofs << endl;
 
-	//ofs << "CELL_TYPES " << start_points.size() << endl;
-	ofs << "CELL_TYPES " << start_points.size()+rel_cnt << endl;
+	ofs << "CELL_TYPES " << start_points.size() << endl;
+	//ofs << "CELL_TYPES " << start_points.size()+rel_cnt << endl;
 	
 	for (unsigned int i = 0; i < start_points.size(); i++) {
 		ofs << 2 << endl;
 	}
 
-	for(unsigned int i = 0; i < rel_cnt; i++) {
-		//type for adh relationship
-		ofs << 3 << endl;
-	}
+	//for(unsigned int i = 0; i < rel_cnt; i++) {
+	//	//type for adh relationship
+	//	ofs << 3 << endl;
+//	}
 
 	ofs << endl;
 
@@ -359,17 +359,17 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << "SCALARS magnitude double " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_WUS(ofs);
+	//	cells.at(i)->print_VTK_Scalars_WUS(ofs);
 	}
 
 	ofs << endl;
 
-	ofs << "Scalars average_pressure float" << endl;
-	ofs << "LOOKUP_TABLE default" << endl;
-	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);
-	}
-	ofs << endl;
+	//ofs << "Scalars average_pressure float" << endl;
+	//ofs << "LOOKUP_TABLE default" << endl;
+	//for (unsigned int i = 0; i < cells.size(); i++) {
+	//	cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);
+//	}
+//	ofs << endl;
 
 	ofs << "Scalars wall_pressure float" << endl;
 	ofs << "LOOKUP_TABLE default" << endl;

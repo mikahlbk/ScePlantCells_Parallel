@@ -120,7 +120,7 @@ Coord Cyt_Node::morse_Equation(Cyt_Node* cyt, int Ti) {
     	Coord Fii;
     	Coord diff_vect = cyt->get_Location() - my_loc;
     	double diff_len = diff_vect.length();
-	int div_time = this->get_My_Cell()->get_Cell_Progress_div();
+	//int div_time = this->get_My_Cell()->get_Cell_Progress_div();
    	double attract = (U_II/xsi_II)*exp(diff_len*(-1)/xsi_II);
     	double repel = (W_II/gamma_II)*exp(diff_len*(-1)/gamma_II);
 	Fii = diff_vect*((-attract + repel)/diff_len);
@@ -138,7 +138,7 @@ Coord Cyt_Node::morse_Equation(Wall_Node* wall, int Ti) {
 	Coord Fmi;
 	Coord diff_vect = wall->get_Location() - my_loc; 
 	double diff_len = diff_vect.length();
-	int div_time = this->get_My_Cell()->get_Cell_Progress_div();
+//	int div_time = this->get_My_Cell()->get_Cell_Progress_div();
 	double attract = (U_MI/xsi_MI)*exp(diff_len*(-1)/xsi_MI);
    	double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
      	Fmi = diff_vect*((-attract + repel)/diff_len);
@@ -169,7 +169,7 @@ Wall_Node::Wall_Node(Coord loc, Cell* my_cell) : Node(loc) {
 	//this->pressure = 0;
 	//this->closest_len = 100;
 	//this->curr_slope = 100;
-	//this->is_new = false;
+	this->is_added = false;
 	//this->is_delete = false;
 }
 
@@ -199,6 +199,10 @@ Wall_Node::~Wall_Node() {
 }
 
 //  Getters and Setters-----------------------------------------------------------
+void Wall_Node::set_is_new(){
+	this->is_added = true;
+	return;
+}
 void Wall_Node::set_Left_Neighbor(Wall_Node* new_Left) {
 	this->left = new_Left;
 	return;
@@ -352,13 +356,13 @@ Coord Wall_Node::calc_Morse_DC(int Ti) {
 		}
 	}
 	
-	if(this->closest != NULL){
+//	if(this->closest != NULL){
 	//	cout << "closest not null" << endl;
-		closest->get_Location();
+//		closest->get_Location();
 	//	cout << "got location" << endl;
-		Fdc += linear_Equation_ADH(this->closest);
+//		Fdc += linear_Equation_ADH(this->closest);
 	//	cout << "computed adh successfully" << endl;
-	}
+//	}
 	return Fdc;
 }
 //function to get all wall nodes of neighbor cell i
@@ -421,7 +425,7 @@ Coord Wall_Node::morse_Equation(Cyt_Node* cyt, int Ti) {
 	Coord Fmi;
 	Coord diff_vect = cyt->get_Location() - my_loc;
 	double diff_len = diff_vect.length();
-	double attract = (U_MI/xsii_MI)*exp(diff_len*(-1)/xsi_MI);
+	double attract = (U_MI/xsi_MI)*exp(diff_len*(-1)/xsi_MI);
 	double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
 
 	Fmi = diff_vect*((-attract + repel)/diff_len);
@@ -648,7 +652,7 @@ Coord Wall_Node::linear_Equation(Wall_Node* wall) {
 }*/
 
 
-void Wall_Node::make_Connection(Wall_Node* curr_Closest) {
+/*void Wall_Node::make_Connection(Wall_Node* curr_Closest) {
 	double curr_dist = 0;
 	if(curr_Closest != NULL) {
 		curr_dist = (this->get_Location() - curr_Closest->get_Location()).length();
@@ -657,7 +661,7 @@ void Wall_Node::make_Connection(Wall_Node* curr_Closest) {
 		this->closest_len = curr_dist;	
 	}
 	return;
-}
+}*/
 //void Wall_Node::find_microfibril_pair_horiz(vector<Wall_Node*> side2){
 //	double x_1;
 //	double x_2;

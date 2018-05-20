@@ -76,13 +76,15 @@ class Wall_Node: public Node {
 		//double closest_len;
 		//Wall_Node* microfibril_pair;
 		//double curr_slope;
-		//bool is_delete;
+		bool is_added;
     public:
     //function that you want performed on all wall nodes
 		// Constructors
        		Wall_Node(Coord loc, Cell* my_cell);
         	Wall_Node(Coord loc, Cell* my_cell, Wall_Node* left, Wall_Node* right);
         // Getters and Setters
+		void set_is_new();
+		bool get_status() {return is_added;}
 		Wall_Node* get_Left_Neighbor() {return left;}
 		Wall_Node* get_Right_Neighbor() {return right;}
 		double get_Angle() {return my_angle;}

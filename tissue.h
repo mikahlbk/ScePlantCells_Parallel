@@ -49,7 +49,7 @@ class Tissue {
 		//void cell_strain();
 		void make_Vectors();
 		void print_Data_Output(ofstream& ofs);
-		int update_VTK_Indices();
+//		int update_VTK_Indices();
 		void print_VTK_File(ofstream& ofs);
 		int get_Num_Cells() {return num_cells;}
 		//Destructor

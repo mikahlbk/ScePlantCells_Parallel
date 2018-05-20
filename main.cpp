@@ -10,6 +10,7 @@
 #include <fstream>
 #include <ctime>
 #include <stdio.h>
+#include <omp.h>
 
 #include "phys.h"
 #include "coord.h"
@@ -37,9 +38,9 @@ int main(int argc, char* argv[]) {
 	string nematic_folder = argv[2];
 
 	int start = clock();
-	
+	omp_set_num_threads(12);	
 	//.txt file that tells how cells start
-	string init_tissue = "one_cell.txt";
+	string init_tissue = "new_cells.txt";
 	
 	//make new cell objects in tissue
 	Tissue growing_Tissue(init_tissue);
@@ -73,25 +74,25 @@ int main(int argc, char* argv[]) {
 		}
 		// Tissue Growth
 		//fills vector of neighbor cells for each cell
-		if (Ti% 500 == 0) {
+		if (Ti% 1000 == 0) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}	
 		
 		//cout << "add new cell wall nodes if needed" << endl;
 		//adds one new cell wall node in the biggest gap
-		if(Ti%200==0) {
+		//if(Ti%200==0) {
 			growing_Tissue.add_Wall(Ti);
-		}
+		//}
 		//deletes a cell wall node if too close together
-		if(Ti%200 == 0) {
+		//if(Ti%200 == 0) {
 			//cout << "delete wall" << endl;
 			growing_Tissue.delete_Wall(Ti);
-		}
+	//	}
 		//matches wall nodes with adhesion pairs
-		if(Ti%1000 == 0) {
+		//if(Ti%1000 == 0) {
 		//	growing_Tissue.update_Adhesion(Ti);
-		}
+		//}
 		///if(Ti >= 1000){
 //			if(Ti%1000 == 0) {
 //				growing_Tissue.update_Microfibrils(Ti);
@@ -114,7 +115,7 @@ int main(int argc, char* argv[]) {
 		//cout << "Finished" << endl;
 
 		//print vtk file
-		if(Ti>=20000 ) {
+		//if(Ti>=20000 ) {
 		if (Ti % 1000 == 0) {
 			
 			digits = ceil(log10(out + 1));
@@ -138,7 +139,7 @@ int main(int argc, char* argv[]) {
 			ofs_anim.close();	
 			out++;
 		}
-		}
+	//	}
 		/*if(Ti%5000 == 0) {
 			nem_Filename = nematic_folder + nem_initial + to_string(Number2)+".txt";
 			ofs_nem.open(nem_Filename.c_str());

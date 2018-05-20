@@ -464,10 +464,10 @@ Cell* Cell::division() {
 	sister->update_Cell_Center();
 	this->calc_WUS();
 	sister->calc_WUS();
-	this->calc_CYT();
-	sister->calc_CYT();
-	this->calc_Total_Signal();
-	sister->calc_Total_Signal();
+//	this->calc_CYT();
+//	sister->calc_CYT();
+//	this->calc_Total_Signal();
+//	sister->calc_Total_Signal();
 	sister->set_Layer(this->layer);
 	this->set_growth_rate();
 	sister->set_growth_rate();
