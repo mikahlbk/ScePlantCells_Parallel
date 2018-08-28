@@ -8,20 +8,24 @@
 class Tissue;
 //===================
 // include dependencies
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/shared_ptr.hpp>
+#include <cassert>
 #include <string>
 #include <vector>
 #include <fstream>
 #include <iostream>
-
+#include <memory>
 #include "phys.h"
 #include "coord.h"
 #include "node.h"
 //===================
 // Cell Class Declaration
 
-class Cell {
+class Cell: public enable_shared_from_this<Cell> {
 
 	private:
+		//shared_ptr<Tissue> my_tissue;
 		Tissue* my_tissue;
 		int rank;
 		int layer;
@@ -35,22 +39,26 @@ class Cell {
 		double cytokinin;
 		double wuschel;
 		Coord growth_direction;
-		vector<Wall_Node*> wall_nodes;
-		vector<Cyt_Node*> cyt_nodes;
-		vector<Cell*> neigh_cells;
+		vector<shared_ptr<Wall_Node>> wall_nodes;
+		vector<shared_ptr<Cyt_Node>> cyt_nodes;
+		vector<shared_ptr<Cell>> neigh_cells;
+		//int division_time;
 		//vector<Coord> nematic_vec;
 		//vector<double> angle_vec;
-		Wall_Node* left_Corner;	
+		shared_ptr<Wall_Node> left_Corner;	
 	public:
 		
-		Cell(Tissue* tissue);
-		Cell(int rank, Coord center, double radius, Tissue* tiss, int layer);
+		Cell(/*shared_ptr<Tissue>*/Tissue* tissue);
+		Cell(int rank, Coord center, double radius, Tissue* /*shared_ptr<Tissue>*/ tiss, int layer);
 
 		// Destructor
 		~Cell();
 
 		// Getters and Setters
-		Tissue* get_Tissue() {return my_tissue;}
+		//void is_divided_change();	
+		//enable_shared_from_this<Cell>;
+		shared_ptr<Cell> getptr();
+		/*shared_ptr<*/Tissue* get_Tissue() {return my_tissue;}
 		int get_Rank() {return rank;}
 		void set_Rank(const int id);
 		int get_Layer() {return layer;}
@@ -60,25 +68,28 @@ class Cell {
 		void update_Life_Length();
 		int get_life_length() {return life_length;} 
 		int get_Node_Count();
-		void get_Wall_Nodes_Vec(vector<Wall_Node*>& walls);
-		void add_wall_node_vec(Wall_Node* curr);
-		void get_Cyt_Nodes_Vec(vector<Cyt_Node*>& cyts);
-		void reset_Cell_Progress(int cyt_size);
-		void update_cyt_node_vec(Cyt_Node* new_node);
+		void get_Wall_Nodes_Vec(vector<shared_ptr<Wall_Node>>& walls);
+		void add_wall_node_vec(shared_ptr<Wall_Node> curr);
+		void get_Cyt_Nodes_Vec(vector<shared_ptr<Cyt_Node>>& cyts);
+		void reset_Cell_Progress();
+		void update_Cell_Progress_Var();
+		void update_cyt_node_vec(shared_ptr<Cyt_Node> new_node);
 		int get_wall_count() {return num_wall_nodes;}
 		int get_cyt_count() {return num_cyt_nodes;}
 		double get_Cell_Progress() {return Cell_Progress;}
 		Coord get_Cell_Center() {return cell_center;}
 		double get_WUS_concentration() {return wuschel;}
 		double get_CYT_concentration() {return cytokinin;}
-		void get_Neighbor_Cells(vector<Cell*>& cells);
-		void set_Left_Corner(Wall_Node*& new_left_corner);
+		void get_Neighbor_Cells(vector<shared_ptr<Cell>>& cells);
+		void set_Left_Corner(shared_ptr<Wall_Node>& new_left_corner);
 		void set_Wall_Count(int& number_nodes);
 		void set_growth_rate();
 		void set_growth_direction(Coord gd);
+		//void print_info();
 		Coord get_growth_direction(){return growth_direction;}
-		Wall_Node* get_Wall_Nodes() {return left_Corner;}
-		Wall_Node* get_Left_Corner() {return left_Corner;}		
+		shared_ptr<Wall_Node> get_Wall_Nodes() {return left_Corner;}
+		shared_ptr<Wall_Node> get_Left_Corner() {return left_Corner;}		
+		double compute_k_lin(shared_ptr<Wall_Node>& current);
 		void calc_WUS();
 		void calc_WUSwildtype();
 		void calc_WUSBAP12hr();
@@ -88,10 +99,10 @@ class Cell {
 		
 		// Keep track of neighbor cells
 		void update_Neighbor_Cells();
-	//	void update_adhesion_springs();
-	//	void update_microfibril_springs();
-	//	void make_top_bottom_vectors(vector<Wall_Node*>&top,vector<Wall_Node*>&bottom);
-	//	void make_left_right_vectors(vector<Wall_Node*>&left,vector<Wall_Node*>&right);
+		void update_adhesion_springs();
+		void update_microfibril_springs();
+		void make_top_bottom_vectors(vector<shared_ptr<Wall_Node>>&top,vector<shared_ptr<Wall_Node>>&bottom);
+		void make_left_right_vectors(vector<shared_ptr<Wall_Node>>&left,vector<shared_ptr<Wall_Node>>&right);
 		
 	
 		// Forces and Positionsing
@@ -105,23 +116,23 @@ class Cell {
 		void update_Cell_Progress(int& Ti);
 		double calc_Area();
 		void nematic(Coord& avg_vec, double& angle);
-		void add_wall_Node_Check();
-		void delete_wall_Node_Check();
-		void add_Wall_Node();
-		void delete_Wall_Node();
+		void add_wall_Node_Check(int Ti);
+		void delete_wall_Node_Check(int Ti);
+		void add_Wall_Node(int Ti);
+		void delete_Wall_Node(int Ti);
 		void compute_Main_Strain_Direction(double& x_length, double& y_length); 
-		Wall_Node* find_closest_node_top(); 
-		Wall_Node* find_closest_node_bottom();
-		Wall_Node* find_closest_node_left();
-		Wall_Node* find_closest_node_right();
-		void find_Smallest_Length(Wall_Node*& right);
-		void find_Largest_Length(Wall_Node*& right);
-		void find_Largest_Length_Div(Wall_Node*& right, Wall_Node*& second_right);
+		shared_ptr<Wall_Node> find_closest_node_top(); 
+		shared_ptr<Wall_Node> find_closest_node_bottom();
+		shared_ptr<Wall_Node> find_closest_node_left();
+		shared_ptr<Wall_Node> find_closest_node_right();
+		void find_Smallest_Length(shared_ptr<Wall_Node>& right);
+		void find_Largest_Length(shared_ptr<Wall_Node>& right);
+		void find_Largest_Length_Div(shared_ptr<Wall_Node>& right, shared_ptr<Wall_Node>& second_right);
 		void add_Cyt_Node();
 		
 		//Functions for Division
 		double find_radius();
-		void find_nodes_for_div_plane(Coord& direction,vector<Wall_Node*>& nodes);
+		void find_nodes_for_div_plane(Coord& direction,vector<shared_ptr<Wall_Node>>& nodes);
 		//void find_nodes_for_div_plane_anticlinal(Coord& direction,vector<Wall_Node*>& nodes);
 		void add_Cyt_Node_Div(double radius_x,double radius_y);
 		void stress_Tensor_Eigenvalues(double& a, double& b, double& c, double& d, vector<double>& eigen_Max);	

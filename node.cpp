@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <memory>
 //=========================
 #include "phys.h"
 #include "coord.h"
@@ -38,7 +39,7 @@ Node::~Node() {}
 //========================================
 /**class Cyt Node Functions**/
 //constructor
-Cyt_Node::Cyt_Node(Coord loc, Cell* my_cell) : Node(loc) {
+Cyt_Node::Cyt_Node(Coord loc, Cell*  my_cell) : Node(loc) {
 	this->my_cell = my_cell;
 	return;
 }
@@ -67,13 +68,14 @@ Coord Cyt_Node::calc_Morse_II(int Ti) {
 	//calc force for II
 	Coord Fii; //initialized to zero
 
-	vector<Cyt_Node*>cyts;
+	vector<shared_ptr<Cyt_Node>>cyts;
 	if (my_cell==NULL) {
 		cout << "Error: Trying to access NULL Pointer. Aborting!" << endl;
 		exit(1);
 	}
+	//cout << "gonna make the pointer" << endl;
 	my_cell->get_Cyt_Nodes_Vec(cyts);
-	Cyt_Node* me = this;
+	shared_ptr<Cyt_Node> me= shared_from_this();
 	#pragma omp parallel
 	{	
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
@@ -86,16 +88,17 @@ Coord Cyt_Node::calc_Morse_II(int Ti) {
 			}
 		}
 	}
+	//cout << "oaralelel" << endl;
 
 	return Fii;
 }
 
-Coord Cyt_Node::calc_Morse_MI(Wall_Node* orig, int Ti) {
+Coord Cyt_Node::calc_Morse_MI(shared_ptr<Wall_Node> orig, int Ti) {
 	//calc force for MI
 	Coord Fmi;
-	vector<Wall_Node*> walls;
+	vector<shared_ptr<Wall_Node>> walls;
 	this->get_My_Cell()->get_Wall_Nodes_Vec(walls);
-	Cyt_Node* me = this;
+	shared_ptr<Cyt_Node> me = shared_from_this();
 	#pragma omp parallel
 	{	
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
@@ -109,7 +112,7 @@ Coord Cyt_Node::calc_Morse_MI(Wall_Node* orig, int Ti) {
 	return Fmi;
 }
 
-Coord Cyt_Node::morse_Equation(Cyt_Node* cyt, int Ti) {
+Coord Cyt_Node::morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti) {
 	
 	if (cyt == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
@@ -127,7 +130,7 @@ Coord Cyt_Node::morse_Equation(Cyt_Node* cyt, int Ti) {
 	return Fii;
 }
 
-Coord Cyt_Node::morse_Equation(Wall_Node* wall, int Ti) {
+Coord Cyt_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 
 	if (wall == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
@@ -146,7 +149,7 @@ Coord Cyt_Node::morse_Equation(Wall_Node* wall, int Ti) {
 }
 
 Cyt_Node::~Cyt_Node() {
-	my_cell = NULL;
+//	my_cell = NULL;
 }
 
 
@@ -154,7 +157,7 @@ Cyt_Node::~Cyt_Node() {
 /** class Wall Node Functions **/
 
 // Constructors-----------------
-Wall_Node::Wall_Node(Coord loc, Cell* my_cell) : Node(loc) {
+Wall_Node::Wall_Node(Coord loc,Cell* my_cell) : Node(loc) {
 	//functions that use this must set
 	//left
 	//right
@@ -163,39 +166,46 @@ Wall_Node::Wall_Node(Coord loc, Cell* my_cell) : Node(loc) {
 	//set angle
 	//set klinear
 	//set equi angle
+	//cross prod
 	this->cyt_force = Coord(0,0);
-	//this->closest = NULL;
+	this->closest = NULL;
+	this->curr_closest = NULL;
 	//this->microfibril_pair = NULL;
 	//this->pressure = 0;
-	//this->closest_len = 100;
-	//this->curr_slope = 100;
+	this->closest_len = 100;
+	this->curr_slope = 100;
 	this->is_added = false;
 	//this->is_delete = false;
 }
 
-Wall_Node::Wall_Node(Coord loc, Cell* my_cell, Wall_Node* left, Wall_Node* right) : Node(loc)   {
+Wall_Node::Wall_Node(Coord loc,Cell* my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right) : Node(loc)   {
 	this->left = left;
     	this->right = right;
 	this-> my_cell = my_cell;
 	//equilibrium length
 	update_Angle();
 	//set klinear
-	//set equi angle
+	//set equi anglei
+	//cross prod
 	this->cyt_force = Coord(0,0);
 
-	//this->closest = NULL;
+	this->closest = NULL;
+	this->curr_closest = NULL;
 	//this->microfibril_pair= NULL;
-	//this->curr_slope = 100;
-	//this->closest_len = 100;
+	this->curr_slope = 100;
+	this->closest_len = 100;
+	//this->is_added;
 	//this->pressure = 0;
 	//this->is_new = true;
 	//this->is_delete = false;
 }
 
 Wall_Node::~Wall_Node() {
-	my_cell = NULL;	
-	left = NULL;
-	right = NULL;
+//	my_cell = NULL;	
+//	left = NULL;
+//	right = NULL;
+//	//microfibril_pair = NULL;
+//	closest = NULL;
 }
 
 //  Getters and Setters-----------------------------------------------------------
@@ -203,7 +213,7 @@ void Wall_Node::set_is_new(){
 	this->is_added = true;
 	return;
 }
-void Wall_Node::set_Left_Neighbor(Wall_Node* new_Left) {
+void Wall_Node::set_Left_Neighbor(shared_ptr<Wall_Node> new_Left) {
 	this->left = new_Left;
 	return;
 }
@@ -211,7 +221,7 @@ void Wall_Node::set_Left_Neighbor(Wall_Node* new_Left) {
 //	this->pressure = new_press;
 //	return;
 //}
-void Wall_Node::set_Right_Neighbor(Wall_Node* new_Right) {
+void Wall_Node::set_Right_Neighbor(shared_ptr<Wall_Node> new_Right) {
 	this->right = new_Right;
 	return;
 }
@@ -247,6 +257,7 @@ void Wall_Node::update_Angle() {
 	
 	//update protected member variables
 	my_angle = theta;
+	//cout << "Angle: " <<  theta << endl;
 	cross_Prod = crossProd;
 	
 	return;
@@ -267,7 +278,14 @@ void Wall_Node::set_K_LINEAR(double& k_lin){
 	this->K_LINEAR = k_lin;
 	return;
 }
-
+void Wall_Node::clear_adh_vec(){
+	this->adhesion_pairs.clear();	
+	return;
+}
+void Wall_Node::add_adh_pair(shared_ptr<Wall_Node> pair) {
+	this->adhesion_pairs.push_back(pair);
+	return;
+}
 //void Wall_Node::clear_Closest_Vec() {
 //	while ( !closest_vec.empty()) {
 //		closest_vec.pop_back();
@@ -278,43 +296,88 @@ void Wall_Node::set_K_LINEAR(double& k_lin){
 //	this->closest_vec.push_back(closest);
 //	return;
 //}
-//void Wall_Node::set_Closest(Wall_Node*  closest, double closest_len) {
-//	this->closest = closest;
-//	this->closest_len = closest_len;
-//	return;
-//}
+void Wall_Node::set_curr_Closest(shared_ptr<Wall_Node> curr_closest){
+	this->curr_closest = curr_closest;
+	return;
+}
+void Wall_Node::set_Closest(shared_ptr<Wall_Node>  closest, double closest_len) {
+	this->closest = closest;
+	this->closest_len = closest_len;
+	return;
+}
 //void Wall_Node::set_microfibril_pair(Wall_Node* pair,double curr_slope){
 //	this->microfibril_pair = pair;
 //	this->curr_slope = curr_slope;
 //	return;
 //}
+void Wall_Node::print_info(){
+		cout << "left" <<this->left<<endl;
+		cout << "right" << this->right<<endl;
+        	cout << "cell" << this->my_cell <<endl;
+		cout << "membrane length" << this-> membr_equ_len << endl;
+		cout << "angle" << this->my_angle<<endl;
+		cout << "linear constatn" <<this->K_LINEAR<<endl;
+		cout << "equilibrium" <<this->equi_angle<<endl;
+		cout << "cross" <<this->cross_Prod << endl;
+		cout << "cyt" << this->cyt_force<<endl;
+		cout << "closest" <<this->closest<<endl;
+		cout << "slope" <<this->curr_slope<<endl;
+		cout << "closest" <<this->closest_len<<endl;
+//		cout << "micro" <<this->microfibril_pair<<endl;
+		cout << "added" << this->is_added <<endl;
+	return;
+}
+	
 
 // Calc Force Functions -----------------------
 //calculates total force on current wall node
 void Wall_Node::calc_Forces(int Ti) {
-	// Initialize force sum to zero by default constructor
+	Coord sum;
+	//same cell forces on wall nodes
+	//from cytoplasm nodes
+	/*if(Ti>15000){
 	Coord sum;
 	//same cell forces on wall nodes
 	//from cytoplasm nodes
 	sum += calc_Morse_SC(Ti);
-	//cout << "SC success" << endl;
+	cout << "SC success" << endl;
 	//linear force from left/right neighbor
 	sum += calc_Linear();
-	//cout << "linear" << endl;
+	cout << "linear" << endl;
 	//bending force from left/right neighbor
 	sum += calc_Bending();
-	//cout << "bending"<< endl;
+//	cout << "bending"<< endl;
 	//each wall node wiil keep 
 	//track of force from cytoplasm
 	//for pressure measurements	
 	this->cyt_force = sum;
-
+//	cout << "cyt force" << endl;
 	//different cell forces on wall nodes
 	//morse between neighboring cell
 	//adhesion between neighboring cell
 	sum += calc_Morse_DC(Ti);
-	//cout << "DC" << calc_Morse_DC() << endl;
-	// Update new_force variable for location updating
+//	cout << "DC" << calc_Morse_DC(Ti) << endl;
+	}
+	else{*/
+	sum += calc_Morse_SC(Ti);
+	cout << "SC success" << endl;
+	//linear force from left/right neighbor
+	sum += calc_Linear();
+	cout << "linear" << endl;
+	//bending force from left/right neighbor
+	sum += calc_Bending();
+	cout << "bending"<< endl;
+	//each wall node wiil keep 
+	//track of force from cytoplasm
+	//for pressure measurements	
+	this->cyt_force = sum;
+	cout << "cyt force" << endl;
+	//different cell forces on wall nodes
+	//morse between neighboring cell
+	//adhesion between neighboring cell
+	sum += calc_Morse_DC(Ti);
+	cout << "DC" << calc_Morse_DC(Ti) << endl;
+	//}
 	new_force = sum;
 
 	return;
@@ -322,10 +385,11 @@ void Wall_Node::calc_Forces(int Ti) {
 
 //morse potential between wall node i and every cyt node in cell
 Coord Wall_Node::calc_Morse_SC(int Ti) {
-	vector<Cyt_Node*> cyt_nodes;
+	vector<shared_ptr<Cyt_Node>> cyt_nodes;
 	my_cell->get_Cyt_Nodes_Vec(cyt_nodes);
-	Wall_Node* curr_wall = this;
+	shared_ptr<Wall_Node> curr_wall= shared_from_this();
 	Coord Fmi;
+//	cout << "Cyt nodes" << endl;
 	#pragma omp parallel
 	{	
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
@@ -334,7 +398,15 @@ Coord Wall_Node::calc_Morse_SC(int Ti) {
 			Fmi += curr_wall->morse_Equation(cyt_nodes.at(i), Ti);
 		}
 	}
-	//cout << "morse_sc: " << Fmi << endl;	
+	//if(this->microfibril_pair != NULL){
+		//cout << "closest not null" << endl;
+	//	this->microfibril_pair->get_Location();
+		//cout << "got location" << endl;
+	//	Fmi += linear_Equation_microfibril(this->microfibril_pair);
+		//cout << "computed adh successfully" << endl;
+	//}
+	
+//	cout << "morse_sc: " << Fmi << endl;	
 	return Fmi;
 }
 
@@ -342,11 +414,12 @@ Coord Wall_Node::calc_Morse_SC(int Ti) {
 //morse potential between wall node i and every wall node in neighboring cell
 Coord Wall_Node::calc_Morse_DC(int Ti) {
 	Coord Fdc;
-	vector<Cell*> cells;
+	vector<shared_ptr<Cell>> cells;
 	my_cell->get_Neighbor_Cells(cells);	
 	//cout << "getting neighbors" << endl;
-	Wall_Node* curr = NULL;
-	Wall_Node* orig = NULL;
+	shared_ptr<Wall_Node> curr = NULL;
+	shared_ptr<Wall_Node> orig = NULL;
+	cout << "meighbor nodes" << endl;
 	#pragma omp parallel 
 	{
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
@@ -355,20 +428,20 @@ Coord Wall_Node::calc_Morse_DC(int Ti) {
 			Fdc += neighbor_nodes(cells.at(i), Ti);
 		}
 	}
-	
-//	if(this->closest != NULL){
+	cout << "adhesion" << endl;
+	if(this->closest != NULL){
 	//	cout << "closest not null" << endl;
-//		closest->get_Location();
+		closest->get_Location();
 	//	cout << "got location" << endl;
-//		Fdc += linear_Equation_ADH(this->closest);
+		Fdc += linear_Equation_ADH(this->closest);
 	//	cout << "computed adh successfully" << endl;
-//	}
+	}
 	return Fdc;
 }
 //function to get all wall nodes of neighbor cell i
-Coord Wall_Node::neighbor_nodes(Cell* neighbor, int Ti) {
+Coord Wall_Node::neighbor_nodes(shared_ptr<Cell> neighbor, int Ti) {
 	Coord sum;
-	vector<Wall_Node*> walls;
+	vector<shared_ptr<Wall_Node>> walls;
 	neighbor->get_Wall_Nodes_Vec(walls);
 	#pragma omp parallel
 	{
@@ -415,7 +488,7 @@ Coord Wall_Node::calc_Linear() {
 // Mathematical force calculations
 
 
-Coord Wall_Node::morse_Equation(Cyt_Node* cyt, int Ti) {
+Coord Wall_Node::morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti) {
 	if (cyt == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
 		exit(1);
@@ -434,7 +507,7 @@ Coord Wall_Node::morse_Equation(Cyt_Node* cyt, int Ti) {
 	return Fmi;
 }
 
-Coord Wall_Node::morse_Equation(Wall_Node* wall, int Ti) {
+Coord Wall_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 	if (wall == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
 		exit(1);
@@ -558,7 +631,7 @@ Coord Wall_Node::bending_Equation_Right() {
 	return F_right;
 }
 
-Coord Wall_Node::linear_Equation(Wall_Node* wall) {
+Coord Wall_Node::linear_Equation(shared_ptr<Wall_Node> wall) {
 	if (wall == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
 		exit(1);
@@ -574,61 +647,60 @@ Coord Wall_Node::linear_Equation(Wall_Node* wall) {
 	return F_lin;	
 }
 
-//Coord Wall_Node::linear_Equation_ADH(Wall_Node*& wall) {
-//	if (wall == NULL) {
-//		cout << "Error: Trying to access NULL pointer Aborting!" << endl;i
-//		exit(1);
-//	};
-//	Coord F_lin;
+Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
+	if (wall == NULL) {
+		cout << "Error: Trying to access NULL pointer Aborting!" << endl;
+		exit(1);
+	};
+	Coord F_lin;
 //	cout << "compute diff vec" << endl;
-//	Coord wall_loc = wall->get_Location();
+	Coord wall_loc = wall->get_Location();
 //	cout << "wall loc"  << endl;
-//	Coord loc = my_loc;
+	Coord loc = my_loc;
 //	cout << "my loc " << endl;
-//	Coord diff_vect = wall->get_Location() - my_loc;
+	Coord diff_vect = wall->get_Location() - my_loc;
 //	cout << "coord diff is : " << diff_vect << endl;
-//	double diff_len = diff_vect.length();
-//	if((wall->get_My_Cell()->get_Layer() == 1) && (this->get_My_Cell()->get_Layer() == 1)) {
-//		F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
-//	}
-//	else {
-//		F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
-//	}
-////	}
-//
-//	return F_lin;
-//}
-//Coord Wall_Node::linear_Equation_microfibril(Wall_Node*& wall) {
+	double diff_len = diff_vect.length();
+	if((wall->get_My_Cell()->get_Layer() == 1) && (this->get_My_Cell()->get_Layer() == 1)) {
+		F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
+	}
+	else {
+		F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
+	}
+
+	return F_lin;
+}
+Coord Wall_Node::linear_Equation_microfibril(shared_ptr<Wall_Node>& wall) {
 	//cout << "wall node is: " << wall << endl;
-	//Wall_Node* wall = NULL;
+//	Wall_Node* wall = NULL;
 //	for(unsigned int i = 0;i < closest_nodes.size();i++){
 //		wall = closest_nodes.at(i);
 //	if (wall == NULL) {
 //		cout << "Problems for days" << endl;
 //	};
-//	Coord F_lin;
+	Coord F_lin;
 //	cout << "compute diff vec" << endl;
-//	Coord wall_loc = wall->get_Location();
+	Coord wall_loc = wall->get_Location();
 //	cout << "wall loc"  << endl;
-//	Coord loc = my_loc;
+	Coord loc = my_loc;
 ////	cout << "my loc " << endl;
-//	Coord diff_vect = wall->get_Location() - my_loc;
+	Coord diff_vect = wall->get_Location() - my_loc;
 //	cout << "coord diff is : " << diff_vect << endl;
-//	double diff_len = diff_vect.length();
-//	F_lin = (diff_vect/diff_len)*(K_microfibril*(diff_len - MembrEquLen_microfibril));
+	double diff_len = diff_vect.length();
+	F_lin = (diff_vect/diff_len)*(K_microfibril*(diff_len - MembrEquLen_microfibril));
 //	}
 
-//	return F_lin;
-//}
+	return F_lin;
+}
 //==========================================================
 //Adhesion functions
 
-/*Wall_Node* Wall_Node::find_Closest_Node(vector<Cell*>& neighbors) {
-	Wall_Node* curr = NULL;
-	Wall_Node* orig = NULL;
-	Wall_Node* next = NULL;
-	Cell* curr_cell = NULL;
-	Wall_Node* closest = NULL;
+shared_ptr<Wall_Node> Wall_Node::find_Closest_Node(vector<shared_ptr<Cell>>& neighbors) {
+	shared_ptr<Wall_Node> curr = NULL;
+	shared_ptr<Wall_Node> orig = NULL;
+	shared_ptr<Wall_Node> next = NULL;
+	shared_ptr<Cell> curr_cell = NULL;
+	shared_ptr<Wall_Node> closest = NULL;
 ;	double curr_dist = 0;
 	double smallest = 100;
 	for(int i = 0; i < neighbors.size(); i++) {
@@ -649,81 +721,84 @@ Coord Wall_Node::linear_Equation(Wall_Node* wall) {
 		} while (next != orig);
 	}
 	return closest;
-}*/
+}
 
 
-/*void Wall_Node::make_Connection(Wall_Node* curr_Closest) {
+void Wall_Node::make_Connection(shared_ptr<Wall_Node> curr_Closest) {
 	double curr_dist = 0;
+	shared_ptr<Wall_Node> this_ptr=shared_from_this();
 	if(curr_Closest != NULL) {
-		curr_dist = (this->get_Location() - curr_Closest->get_Location()).length();
-		
-		this->closest = curr_Closest;
-		this->closest_len = curr_dist;	
+	//	if(curr_Closest->get_curr_Closest() == this){
+			this_ptr->closest = curr_Closest;
+			curr_Closest->add_adh_pair(this_ptr);
+			curr_dist = (this_ptr->get_Location() - curr_Closest->get_Location()).length();
+			this_ptr->closest_len = curr_dist;
+	//	}	
 	}
 	return;
-}*/
-//void Wall_Node::find_microfibril_pair_horiz(vector<Wall_Node*> side2){
-//	double x_1;
-//	double x_2;
-//	double y_1;
-//	double y_2;
-//	double slope;
-//	Wall_Node* curr = NULL;
-//	double smallest;
+}
+/*void Wall_Node::find_microfibril_pair_horiz(vector<Wall_Node*> side2){
+	double x_1;
+	double x_2;
+	double y_1;
+	double y_2;
+	double slope;
+	Wall_Node* curr = NULL;
+	double smallest;
 //
-//	for(unsigned int i=0;i<side2.size();i++){
-///		x_1 = this->get_Location().get_X();
-//		y_1 = this->get_Location().get_Y();
-//		x_2 = side2.at(i)->get_Location().get_X();
-//		y_2 = side2.at(i)->get_Location().get_Y();
-//		slope = (x_2-x_1)/(y_2-y_1);
-//		cout << "slope" << slope << endl;
-//		if(side2.at(i)->get_micro_pair() == NULL) {
-//			if(slope < this->curr_slope){
-//				smallest = slope;
-//				curr = side2.at(i);
-//			}
-//		}
-//	}
-//	if(curr != NULL) {
-//		this->curr_slope = smallest;
-//		this->microfibril_pair = curr;
-//		curr->set_microfibril_pair(this,smallest);
-//	}
+	for(unsigned int i=0;i<side2.size();i++){
+		x_1 = this->get_Location().get_X();
+		y_1 = this->get_Location().get_Y();
+		x_2 = side2.at(i)->get_Location().get_X();
+		y_2 = side2.at(i)->get_Location().get_Y();
+		slope = (x_2-x_1)/(y_2-y_1);
+		//cout << "slope" << slope << endl;
+		if(side2.at(i)->get_micro_pair() == NULL) {
+			if(slope < this->curr_slope){
+				smallest = slope;
+				curr = side2.at(i);
+			}
+		}
+	}
+	if(curr != NULL) {
+		this->curr_slope = smallest;
+		this->microfibril_pair = curr;
+		curr->set_microfibril_pair(this,smallest);
+	}
+
+	return;
+}
+void Wall_Node::find_microfibril_pair_vert(vector<Wall_Node*> side2){
+	double x_1;
+	double x_2;
+	double y_1;
+	double y_2;
+	double slope;
+	Wall_Node* curr = NULL;
+	double smallest;
 //
-//	return;
-//}
-//void Wall_Node::find_microfibril_pair_vert(vector<Wall_Node*> side2){
-//	double x_1;
-//	double x_2;
-//	double y_1;
-//	double y_2;
-//	double slope;
-//	Wall_Node* curr = NULL;
-//	double smallest;
-//
-//	for(unsigned int i=0;i<side2.size();i++){
-//		x_1 = this->get_Location().get_X();
-//		y_1 = this->get_Location().get_Y();
-//		x_2 = side2.at(i)->get_Location().get_X();
-//		y_2 = side2.at(i)->get_Location().get_Y();
-//		slope = (y_2-y_1)/(x_2-x_1);
+	for(unsigned int i=0;i<side2.size();i++){
+		x_1 = this->get_Location().get_X();
+		y_1 = this->get_Location().get_Y();
+		x_2 = side2.at(i)->get_Location().get_X();
+		y_2 = side2.at(i)->get_Location().get_Y();
+		slope = (y_2-y_1)/(x_2-x_1);
 //	//	cout << "slope" << slope << endl;
-//		if(side2.at(i)->get_micro_pair() == NULL) {
-//			if(slope < this->curr_slope){
-//				smallest = slope;
-//				curr = side2.at(i);
-//			}
-//		}
-//	}
-//	if(curr != NULL) {
-//		this->curr_slope = smallest;
-//		this->microfibril_pair = curr;
-//		curr->set_microfibril_pair(this,smallest);
-//	}
+		if(side2.at(i)->get_micro_pair() == NULL) {
+			if(slope < this->curr_slope){
+				smallest = slope;
+				curr = side2.at(i);
+			}
+		}
+	}
+	if(curr != NULL) {
+		this->curr_slope = smallest;
+		this->microfibril_pair = curr;
+		curr->set_microfibril_pair(this,smallest);
+	}
 //
-//	return;
-//}
+	return;
+}*/
 //==========================================================
 // End of node.cpp
 
