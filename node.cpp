@@ -9,6 +9,7 @@
 #include "coord.h"
 #include "node.h"
 #include "cell.h"
+#include "tissue.h"
 //=========================
 
 //========================================
@@ -39,12 +40,12 @@ Node::~Node() {}
 //========================================
 /**class Cyt Node Functions**/
 //constructor
-Cyt_Node::Cyt_Node(Coord loc, Cell*  my_cell) : Node(loc) {
+Cyt_Node::Cyt_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 	this->my_cell = my_cell;
 	return;
 }
 
-void Cyt_Node::update_Cell(Cell* cell){
+void Cyt_Node::update_Cell(shared_ptr<Cell> cell){
 	this->my_cell = cell;
 	return;
 }
@@ -157,7 +158,7 @@ Cyt_Node::~Cyt_Node() {
 /** class Wall Node Functions **/
 
 // Constructors-----------------
-Wall_Node::Wall_Node(Coord loc,Cell* my_cell) : Node(loc) {
+Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 	//functions that use this must set
 	//left
 	//right
@@ -178,7 +179,7 @@ Wall_Node::Wall_Node(Coord loc,Cell* my_cell) : Node(loc) {
 	//this->is_delete = false;
 }
 
-Wall_Node::Wall_Node(Coord loc,Cell* my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right) : Node(loc)   {
+Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right) : Node(loc)   {
 	this->left = left;
     	this->right = right;
 	this-> my_cell = my_cell;
@@ -266,7 +267,7 @@ void Wall_Node::set_membr_len(double length){
 	this->membr_equ_len = length;
 	return;
 }
-void Wall_Node::update_Cell(Cell* new_cell) {
+void Wall_Node::update_Cell(shared_ptr<Cell> new_cell) {
 	this->my_cell = new_cell;
 	return;
 }
@@ -360,23 +361,23 @@ void Wall_Node::calc_Forces(int Ti) {
 	}
 	else{*/
 	sum += calc_Morse_SC(Ti);
-	cout << "SC success" << endl;
+	//cout << "SC success" << endl;
 	//linear force from left/right neighbor
 	sum += calc_Linear();
-	cout << "linear" << endl;
+	//cout << "linear" << endl;
 	//bending force from left/right neighbor
 	sum += calc_Bending();
-	cout << "bending"<< endl;
+	//cout << "bending"<< endl;
 	//each wall node wiil keep 
 	//track of force from cytoplasm
 	//for pressure measurements	
 	this->cyt_force = sum;
-	cout << "cyt force" << endl;
+	//cout << "cyt force" << endl;
 	//different cell forces on wall nodes
 	//morse between neighboring cell
 	//adhesion between neighboring cell
 	sum += calc_Morse_DC(Ti);
-	cout << "DC" << calc_Morse_DC(Ti) << endl;
+	//cout << "DC" << calc_Morse_DC(Ti) << endl;
 	//}
 	new_force = sum;
 
@@ -417,9 +418,9 @@ Coord Wall_Node::calc_Morse_DC(int Ti) {
 	vector<shared_ptr<Cell>> cells;
 	my_cell->get_Neighbor_Cells(cells);	
 	//cout << "getting neighbors" << endl;
-	shared_ptr<Wall_Node> curr = NULL;
-	shared_ptr<Wall_Node> orig = NULL;
-	cout << "meighbor nodes" << endl;
+	//shared_ptr<Wall_Node> curr = NULL;
+	//shared_ptr<Wall_Node> orig = NULL;
+	//cout << "meighbor nodes" << endl;
 	#pragma omp parallel 
 	{
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
@@ -428,7 +429,7 @@ Coord Wall_Node::calc_Morse_DC(int Ti) {
 			Fdc += neighbor_nodes(cells.at(i), Ti);
 		}
 	}
-	cout << "adhesion" << endl;
+	//cout << "adhesion" << endl;
 	if(this->closest != NULL){
 	//	cout << "closest not null" << endl;
 		closest->get_Location();
@@ -436,6 +437,27 @@ Coord Wall_Node::calc_Morse_DC(int Ti) {
 		Fdc += linear_Equation_ADH(this->closest);
 	//	cout << "computed adh successfully" << endl;
 	}
+
+//	if(this->get_My_Cell()->get_Layer() == 1){
+//		Coord curr_Cent;
+//		Coord distance;
+//		vector<shared_ptr<Cell>> tops;
+//		my_cell->get_Tissue()->get_top_cells(tops);
+//		#pragma omp for schedule(static,1)
+//		for (unsigned int i = 0; i < tops.size(); i++) {
+//			shared_ptr<Cell> curr = tops.at(i);
+//			cout << "made pointer to current neighbor" << endl;
+			//if (curr != my_cell) {
+//			curr_Cent = curr->get_Cell_Center();
+//				cout << "got center" << endl;
+				// Check if cell centers are close enough together
+//			distance = my_cell->get_Cell_Center() - curr_Cent;
+//				//cout << "Distance = " << distance << endl;
+//			if ( distance.length() < 15) {
+//				Fdc+= neighbor_nodes(tops.at(i),Ti);
+//			}	
+//		}	
+//	}		
 	return Fdc;
 }
 //function to get all wall nodes of neighbor cell i
@@ -443,13 +465,16 @@ Coord Wall_Node::neighbor_nodes(shared_ptr<Cell> neighbor, int Ti) {
 	Coord sum;
 	vector<shared_ptr<Wall_Node>> walls;
 	neighbor->get_Wall_Nodes_Vec(walls);
+	shared_ptr<Wall_Node> me = shared_from_this();
 	#pragma omp parallel
 	{
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
 		#pragma omp for reduction(+:sum) schedule(static,1) 
 		for(unsigned int j =0; j< walls.size(); j++) {
 			//cout << "getting wall nodes" << endl;
-			sum += morse_Equation(walls.at(j), Ti);
+			//if((me->get_Location() - walls.at(j)->get_Location()).length() < 3){
+				sum += morse_Equation(walls.at(j), Ti);
+			//}
 			//cout << "morse" << endl;
 		}
 	}

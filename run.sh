@@ -1,12 +1,13 @@
 #!/bin/csh
-#$ -M mbkuhn@math.ucr.edu
-#$ -m ab
+#$ -M  mbkuhn@math.ucr.edu
+#$ -m  ab
 #$ -pe smp 12
-#$ -q  debug # Specify queue
-#$ -N  run_Animate3
-
+#$ -q  long# Specify queue
+#$ -N  run_Animate_CK
 
 setenv OMP_NUM_THREADS 16
-mkdir Animate3
-mkdir Nematic3
-./program Animate3 Nematic3
+mkdir Animate_CK
+mkdir Nematic_CK
+./program Animate_CK Nematic_CK
+		
+		

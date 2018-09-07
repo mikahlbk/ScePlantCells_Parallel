@@ -10,7 +10,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
-
+#include <memory>
 #include "phys.h"
 #include "coord.h"
 #include "node.h"
@@ -38,9 +38,9 @@
 	//	}
 	return sister;
 }*/
-/*//find the nodes to set up the division plane
-void  Cell::find_nodes_for_div_plane(Coord& direction, vector<Wall_Node*>& nodes) {
-	vector<Wall_Node*> walls;
+//find the nodes to set up the division plane
+void  Cell::find_nodes_for_div_plane(Coord& direction, vector<shared_ptr<Wall_Node>>& nodes) {
+	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
         double theta = 0;
         double costheta = 0;
@@ -50,8 +50,8 @@ void  Cell::find_nodes_for_div_plane(Coord& direction, vector<Wall_Node*>& nodes
 	double curr_diff = 100;
 	double smallest_1 = 100;
 	double smallest_2 = 100;
-	Wall_Node* first = NULL;
-	Wall_Node* second = NULL;
+	shared_ptr<Wall_Node> first = NULL;
+	shared_ptr<Wall_Node>  second = NULL;
 	//find first node that makes 90 degree angle
 	for(unsigned int i = 0; i < walls.size();i++) {	
 		curr_vec = walls.at(i)->get_Location() - cell_center;
@@ -108,23 +108,23 @@ void  Cell::find_nodes_for_div_plane(Coord& direction, vector<Wall_Node*>& nodes
 	nodes.push_back(first);
 	nodes.push_back(second);
 	return;	
-}*/
+}
 
-/*Cell* Cell::division() {
+shared_ptr<Cell> Cell::division() {
 	//current cell will split into two daughter cells
 	//	-"this" will keep its entity as the left sister
 	//	this functoin will create a sister cell to the right
 	//	and return it to the tissue
-	Cell* sister = new Cell(this->my_tissue);
+	shared_ptr<Cell>  sister = make_shared<Cell>(this->my_tissue);
 	//pointers for while loops throughout function
-	cout << num_wall_nodes << endl;
-	Wall_Node* curr = NULL;
-	Wall_Node* next = NULL;
-	Wall_Node* orig = NULL;
+	//cout << num_wall_nodes << endl;
+	//shared_ptr<Wall_Node> curr = NULL;
+	//Wall_Node* next = NULL;
+	//Wall_Node* orig = NULL;
 	
-	vector<Wall_Node*>nodes;
-	Wall_Node* start = NULL;
-	Wall_Node* end = NULL;
+	vector<shared_ptr<Wall_Node>> nodes;
+	//Wall_Node* start = NULL;
+	//Wall_Node* end = NULL;
 	Coord horizontal = Coord(1,0);
 	Coord vertical = Coord(0,1);
 	
@@ -134,69 +134,60 @@ void  Cell::find_nodes_for_div_plane(Coord& direction, vector<Wall_Node*>& nodes
 	else {
 		find_nodes_for_div_plane(horizontal,nodes);
 	}
-	start = nodes.at(0);
-	end = nodes.at(1);
-	cout << "got start and end" << endl;	
+	shared_ptr<Wall_Node> start = nodes.at(0);
+	shared_ptr<Wall_Node> end = nodes.at(1);
+	//cout << "got start and end" << endl;	
 	if((start==NULL)||(end==NULL)) {
 		cout << "pointer problem in division"<< endl;
 	}
-	cout << "Setting new start and end Points" << endl;
-	Wall_Node* left_start = start;
-	cout << "left start broke" << left_start << endl;
-	Wall_Node* left_end = end;
-	cout << "left end broke" << left_end << endl;
-	Wall_Node* right_start = start;
-	cout << "right start broke" << right_start << endl;
-	Wall_Node* right_end = end;
-	cout << "right end broke" << right_end << endl;
+	//cout << "Setting new start and end Points" << endl;
+	shared_ptr<Wall_Node> left_start = start;
+	//cout << "left start broke" << left_start << endl;
+	shared_ptr<Wall_Node> left_end = end;
+	//cout << "left end broke" << left_end << endl;
+	shared_ptr<Wall_Node> right_start = start;
+	//cout << "right start broke" << right_start << endl;
+	shared_ptr<Wall_Node> right_end = end;
+	//cout << "right end broke" << right_end << endl;
 	//move start and end pointers to correct location
 	//dont woory about deletion
-	//will delete nodes in the whole vector and start over*/
-/*keep this here fool
- 	cout << "left" << endl;	
-	left_start = left_start->get_Right_Neighbor()->get_Right_Neighbor()->get_Right_Neighbor();
-	delete  left_start->get_Right_Neighbor()->get_Right_Neighbor();
-	delete  left_start->get_Right_Neighbor();
-	//delete  left_start;
-	cout << "right" << endl;
-	right_start = right_start->get_Left_Neighbor()->get_Left_Neighbor()->get_Left_Neighbor();
-	delete  right_start->get_Left_Neighbor()->get_Left_Neighbor();
-	delete  right_start->get_Left_Neighbor();
-	delete  start;	
-	cout << "left" << endl;
-	left_end = left_end->get_Left_Neighbor()->get_Left_Neighbor()->get_Left_Neighbor();
-	delete  left_end->get_Left_Neighbor()->get_Left_Neighbor();
-	delete  left_end->get_Left_Neighbor();	
-
-	cout << "right" << endl;
-	right_end = right_end->get_Right_Neighbor()->get_Right_Neighbor()->get_Right_Neighbor();
-	delete  right_end->get_Right_Neighbor()->get_Right_Neighbor();
-	delete  right_end->get_Right_Neighbor();
-	delete  end;
-KEEEEEEEP*/	
-	//delete  right_end;
-/*	Wall_Node* currD = NULL;
+	//node gets deleted when smart pointers dont point anymore
+	vector<shared_ptr<Wall_Node>> adhesion_vec;
 	for(unsigned int i = 0; i < 4; i++) {
-		cout << "left start" << left_start << endl;
-		currD = left_start;
-		left_start = left_start->get_Right_Neighbor();
-		cout << "right start" << right_start << endl;
-		right_start = right_start->get_Left_Neighbor();
-		cout << "delete" << currD << endl;
-		delete currD;
-		currD = left_end;
-		cout << "left end" << left_end << endl;
-		left_end = left_end->get_Left_Neighbor();
-		cout << "between" << endl;
-		right_end = right_end->get_Right_Neighbor();
-		cout << "before" << endl;
-		cout << "currD" << currD << endl;
-		delete currD;
-		cout << "delete" << endl;
+	//cout << "left start" << left_start << endl;
+	//shared_ptr<Wall_Node> currD = left_start;
+	adhesion_vec = left_start->get_adhesion_vec();
+	for(unsigned int i=0; i<adhesion_vec.size(); i++){
+		adhesion_vec.at(i)->set_Closest(NULL,100);
 	}
-		
 	
-	cout << "lengths" << endl;
+	left_start = left_start->get_Right_Neighbor();
+
+	//cout << "right start" << right_start << endl;
+	adhesion_vec = right_start->get_adhesion_vec();
+	for(unsigned int i=0; i<adhesion_vec.size(); i++){
+		adhesion_vec.at(i)->set_Closest(NULL,100);
+	}
+	
+	right_start = right_start->get_Left_Neighbor();
+	
+	//currD = left_end;	
+	left_end = left_end->get_Left_Neighbor();
+	adhesion_vec = left_end->get_adhesion_vec();
+	for(unsigned int i=0; i<adhesion_vec.size(); i++){
+		adhesion_vec.at(i)->set_Closest(NULL,100);
+	}
+	
+	right_end = right_end->get_Right_Neighbor();
+	adhesion_vec = right_end->get_adhesion_vec();
+	for(unsigned int i=0; i<adhesion_vec.size(); i++){
+		adhesion_vec.at(i)->set_Closest(NULL,100);
+	}
+	
+	}
+	
+		
+	//cout << "lengths" << endl;
 	//Coord left_center = (left_start->get_Location() + left_end->get_Location())*.5;
 	//Coord right_center = (right_start->get_Location() + right_end->get_Location())*.5;
 	double left_length = (left_end->get_Location() - left_start->get_Location()).length();
@@ -217,12 +208,12 @@ KEEEEEEEP*/
 	 
 	double delta_x_left = (double)x_left/(double)total_num_left;
 	double delta_x_right = (double)x_right/(double)total_num_right;
-	cout <<delta_x_left<< endl;
-	cout << delta_x_right << endl;
+	//cout <<delta_x_left<< endl;
+	//cout << delta_x_right << endl;
 	double delta_y_left = (double)y_left/(double)total_num_left;
 	double delta_y_right = (double)y_right/(double)total_num_left;
-	cout << delta_y_left << endl;
-	cout << delta_y_right << endl;
+	//cout << delta_y_left << endl;
+	//cout << delta_y_right << endl;
 	//double start_x_left = left_center.get_X();
 	//double start_x_right = right_center.get_X();
 	//double start_y_left = left_center.get_Y();
@@ -231,9 +222,10 @@ KEEEEEEEP*/
 	//here i will make line from center to left start
 	//left side
 	//Wall_Node* left_center_node = new Wall_Node(left_center,this);
-	Wall_Node* currW = left_start;
+	shared_ptr<Wall_Node> currW = left_start;
 	Coord location = left_start->get_Location();
-	Wall_Node* prevW = left_start;
+	shared_ptr<Wall_Node> prevW = left_start;
+	shared_ptr<Cell> this_cell = shared_from_this();
 	double curr_X = left_start->get_Location().get_X()+2*delta_x_left;
 	double curr_Y = left_start->get_Location().get_Y()+2*delta_y_left;
 	//int counter = 0;
@@ -243,7 +235,7 @@ KEEEEEEEP*/
 		curr_Y = curr_Y + delta_y_left;
 		location = Coord(curr_X,curr_Y);
 	//	cout << "location" << location << endl;
-		currW = new Wall_Node(location,this);
+		currW = make_shared<Wall_Node>(location,this_cell);
 		currW->set_Right_Neighbor(prevW);
 		prevW->set_Left_Neighbor(currW);
 		prevW = currW;
@@ -273,7 +265,7 @@ KEEEEEEEP*/
 	left_end->set_Right_Neighbor(currW);
 	this->left_Corner = left_start;KEEEEEEEEP*/
 
-/*	//right side
+	//right side
 	//line from center to right start
 	//Wall_Node* right_center_node = new Wall_Node(right_center,sister);
 	currW = right_start;
@@ -287,7 +279,7 @@ KEEEEEEEP*/
 		curr_Y = curr_Y + delta_y_right;
 		location = Coord(curr_X,curr_Y);
 	//	cout << "location" << location << endl;
-		currW = new Wall_Node(location,sister);
+		currW =make_shared<Wall_Node>(location,sister);
 		currW->set_Left_Neighbor(prevW);
 		prevW->set_Right_Neighbor(currW);
 		prevW = currW;	
@@ -394,10 +386,10 @@ keep*/
 	//count wall nodes
 	//cout << "begin delete wall nodes" << endl;
 	//Wall_Node* wall = NULL;
-/*	cout << "made wall nodes" << endl;
-	curr = sister->get_Left_Corner();
-	next = NULL;
-	orig = curr;
+//	cout << "made wall nodes" << endl;
+	shared_ptr<Wall_Node> curr = sister->get_Left_Corner();
+	shared_ptr<Wall_Node> next = NULL;
+	shared_ptr<Wall_Node> orig = curr;
 	double k_lin = 0;
         double theta = 0;
         double costheta = 0;
@@ -407,7 +399,7 @@ keep*/
 	sister->set_growth_direction(this->get_growth_direction());
 	
 	int number_nodes_B = 0;
-	cout << "Cell b counting" << endl;
+//	cout << "Cell b counting" << endl;
 	do {
 		number_nodes_B++;
 		curr->update_Cell(sister);
@@ -435,26 +427,26 @@ keep*/
 		}
 		curr = next;
 	} while (next != orig);
-	cout << "done counting cell b" << endl;
+//	cout << "done counting cell b" << endl;
 	sister->set_Wall_Count(number_nodes_B);
-	cout << "Sister: " << number_nodes_B << endl;
+//	cout << "Sister: " << number_nodes_B << endl;
 	
 	//this->wall_nodes.clear();
 	//num_wall_nodes = 0;
-	Wall_Node* current = NULL;
+	//shared_ptr<Wall_Node> current = NULL;
 	while(!wall_nodes.empty()) {
 		//current = current.at(wall_nodes.size() -1);
 		wall_nodes.pop_back();
 		num_wall_nodes--;
 	}	
 	curr = this->left_Corner;
-	next = NULL;
+	//next = NULL;
 	orig = this->left_Corner;
 	int number_nodes_A = 0;
-	cout << "cell a counting" << endl;
+	//cout << "cell a counting" << endl;
 	do {
 		number_nodes_A++;
-		curr->update_Cell(this);
+		curr->update_Cell(this_cell);
 		//cout << "add new node " << endl;
 		//curr_vec = curr->get_Left_Neighbor()->get_Location() - curr->get_Location();
 		//curr_len = curr_vec.length();	
@@ -479,18 +471,18 @@ keep*/
 		}
 		//curr = next;
 	} while(curr != orig);
-	cout << "done cell a counting" << endl;	
+	//cout << "done cell a counting" << endl;	
 	this->set_Wall_Count(number_nodes_A);
-	cout << "Parent nodes: " << number_nodes_A << endl;	
+	//cout << "Parent nodes: " << number_nodes_A << endl;	
 	//cout << "updating angles" << endl;
 	//update wall angles
 	//cout << "Equi" << endl;
 
 	this->update_Wall_Equi_Angles();
 	sister->update_Wall_Equi_Angles();
-	cout << "Parent angles" << endl;
+	//cout << "Parent angles" << endl;
 	this->update_Wall_Angles();
-	cout << "Sister angles" << endl;
+	//cout << "Sister angles" << endl;
 	sister->update_Wall_Angles();
 	//cout << "updating center div" << endl;
 	//update cell center
@@ -527,18 +519,17 @@ keep*/
 		cyt_nodes.pop_back();
 		num_cyt_nodes--;
 	}keeep*/
-	/*vector<Cyt_Node*> temp_cyts;
+	vector<shared_ptr<Cyt_Node>> temp_cyts;
 	this->get_Cyt_Nodes_Vec(temp_cyts);
 	//this->cyt_nodes.clear();
-	//this->num_cyt_nodes = 0;
-	Cyt_Node* cyt = NULL;
+	this->num_cyt_nodes = 0;
+	//Cyt_Node* cyt = NULL;
+	//temp_cyts.clear();
 	while(!cyt_nodes.empty()) {
-		cyt = cyt_nodes.at(cyt_nodes.size() -1);
-		//delete cyt;
 		cyt_nodes.pop_back();
-		num_cyt_nodes--;
+		//num_cyt_nodes--;
 	}
-	cout << "cyt nodes" << endl;
+//	cout << "cyt nodes" << endl;
 	double length_1;
 	double length_2;
 	double counter = 0;
@@ -546,7 +537,7 @@ keep*/
 		length_1 = (temp_cyts.at(i)->get_Location()-this->cell_center).length();
 		length_2 = (temp_cyts.at(i)->get_Location()-sister->get_Cell_Center()).length();	
 		if(length_1 < length_2) {
-			temp_cyts.at(i)->update_Cell(this);
+			temp_cyts.at(i)->update_Cell(this_cell);
 			this->update_cyt_node_vec(temp_cyts.at(i));
 			this->Cell_Progress++;
 		}
@@ -556,11 +547,11 @@ keep*/
 			sister->update_Cell_Progress_Var();
 		}
 		counter++;
-		cout << counter << endl;
+		//cout << counter << endl;
 	}
 	this->move_cyt_nodes();
 	sister->move_cyt_nodes();
-	cout << "Finished deleting old cyt nodes" << endl;
+	//cout << "Finished deleting old cyt nodes" << endl;
 	
 //	cout << "get most up/down and left/right for radius" << endl;*/
 /*keep	Wall_Node* up_sis = NULL;
@@ -651,7 +642,7 @@ keep*/
 		counter++;
 	}
 	cout << counter << endl;keep*/
-/*	return sister;
+	return sister;
 }
 void Cell::move_cyt_nodes(){
 	Coord vector;
@@ -664,7 +655,7 @@ void Cell::move_cyt_nodes(){
 	//	}
 	}
 	return;
-}*/
+}
 /*keep Cell* Cell::divide_width_wise() {
 	//current cell will split into two daughter cells
 	//	-"this" will keep its entity as the left sister

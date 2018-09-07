@@ -58,6 +58,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//void is_divided_change();	
 		//enable_shared_from_this<Cell>;
 		shared_ptr<Cell> getptr();
+		void make_nodes(double& radius);
 		/*shared_ptr<*/Tissue* get_Tissue() {return my_tissue;}
 		int get_Rank() {return rank;}
 		void set_Rank(const int id);
@@ -133,7 +134,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//Functions for Division
 		double find_radius();
 		void find_nodes_for_div_plane(Coord& direction,vector<shared_ptr<Wall_Node>>& nodes);
-		//void find_nodes_for_div_plane_anticlinal(Coord& direction,vector<Wall_Node*>& nodes);
+		void find_nodes_for_div_plane_anticlinal(Coord& direction,vector<shared_ptr<Wall_Node>>& nodes);
 		void add_Cyt_Node_Div(double radius_x,double radius_y);
 		void stress_Tensor_Eigenvalues(double& a, double& b, double& c, double& d, vector<double>& eigen_Max);	
 		void move_cyt_nodes();
@@ -160,9 +161,9 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_VTK_Vectors(ofstream& ofs);
 		void print_VTK_Scalars_Node(ofstream& ofs);	
 		//Division 
-		Cell* divide();
+		shared_ptr<Cell> divide();
 		//void find_Largest_Length_Div(Wall_Node*& right_one, Wall_Node*& right_two);
-		Cell* division();
+		shared_ptr<Cell> division();
 	};
 
 

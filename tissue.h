@@ -24,11 +24,13 @@ class Tissue{
 	private:
 		// We'll need a better data structure for later
 		vector<shared_ptr<Cell>> cells;
+		vector<shared_ptr<Cell>>top_cells;
 		int num_cells;
 	public:
 		Tissue(string filename);
 	//	shared_ptr<Tissue> getptr();
 		void get_Cells(vector<shared_ptr<Cell>>& cells);
+		void get_top_cells(vector<shared_ptr<Cell>>& cells);
 		int  get_num_cells() {return num_cells;}
 		void update_Num_Cells(shared_ptr<Cell>& new_Cell);
 		void update_Cell_Cycle(int Ti);

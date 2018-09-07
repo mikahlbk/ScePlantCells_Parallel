@@ -10,7 +10,6 @@
 #include <fstream>
 #include <ctime>
 #include <stdio.h>
-#include <omp.h>
 #include <memory>
 #include "phys.h"
 #include "coord.h"
@@ -39,18 +38,15 @@ int main(int argc, char* argv[]) {
 
 	int start = clock();	
 	//.txt file that tells how cells start
-	string init_tissue = "new_cells.txt";
-	cout << "Read in cell starter" << endl;	
+	string init_tissue = "cell_maker.txt";
+	//cout << "Read in cell starter" << endl;	
 	//make new cell objects in tissue
-	//shared_ptr<Tissue> growing_Tissue(new Tissue(init_tissue));
 	Tissue growing_Tissue(init_tissue);
 	//Tissue* growing_Tissue= new Tissue(init_tissue);
-	cout << "Finished creating Cells" << endl;
+	//cout << "Finished creating Cells" << endl;
 	
 	//parameters for time step
 	double numSteps = 500;
-	
-	seed();
 	
 	// Variable for dataoutput
 	int digits;
@@ -59,79 +55,19 @@ int main(int argc, char* argv[]) {
 	string initial = "/Plant_Cell_";
 	string Filename;
 	ofstream ofs_anim;
+	int out = 0;
 
-	ofstream ofs_nem;	
-	int Number2=0;
+	ofstream ofs_nem;
+	int Number2 =0;
 	string nem_Filename;
 	string nem_initial = "/Nematic_";
-	int out = 0; //counter for creating output/vtk files
-
+	
+	//growing_Tissue.update_Neighbor_Cells();
+		
 	//loop for time steps
 	for(int Ti = 0; Ti*dt< numSteps; Ti++) {
-		//loop through all cells
-		if (Ti % 1 == 0) {
-			cout << "Simulation still running. Ti: " << Ti << endl;
-		}
-		// Tissue Growth
-		//fills vector of neighbor cells for each cell
-		if (Ti% 1000 == 0) {
-			cout << "Find Neighbors" << endl;
-			growing_Tissue.update_Neighbor_Cells();
-		}	
-		
-		//cout << "add new cell wall nodes if needed" << endl;
-		//adds one new cell wall node in the biggest gap
-		if(Ti%1000 == 0){	
-			cout << "add wall " << endl;
-			growing_Tissue.add_Wall(Ti);
-		}
-		//deletes a cell wall node if too close together
-		if(Ti%500==0){	
-			cout << "delete wall" << endl;
-			growing_Tissue.delete_Wall(Ti);
-		}
-		//matches wall nodes with adhesion pairs
-		if(Ti < 2500) {
-		if(Ti%500 == 0) {
-			cout << "adhesion"<< endl;
-			growing_Tissue.update_Adhesion();
-		}
-		}
-		else {
-		if(Ti%10000 == 0) {
-		cout << "adhesion"<< endl;
-			growing_Tissue.update_Adhesion();
-		}
-		}
-
-
-
-		//if(Ti%500 == 0) {
-		//		growing_Tissue.update_Microfibrils(Ti);
-		//}
-
-		//	cout << "update cell cycle of each cell" << endl;
-		//this includes a check for division and addition
-		//of new internal nodes according to growth rate
-		//if(Ti > 2500){
-	//		cout << "cell cycle" << endl;
-	//		growing_Tissue.update_Cell_Cycle(Ti);
-		//}
-		
-		//Calculate new forces on cells and nodes
-		cout << "forces" << endl;
-		growing_Tissue.calc_New_Forces(Ti);
-	
-		cout << "locations" << endl;
-		//Update node positions
-		growing_Tissue.update_Cell_Locations();	
-		cout << "Finished" << endl;
-		
-		cout << "print vtk file" << endl;
-			
-		//if(Ti>=40000 ) {
-		if (Ti % 1000 == 0) {
-			
+		// print to dataOutput and vtk files
+		if(Ti%5000 ==0) {
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
 				Number = "0000" + to_string(out);
@@ -153,22 +89,71 @@ int main(int argc, char* argv[]) {
 			ofs_anim.close();	
 			out++;
 		}
+
+			
+		//loop through all cells
+		if (Ti % 10000 == 0) {
+			cout << "Simulation still running. Ti: " << Ti << endl;
+		}
+		// Tissue Growth
+		//fills vector of neighbor cells for each cell
+		if (Ti%10000 == 0) {
+			//cout << "Find Neighbors" << endl;
+			growing_Tissue.update_Neighbor_Cells();
+		}	
+		
+		//cout << "add new cell wall nodes if needed" << endl;
+		//adds one new cell wall node in the biggest gap
+		if(Ti%1000 == 0){	
+			//cout << "add wall " << endl;
+			growing_Tissue.add_Wall(Ti);
+		}
+		//deletes a cell wall node if too close together
+		//if(Ti%1000 == 0){	
+			//cout << "delete wall" << endl;
+			growing_Tissue.delete_Wall(Ti);
 		//}
-		/*if(Ti%5000 == 0) {
-			nem_Filename = nematic_folder + nem_initial + to_string(Number2)+".txt";
+		//matches wall nodes with adhesion pairs
+		if(Ti < 2500) {
+		if(Ti%1000 == 0) {
+			//cout << "adhesion"<< endl;
+			growing_Tissue.update_Adhesion();
+		}
+		}
+		else {
+		if(Ti%10000 == 0) {
+			//cout << "adhesion"<< endl;
+			growing_Tissue.update_Adhesion();
+		}
+		}
+
+
+		//cout << "cell cycle" << endl;
+		growing_Tissue.update_Cell_Cycle(Ti);
+
+		
+		//Calculate new forces on cells and nodes
+		//cout << "forces" << endl;
+		growing_Tissue.calc_New_Forces(Ti);
+	
+		//cout << "locations" << endl;
+		//Update node positions
+		growing_Tissue.update_Cell_Locations();	
+		//cout << "Finished" << endl;
+		
+		if(Ti%5000 == 1){
+			nem_Filename = nematic_folder + nem_initial + to_string(Number2) + ".txt";
 			ofs_nem.open(nem_Filename.c_str());
 			growing_Tissue.nematic_output(ofs_nem);
 			ofs_nem.close();
 			Number2++;
-			
-		}*/
+		}
 
-}	
-	/*nem_Filename = nematic_folder + nem_initial + to_string(Number2)+".txt";
+}
+	nem_Filename = nematic_folder + nem_initial + to_string(Number2) + ".txt";
 	ofs_nem.open(nem_Filename.c_str());
 	growing_Tissue.nematic_output(ofs_nem);
-	ofs_nem.close();*/
-			
+	ofs_nem.close();
 	
 	int stop = clock();
 

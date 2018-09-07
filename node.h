@@ -7,6 +7,7 @@
 // Forward Declarations 
 class Wall_Node;
 class Cell;
+class Cyt_Node;
 //=====================
 // Include Declarations
 #include <iostream>
@@ -43,16 +44,16 @@ class Node{
 
 class Cyt_Node: public Node, public enable_shared_from_this<Cyt_Node>{
 
-   private: 
+   protected: 
     //if don't need to keep any more information then just leave blank
-		Cell* my_cell;
+		shared_ptr<Cell> my_cell;
     public:
         	//constructor
 		//enable_shared_from_this();
-		Cyt_Node(Coord loc, Cell* my_cell);
-		void update_Cell(Cell* cell);
+		Cyt_Node(Coord loc, shared_ptr<Cell> my_cell);
+		void update_Cell(shared_ptr<Cell> cell);
 		void new_location(Coord location); 
-		Cell* get_My_Cell(){return my_cell;}
+		shared_ptr<Cell> get_My_Cell(){return my_cell;}
 		void calc_Forces(int Ti);
 		Coord calc_Morse_II(int Ti);
 		Coord calc_Morse_MI(shared_ptr<Wall_Node> orig, int Ti);
@@ -66,7 +67,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
     //variables that will be shared by all wall nodes
        		shared_ptr<Wall_Node> left;
         	shared_ptr<Wall_Node> right;
-		Cell* my_cell;
+		shared_ptr<Cell> my_cell;
 		double membr_equ_len;
 		double my_angle;
 		double K_LINEAR;
@@ -83,8 +84,8 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
     public:
     //function that you want performed on all wall nodes
 		// Constructors
-       		Wall_Node(Coord loc, Cell* my_cell);
-        	Wall_Node(Coord loc, Cell* my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right);
+       		Wall_Node(Coord loc, shared_ptr<Cell> my_cell);
+        	Wall_Node(Coord loc, shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right);
         // Getters and Setters
 		void set_is_new();
 		void print_info();	
@@ -95,7 +96,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		double get_Equi_Angle() {return equi_angle;}
 		double get_k_lin(){return K_LINEAR;}
 		double get_membr_len(){return membr_equ_len;}
-		Cell* get_My_Cell() {return my_cell;}
+		shared_ptr<Cell> get_My_Cell() {return my_cell;}
 		Coord get_CytForce() {return cyt_force;}
 		vector<shared_ptr<Wall_Node>>get_adhesion_vec(){return adhesion_pairs;}
       				
@@ -108,7 +109,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		void set_membr_len(double length);
 		void update_Angle();
 		void update_Equi_Angle(double new_theta);
-		void update_Cell(Cell* new_cell);
+		void update_Cell(shared_ptr<Cell> new_cell);
 		shared_ptr<Wall_Node> get_curr_Closest(){return curr_closest;}
 		void set_curr_Closest(shared_ptr<Wall_Node> curr_closest);
 		shared_ptr<Wall_Node> get_Closest(){return closest;}
