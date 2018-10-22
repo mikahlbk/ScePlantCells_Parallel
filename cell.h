@@ -29,6 +29,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		Tissue* my_tissue;
 		int rank;
 		int layer;
+		int boundary;
 		double damping;
 		int life_length;
 		int growth_rate;
@@ -49,7 +50,7 @@ class Cell: public enable_shared_from_this<Cell> {
 	public:
 		
 		Cell(/*shared_ptr<Tissue>*/Tissue* tissue);
-		Cell(int rank, Coord center, double radius, Tissue* /*shared_ptr<Tissue>*/ tiss, int layer);
+		Cell(int rank, Coord center, double radius, Tissue* /*shared_ptr<Tissue>*/ tiss, int layer, int boundary);
 
 		// Destructor
 		~Cell();
@@ -91,7 +92,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		shared_ptr<Wall_Node> get_Wall_Nodes() {return left_Corner;}
 		shared_ptr<Wall_Node> get_Left_Corner() {return left_Corner;}		
 		double compute_k_lin(shared_ptr<Wall_Node>& current);
-		void calc_WUS();
+		void calc_WUS(int Ti);
 		void calc_WUSwildtype();
 		void calc_WUSBAP12hr();
 		void calc_WUSBAP24hr();
@@ -150,6 +151,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_Data_Output(ofstream& ofs);
 		int update_VTK_Indices(int& id);
 		void print_VTK_Adh(ofstream& ofs);
+		void print_locations(ofstream& ofs);
 		void print_VTK_Points(ofstream& ofs, int& count);
 		void print_VTK_Scalars_Wall_Pressure(ofstream& ofs);
 		void print_VTK_Scalars_Average_Pressure(ofstream& ofs);
@@ -163,7 +165,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//Division 
 		shared_ptr<Cell> divide();
 		//void find_Largest_Length_Div(Wall_Node*& right_one, Wall_Node*& right_two);
-		shared_ptr<Cell> division();
+		void division(shared_ptr<Cell>& new_cell);
 	};
 
 

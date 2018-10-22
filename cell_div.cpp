@@ -17,29 +17,8 @@
 #include "cell.h"
 #include "tissue.h"
 //==========================
-//extra need to get rid of this function
-/*Cell* Cell::divide() {
-	Cell* sister = NULL;
-	//calculate area
-//	cout << "in division function" << endl;
-//	double area = this->calc_Area();
-//	cout << "area calculated " << area << endl;
-//	if(area > AREA_DOUBLED) {
-		//add in iff statement for amount of cytokinin and wuschel and logintudinal vs. radial pressure
-	//	if(this->rank != 1) {
-			cout << "Cell " << this->rank << "  passed area threshold for division lengthwise" << endl;
-			sister = this->division();
-			cout << "divided" << endl;
-	//	}
-	//	else if(layer == 3) {
-	//		cout << "Cell " << this->rank << " passed area threshold for division widthwise" << endl;
-	//		sister = this->divide_width_wise();
-	//		cout << "divided" << endl;
-	//	}
-	return sister;
-}*/
 //find the nodes to set up the division plane
-void  Cell::find_nodes_for_div_plane(Coord& direction, vector<shared_ptr<Wall_Node>>& nodes) {
+void Cell::find_nodes_for_div_plane(Coord& direction, vector<shared_ptr<Wall_Node>>& nodes) {
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
         double theta = 0;
@@ -50,8 +29,8 @@ void  Cell::find_nodes_for_div_plane(Coord& direction, vector<shared_ptr<Wall_No
 	double curr_diff = 100;
 	double smallest_1 = 100;
 	double smallest_2 = 100;
-	shared_ptr<Wall_Node> first = NULL;
-	shared_ptr<Wall_Node>  second = NULL;
+	double index_first;
+	double index_second;
 	//find first node that makes 90 degree angle
 	for(unsigned int i = 0; i < walls.size();i++) {	
 		curr_vec = walls.at(i)->get_Location() - cell_center;
@@ -72,7 +51,7 @@ void  Cell::find_nodes_for_div_plane(Coord& direction, vector<shared_ptr<Wall_No
 	//	if(curr_diff < .1){
 			if(curr_diff<smallest_1){
 				smallest_1 = curr_diff;
-				first = walls.at(i);
+				index_first = i;
 			}
 	//	}
 	
@@ -96,26 +75,26 @@ void  Cell::find_nodes_for_div_plane(Coord& direction, vector<shared_ptr<Wall_No
 		//cout << curr_diff << "curr_diff" << endl;
 	//	if(curr_diff < .1){
 			if(curr_diff<smallest_2){
-				if(walls.at(i) != first){
+				if(i != index_first){
 				smallest_2 = curr_diff;
-				second = walls.at(i);
+				index_second = i;
 				}
 			}
 	//	}
 	}
 	//cout << "first" << first << endl;
 	//cout << "second" << second << endl;
-	nodes.push_back(first);
-	nodes.push_back(second);
+	nodes.push_back(walls.at(index_first));
+	nodes.push_back(walls.at(index_second));
 	return;	
 }
 
-shared_ptr<Cell> Cell::division() {
+void Cell::division(shared_ptr<Cell>& sister) {
 	//current cell will split into two daughter cells
 	//	-"this" will keep its entity as the left sister
 	//	this functoin will create a sister cell to the right
 	//	and return it to the tissue
-	shared_ptr<Cell>  sister = make_shared<Cell>(this->my_tissue);
+	//shared_ptr<Cell>  sister = make_shared<Cell>(this->my_tissue);
 	//pointers for while loops throughout function
 	//cout << num_wall_nodes << endl;
 	//shared_ptr<Wall_Node> curr = NULL;
@@ -157,16 +136,16 @@ shared_ptr<Cell> Cell::division() {
 	//cout << "left start" << left_start << endl;
 	//shared_ptr<Wall_Node> currD = left_start;
 	adhesion_vec = left_start->get_adhesion_vec();
-	for(unsigned int i=0; i<adhesion_vec.size(); i++){
-		adhesion_vec.at(i)->set_Closest(NULL,100);
+	for(unsigned int j=0; j<adhesion_vec.size(); j++){
+		adhesion_vec.at(j)->set_Closest(NULL,100);
 	}
 	
 	left_start = left_start->get_Right_Neighbor();
 
 	//cout << "right start" << right_start << endl;
 	adhesion_vec = right_start->get_adhesion_vec();
-	for(unsigned int i=0; i<adhesion_vec.size(); i++){
-		adhesion_vec.at(i)->set_Closest(NULL,100);
+	for(unsigned int j=0; j<adhesion_vec.size(); j++){
+		adhesion_vec.at(j)->set_Closest(NULL,100);
 	}
 	
 	right_start = right_start->get_Left_Neighbor();
@@ -174,14 +153,14 @@ shared_ptr<Cell> Cell::division() {
 	//currD = left_end;	
 	left_end = left_end->get_Left_Neighbor();
 	adhesion_vec = left_end->get_adhesion_vec();
-	for(unsigned int i=0; i<adhesion_vec.size(); i++){
-		adhesion_vec.at(i)->set_Closest(NULL,100);
+	for(unsigned int j=0; j<adhesion_vec.size(); j++){
+		adhesion_vec.at(j)->set_Closest(NULL,100);
 	}
 	
 	right_end = right_end->get_Right_Neighbor();
 	adhesion_vec = right_end->get_adhesion_vec();
-	for(unsigned int i=0; i<adhesion_vec.size(); i++){
-		adhesion_vec.at(i)->set_Closest(NULL,100);
+	for(unsigned int j=0; j<adhesion_vec.size(); j++){
+		adhesion_vec.at(j)->set_Closest(NULL,100);
 	}
 	
 	}
@@ -488,8 +467,8 @@ keep*/
 	//update cell center
 	this->update_Cell_Center();
 	sister->update_Cell_Center();
-	this->calc_WUS();
-	sister->calc_WUS();
+	this->calc_WUS(0);
+	sister->calc_WUS(0);
 //	this->calc_CYT();
 //	sister->calc_CYT();
 //	this->calc_Total_Signal();
@@ -642,7 +621,7 @@ keep*/
 		counter++;
 	}
 	cout << counter << endl;keep*/
-	return sister;
+//	return sister;
 }
 void Cell::move_cyt_nodes(){
 	Coord vector;

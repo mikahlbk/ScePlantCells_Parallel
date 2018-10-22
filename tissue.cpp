@@ -31,6 +31,7 @@ Tissue::Tissue(string filename) {
 	char trash;
 	int rank;
 	int layer;
+	int boundary;
 	double radius;
 	Coord center;
 	double x, y;
@@ -58,13 +59,16 @@ Tissue::Tissue(string filename) {
 		else if (temp == "Layer") {
 			ss >> layer;
 		}
+		else if (temp == "Boundary"){
+			ss >> boundary;
+		}
 		else if (temp == "End_Cell") {
 			//create new cell with collected data and push onto vector 
 			//cout<< "making a cell" << endl;
-			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, sp_this2, layer);
+			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, sp_this2, layer,boundary);
 			//cout << "rank" << curr->get_Rank() << endl;
 			curr->make_nodes(radius);
-			cout << "rank" << curr->get_Rank() << endl;
+			//cout << "rank" << curr->get_Rank() << endl;
 			//cout <<"done with this cell" << endl;
 			//if(layer ==10){
 			//top_cells.push_back(curr);
@@ -119,6 +123,15 @@ void Tissue::update_Cell_Cycle(int Ti) {
 	//cout << "Number cells is: " << cells.size() << endl;
 	return;
 }
+void Tissue::update_WUS(int Ti){
+	#pragma omp parallel for schedule(static,1)
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->calc_WUS(Ti);
+	}
+	//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
+	return;
+}
+
 //adds node to cell wall if needed for each cell
 void Tissue::add_Wall(int Ti) {
 	#pragma omp parallel for schedule(static,1)
@@ -205,10 +218,20 @@ void Tissue::update_Adhesion() {
 	}
 	return;
 }
+void Tissue::locations_output(ofstream& ofs){
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_locations(ofs);
+	}
+	return;
+}
 void Tissue::nematic_output(ofstream& ofs){
 	Coord average;
 	double angle;
-	ofs << "average vec" << endl;
+	/*for(unsigned int i = 0; i<cells.size();i++){
+		ofs << cells.at(i)->get_Layer()<<endl;
+		ofs << cells.at(i)->get_Rank() << endl;
+	}*/
+	//ofs << "average vec" << endl;
 	for(unsigned int i=0; i < cells.size(); i++) {
 		cells.at(i)->nematic(average, angle);
 		ofs<< average.get_X() << endl;
@@ -218,7 +241,7 @@ void Tissue::nematic_output(ofstream& ofs){
 		cells.at(i)->nematic(average, angle);
 		ofs << average.get_Y() << endl;
 	}
-	ofs << "angles" << endl;
+	//ofs << "angles" << endl;
 	for(unsigned int i=0; i < cells.size(); i++) {
 		cells.at(i)->nematic(average, angle);
 		ofs<< angle << endl;
@@ -234,39 +257,39 @@ void Tissue::nematic_output(ofstream& ofs){
 	//		ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
 	//	}
 	//}
-	ofs << "centers1" << endl;
+	//ofs << "centers1" << endl;
+	//for(unsigned int i=0; i< cells.size();i++) {
+	//	if(cells.at(i)->get_Layer() ==1){
+	//		ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
+	//	}
+	//}
+	//ofs << "centers1" << endl;
+	//for(unsigned int i=0; i< cells.size();i++) {
+	//	if(cells.at(i)->get_Layer() ==1){
+	//		ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
+	//	}
+	//}
+	//ofs << "centers2" << endl;
 	for(unsigned int i=0; i< cells.size();i++) {
-		if(cells.at(i)->get_Layer() ==1){
+	//	if(cells.at(i)->get_Layer() ==2){
 			ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
-		}
+	//	}
 	}
 	//ofs << "centers1" << endl;
 	for(unsigned int i=0; i< cells.size();i++) {
-		if(cells.at(i)->get_Layer() ==1){
+	//	if(cells.at(i)->get_Layer() ==2){
 			ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
-		}
-	}
-	ofs << "centers2" << endl;
-	for(unsigned int i=0; i< cells.size();i++) {
-		if(cells.at(i)->get_Layer() ==2){
-			ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
-		}
-	}
-	//ofs << "centers1" << endl;
-	for(unsigned int i=0; i< cells.size();i++) {
-		if(cells.at(i)->get_Layer() ==2){
-			ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
-		}
+	//	}
 	}
 	//for(unsigned int i=0; i< cells.size();i++) {
 	//	ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
 	//	ofs <<cells.at(i)->get_Cell_Center().get_Y() << endl;
 	//}
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_WUS(ofs);
+		ofs << cells.at(i)->get_WUS_concentration()<<endl;
 	}
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);
+		ofs << cells.at(i)->average_Pressure() << endl;
 	}
 		
 

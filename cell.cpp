@@ -46,7 +46,7 @@ Cell::Cell(/*shared_ptr<*/Tissue* tissue) {
 }
 
 
-Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
+Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary)    {
 	//shared_ptr<Tissue> tiss2 = make_shared<Tissue>(tiss);
 	this->my_tissue = tiss; //(tiss2);
 	this->rank = rank;
@@ -55,11 +55,12 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	this->layer = layer;
 //	cout << "layer rank" << this->rank << endl;
 	//set damping for cells that act as anchor points
+	this->boundary = boundary;
 	if(layer == 6) {
 		this->damping = .3;
 	}
-	else if((this->rank  == 56)||(this->rank ==46)||(this->rank ==35)||(this->rank ==45)||(this->rank ==3)||(this->rank==5)||(this->rank ==6)||(this->rank==10)||(this->rank==11)||(this->rank==15)||(this->rank==16)||(this->rank==20)||(this->rank==21)||(this->rank==27)||(this->rank==28)||(this->rank==34)){
-		this->damping = .5;
+	else if((this->boundary == 1)){
+		this->damping =  .3;
 	}
 	else{
 		this->damping = 1;
@@ -80,7 +81,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer)    {
 	Cell_Progress = unifRandInt(0,10);
 	
 //	cout << "progress rank" << this->rank << endl;
-	this->calc_WUS();
+	this->calc_WUS(1);
 	this->cytokinin = 0;
 //	this->calc_CYT();
 	this->set_growth_rate();
@@ -306,42 +307,84 @@ void Cell::set_Wall_Count(int& number_nodes) {
 	this->num_wall_nodes = number_nodes;
 	return;
 }
-void Cell::calc_WUS() {
+void Cell::calc_WUS(int Ti) {
 	//wildtype values
-	//double r = 1;
+	double r = 1;
+	//uniform test
 	//double r = 0;
-	//double r = 0.124352496872499;
-	//double r = 0.392926362318723;
-	//double r = 0.434998376598481;
-	//double r = 0.519659525043121;
-	//double r = 0.625108385797603;
-	//double r = 0.761604467614664;
-	///double r = 0.847328884890273;
-	//double r = 0.935165950706300;
-	//double r = 1.05852640911527;
-	//double r = 0.1258; 
-	//double r = 0.2409;
-	//double r = 0.3595;
-	//double r = 0.4262;
-	//double r = 0.5603;
-	//double r = 0.6711;
-	//double r = 0.7222;
-	//double r = 0.8117;
-	//double r = 0.9297;
-	//double r = 1.0319;
-	//double r = 12.3728;
-	//double r = 24.5885;
-	//double r = 39.6309;
-	//double r = 45.4681;
-	//double r = 55.2114;
-	//double r = 62.3159;
-	//double r = 74.8890;
-	//double r = 86.2406;
-	//double r = 96.7914;
-	//double r = 103.9552;
+	//r's without replacement
+	//one
+	//double r = 0.9164;
+	//two
+	//double r = 0.8223;
+	//three
+	//double r = 0.6861;
+	//four
+	//double r = 0.6529;
+	//five
+	//double r = 0.5614;
+	//six
+	//double r = 0.5365;
+	//seven
+	//double r = 0.4851;
+	//eight
+	//double r = 0.4403;
+	//nine
+	//double r = 0.4059;
+	//ten
+	//double r = 0.3978;
+	//eleven
+	//double r = 0.3544;
+	//twelve
+	//double r = 0.3375;
+	//thirteen
+	//double r = 0.3245;
+    	//fourteen
+	//double r = 0.3087;
+    	//fifteen
+	//double r = 0.2934;
+    	//sixteen
+	//double r = 0.2816;
+    	//seventeen
+	//double r = 0.2666;
+	//eighteen
+	//double r = 0.2552;
+    	//nineteen
+	//double r = 0.2418;
+   	//twenty
+	//double r = 0.2326;
 	
-	//this->wuschel = 109.6*exp(r*-0.02928*cell_center.length()) + 27.69*exp(r*-0.0008808*cell_center.length());
-	this->wuschel = 50.9*exp(-0.005717*cell_center.length()) + .1167*exp(0.01743*cell_center.length());
+	//r's for ten samples with replacement
+	//one
+	//double r = 0.9060;
+	//two
+	//double r = 0.6093;
+	//three
+    	//double r = 0.5524;
+    	//four
+    	//double r = 0.4850;
+    	//five 
+    	//double r = 0.3795;
+	//six
+	//double r = 0.3341;
+	//seven 
+	//double r = 0.3178;
+	//eight
+    	//double r = 0.2967;
+    	//nine
+    	//double r = 0.2665;
+    	//ten
+    	//double r = 0.2418;
+
+	this->wuschel = 109.6*exp(r*-0.02928*cell_center.length()) + 27.69*exp(r*-0.0008808*cell_center.length());
+	//this->wuschel = 50.9*exp(-0.005717*cell_center.length()) + .1167*exp(0.01743*cell_center.length());
+	//this->wuschel = 109.6*exp(r*-0.1135*cell_center.length()) + 27.69*exp(r*-0.003414*cell_center.length());
+	//twelve_hours
+	//this->wuschel = 157.4*exp(-0.09238*cell_center.length()) + 4.372*exp(0.02938*cell_center.length());
+	//twenty four hours
+	//if(Ti>50000){
+	//	this->wuschel = 80.48*exp(-0.1017*cell_center.length()) + 29.05*exp(-0.003225*cell_center.length());
+	//}
 	//signaling domain increased by 2
 	//this->wuschel = 109.6*exp(-0.012*cell_center.length());
 	//this->wuschel = 120.6*exp(-0.01127*cell_center.length());
@@ -350,36 +393,42 @@ void Cell::calc_WUS() {
 }
 
 void Cell::set_growth_rate() {
-//	this->growth_rate = 5000;
-	if(this->wuschel < 14){
-		this->growth_rate = unifRandInt(6988,7632);//2500,3176);
+	//this->growth_rate = unifRandInt(2000,16000);
+	if(this->wuschel < 12){
+		this->growth_rate = unifRandInt(2000,3000);
 	}
-	else if((this->wuschel >= 14) &&(this->wuschel < 28)) {
-		this->growth_rate = unifRandInt(6352,6988);//3176,3811);
+	else if((this->wuschel >= 12) &&(this->wuschel <24)) {
+		this->growth_rate = unifRandInt(3000,4000);
 	}
-	else if((this->wuschel >= 28) && (this->wuschel <42)){
-		this->growth_rate = unifRandInt(5717,6352);//3811,4447);
+	else if((this->wuschel >= 24) && (this->wuschel <36)){
+		this->growth_rate = unifRandInt(4000,5000);
 	}
-	else if ((this->wuschel >= 42) && (this->wuschel <56 )){
-		this->growth_rate = unifRandInt(5082,5717);// 4447,5082);
+	else if ((this->wuschel >= 36) && (this->wuschel <48)){
+		this->growth_rate = unifRandInt(5000,6000);
 	}
-	else if ((this->wuschel >= 56) && (this->wuschel < 70)){
-		this->growth_rate = unifRandInt(4447,5082); //5082 ,5717);
+	else if ((this->wuschel >= 48) && (this->wuschel < 60)){
+		this->growth_rate = unifRandInt(6000,7000);
 	}	
-	else if ((this->wuschel >= 70) && (this->wuschel < 84)){
-		this->growth_rate = unifRandInt(3811,4447);//5717,6352);
+	else if ((this->wuschel >= 60) && (this->wuschel <72)){
+		this->growth_rate = unifRandInt(7000,8000);
 	}
-	else if ((this->wuschel >= 84) && (this->wuschel < 98)){
-		this->growth_rate = unifRandInt(3176,3811);//6352,6988);
+	else if ((this->wuschel >= 72) && (this->wuschel < 84)){
+		this->growth_rate = unifRandInt(8000,9000);
 	}
-	else if ((this->wuschel >= 98) && (this->wuschel < 112)){
-		this->growth_rate = unifRandInt(2500,3176);//6988,7632);
+	else if ((this->wuschel >= 84) && (this->wuschel < 96)){
+		this->growth_rate = unifRandInt(9000,10000);
 	}
-	else if((this->wuschel >=110)&&(this->wuschel < 126)) {
-		this->growth_rate = unifRandInt(8258,9529);
+	else if((this->wuschel >=96)&&(this->wuschel < 108)) {
+		this->growth_rate = unifRandInt(10000,11000);
 	}
-	else if(this->wuschel>= 126) {
-		this->growth_rate = unifRandInt(9529,10164);
+	else if((this->wuschel >=108)&&(this->wuschel < 120)) {
+		this->growth_rate = unifRandInt(11000,12000);
+	}
+	else if((this->wuschel >=120)&&(this->wuschel < 132)) {
+		this->growth_rate = unifRandInt(12000,13000);
+	}
+	else if(this->wuschel>= 132) {
+		this->growth_rate = unifRandInt(15000,16000);
 	}
 
 	return;
@@ -828,26 +877,27 @@ void Cell::update_Cell_Progress(int& Ti) {
 	//variables needed if division occurs
 	//Cell* new_Cell= NULL;
 	//vector<shared_ptr<Cell>> cells;
-	//vector<shared_ptr<Cell>> neighbor_cells;
+	vector<shared_ptr<Cell>> neighbor_cells;
 	//this->my_tissue->get_Cells(cells);
 	//int number_cells = cells.size();
 	//rules for determining growth rate
+	//cout << "if here we go" << endl;
 	if(Ti%growth_rate == (growth_rate -1)) {
 		this->add_Cyt_Node();
 	  	this->Cell_Progress++;
 	}
+	//cout << "must have not" << endl;
 	//cout << "Cell Prog" << Cell_Progress << endl;
 	//cout << "Rank" << this->rank << endl;	
-	/*if(this->Cell_Progress >= 30){//&& (this->calc_Area() > 50)){
+	if(this->Cell_Progress >= 30){//&& (this->calc_Area() > 50)){
 		//if((this->rank == 37)){//||(this->rank ==2)||(this->rank ==1)||(this->rank ==0)) {
 		//for(unsigned int i =0; i < wall_nodes.size(); i++) {
 		//	cout << wall_nodes.at(i)->get_Location() << endl;
 		//}
-		cout << "dividing" << endl;
-		shared_ptr<Cell> this_cell = shared_from_this();
-		shared_ptr<Cell> new_Cell(this_cell);
-		new_Cell->division();
-		cout << "division success" << endl;
+		//cout << "dividing" << endl;
+		shared_ptr<Cell> new_Cell= make_shared<Cell>(this->my_tissue);
+		this->division(new_Cell);
+		//cout << "division success" << endl;
 //		if(new_Cell == NULL) {
 //			cout << "womp womp" << endl;
 //		}
@@ -870,15 +920,17 @@ void Cell::update_Cell_Progress(int& Ti) {
 		//cyt and wus in division function
 		//k linear in division function
 		//left corner in divison function  
-		//new_Cell->update_Neighbor_Cells();
+		new_Cell->update_Neighbor_Cells();
 		//cout << "new cell neighbor update" << endl;
-		//new_Cell->update_adhesion_springs();
+		new_Cell->update_adhesion_springs();
 		//cout << "new cell adhesion update" << endl;
-		//new_Cell->get_Neighbor_Cells(neighbor_cells);
+		new_Cell->get_Neighbor_Cells(neighbor_cells);
 		//cout << "pre sister" << endl;
-		//for(unsigned int i =0; i < wall_nodes.size(); i++) {
+		for(unsigned int i =0; i < neighbor_cells.size(); i++) {
 		//	cout << wall_nodes.at(i)->get_Location() << endl;
-		//}
+			neighbor_cells.at(i)->update_Neighbor_Cells();
+			neighbor_cells.at(i)->update_adhesion_springs();
+		}
 		//for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
 		//	cout << cyt_nodes.at(i)->get_Location() << endl;
 		//}
@@ -888,8 +940,8 @@ void Cell::update_Cell_Progress(int& Ti) {
 		//}
 //		this->Cell_Progress_div = Ti; 
 		
-		this->get_Tissue()->update_Neighbor_Cells();
-		this->get_Tissue()->update_Adhesion();
+		//this->get_Tissue()->update_Neighbor_Cells();
+		//this->get_Tissue()->update_Adhesion();
 		//this->update_microfibril_springs();
 		//new_Cell->update_microfibril_springs();
 //		cout << "at end of cell" << endl;
@@ -917,7 +969,7 @@ void Cell::update_Cell_Progress(int& Ti) {
 	//	}
 	//	cout << counter << endl;
 		//}
-	}*/
+	}
 //	//cout << "Cell Prog: " << Cell_Progress_add_node << endl;
 	return;
 }
@@ -975,10 +1027,10 @@ void Cell::add_Wall_Node(int Ti) {
 	double k_lin;
 	//shared_ptr<Wall_Node> added_node = NULL;
 	if(right != NULL) {
-		if((this->life_length<2000)&&(Ti > 1000)){
+		//if((this->life_length<2000)&&(Ti > 1000)){
 			//do nothing
-		}
-		else{
+		//}
+		//else{
 //		cout << "current cell" << rank<<endl;
 //		cout << "wasnt null" << endl;
 		left = right->get_Left_Neighbor();
@@ -993,15 +1045,28 @@ void Cell::add_Wall_Node(int Ti) {
 		update_Wall_Angles();
 		k_lin = compute_k_lin(added_node);//150+ 500*pow(cos(theta),2);
 		added_node->set_K_LINEAR(k_lin);
-		added_node->set_membr_len(MembrEquLen);
+		added_node->set_membr_len(MembrEquLen);	
+		added_node->set_Closest(NULL, 100);
+		added_node->clear_adh_vec();
+		//cout << "cleared" << endl;
+		vector<shared_ptr<Cell>>neighbors;
+		this->get_Neighbor_Cells(neighbors);
+		//shared_ptr<Wall_Node> curr_Closest = NULL;
+		
+		shared_ptr<Wall_Node> curr_Closest = added_node->find_Closest_Node(neighbors);
+		//	cout << "found closest" << endl;			
+		added_node->set_curr_Closest(curr_Closest);
+		added_node->make_Connection(curr_Closest);
+		//	cout << "made connection" << endl;
+	}
 		//vector<Cell*> neighbs;
 	//	added_node->set_is_new();
 		//this->get_Neighbor_Cells(neighbs);
 		//Wall_Node* curr_Closest = added_node->find_Closest_Node(neighbs);
 		//added_node->make_Connection(curr_Closest);
-	}
+
 		//cout << "null" << endl;
-	}
+
 	return;
 }
 void Cell::delete_Wall_Node(int Ti) {
@@ -1587,6 +1652,27 @@ void Cell::print_VTK_Adh(ofstream& ofs) {
 	} while(curr_wall != left_Corner);
 	return;
 }
+void Cell::print_locations(ofstream& ofs) {
+	ofs << this->get_Rank() << endl;
+	shared_ptr<Wall_Node> curr_wall = left_Corner;
+	shared_ptr<Wall_Node> orig = curr_wall;
+	//	cout << "knows left corner" << endl;
+	do {
+		Coord loc = curr_wall->get_Location();
+		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 <<' '<< 1 << endl;
+		//cout<< "maybe cant do left neighbor" << endl;
+		curr_wall = curr_wall->get_Left_Neighbor();
+		//cout << "did it  " << count << endl;
+	} while (curr_wall != orig);
+	
+	//cout << "walls worked" << endl;
+	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+		Coord loc = cyt_nodes.at(i)->get_Location();
+		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 << 0 << endl;
+	}
+	return;
+}
+
 void Cell::print_VTK_Points(ofstream& ofs, int& count) {
 
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
@@ -1767,4 +1853,4 @@ void Cell::print_VTK_Vectors(ofstream& ofs) {
 
 
 
-
+//////////////////////////////////

@@ -21,8 +21,8 @@ const double K_BEND = 12;
 //const double K_BEND_L1 =2;
 //
 ////Adhesion spring mechanical params
-const double K_ADH = 35;
-const double K_ADH_L1 = 0;
+const double K_ADH = 45;
+const double K_ADH_L1 = 45;
 const double MembrEquLen_ADH = .8;
 const double ADHThresh = 2;
 /////Microfibril spring mechanical params
@@ -35,13 +35,13 @@ const double MembrEquLen = .07;
 const double MEMBR_THRESH_LENGTH = 0.15; 
 //
 /////// Subcellular element parameters for membrane - membrane interactions
-const double U_MM = 5;
+const double U_MM = 10;
 const double W_MM =  0;
 const double xsi_MM = 0.5;
 const double gamma_MM = 1.5625;	
 //
 /////// Subcellular element parameters for membrane  - internal interactions
-const double U_MI = 45;
+const double U_MI = 75;
 const double W_MI = 0;
 const double xsi_MI = .3;
 const double gamma_MI = 1.34;

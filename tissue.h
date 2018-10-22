@@ -33,6 +33,7 @@ class Tissue{
 		void get_top_cells(vector<shared_ptr<Cell>>& cells);
 		int  get_num_cells() {return num_cells;}
 		void update_Num_Cells(shared_ptr<Cell>& new_Cell);
+		void update_WUS(int Ti);
 		void update_Cell_Cycle(int Ti);
 		void add_Wall(int Ti);
 		void delete_Wall(int Ti);
@@ -52,6 +53,7 @@ class Tissue{
 		//void cell_strain();
 		void make_Vectors();
 		void print_Data_Output(ofstream& ofs);
+		void locations_output(ofstream& ofs);
 		int update_VTK_Indices();
 		void print_VTK_File(ofstream& ofs);
 		int get_Num_Cells() {return num_cells;}
