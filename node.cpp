@@ -405,6 +405,7 @@ Coord Wall_Node::calc_Morse_DC(int Ti) {
 			Fdc += neighbor_nodes(cells.at(i), Ti);
 		}
 	}
+	cout << "Fdc" << Fdc << endl;
 	//cout << "adhesion" << endl;
 	if(this->closest != NULL){
 	//	cout << "closest not null" << endl;
