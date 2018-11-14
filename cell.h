@@ -89,7 +89,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//get cell center
 		Coord get_Cell_Center() {return cell_center;}
 		//set/get WUS conc
-		void calc_WUS(int Ti);
+		void calc_WUS();
 		double get_WUS_concentration() {return wuschel;}
 		//double get_CYT_concentration() {return cytokinin;}
 		//set growth rate based on WUS
@@ -104,8 +104,9 @@ class Cell: public enable_shared_from_this<Cell> {
 		shared_ptr<Wall_Node> get_Left_Corner() {return left_Corner;}			      //is this necessary?
 		void set_Wall_Count(int number_nodes);
 		double compute_k_lin(shared_ptr<Wall_Node> current);
+		double compute_k_bend(shared_ptr<Wall_Node> current);
 		//void calc_CYT();
-	
+		void update_Linear_Bending_Springs();	
 		
 		//Keep track of neighbor cells
 		void update_Neighbor_Cells();

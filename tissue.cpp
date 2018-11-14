@@ -126,7 +126,7 @@ void Tissue::update_Cell_Cycle(int Ti) {
 void Tissue::update_WUS(int Ti){
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->calc_WUS(Ti);
+		cells.at(i)->calc_WUS();
 	}
 	//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
 	return;
@@ -152,6 +152,13 @@ void Tissue::delete_Wall(int Ti) {
 	}
 	return;
 }
+void Tissue::update_Linear_Bending_Springs(){
+	#pragma omp parallel for schedule(static,1)
+	for(unsigned int i = 0;i<cells.size();i++){
+		cells.at(i)->update_Linear_Bending_Springs();
+	}
+	return;
+}	
 //calculates the forces for nodes of  each cell 
 void Tissue::calc_New_Forces(int Ti) {
 
@@ -232,7 +239,7 @@ void Tissue::nematic_output(ofstream& ofs){
 		ofs << cells.at(i)->get_Rank() << endl;
 	}*/
 	//ofs << "average vec" << endl;
-	for(unsigned int i=0; i < cells.size(); i++) {
+	/*for(unsigned int i=0; i < cells.size(); i++) {
 		cells.at(i)->nematic(average, angle);
 		ofs<< average.get_X() << endl;
 	}
@@ -245,7 +252,7 @@ void Tissue::nematic_output(ofstream& ofs){
 	for(unsigned int i=0; i < cells.size(); i++) {
 		cells.at(i)->nematic(average, angle);
 		ofs<< angle << endl;
-	}
+	}*/
 	//ofs<< "centers2" << endl;
 	//for(unsigned int i=0; i< cells.size();i++) {
 	//	if(cells.at(i)->get_Layer() ==2){

@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 	string locations_folder = argv[3];
 	int start = clock();	
 	//.txt file that tells how cells start
-	string init_tissue = "cell_maker.txt";
+	string init_tissue = "new_cells.txt";
 	
 	//cout << "Read in cell starter" << endl;	
 	//make new cell objects in tissue
@@ -108,10 +108,10 @@ int main(int argc, char* argv[]) {
 		//in tissue class this goes through each cell and calls
 		//updated neighbor on each cell
 	
-		if (Ti==0) {
+		//if (Ti%10000==0) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
-		}	
+		//}	
 		
 		//cout << "add new cell wall nodes if needed" << endl;
 		//adds one new cell wall node in the biggest gap
@@ -124,13 +124,16 @@ int main(int argc, char* argv[]) {
 			//cout << "delete wall" << endl;
 			growing_Tissue.delete_Wall(Ti);
 		//}
+		if(Ti%25000==0){
+			growing_Tissue.update_Linear_Bending_Springs();
+		}
 		//matches wall nodes with adhesion pairs
-		if(Ti < 2500) {
+		//if(Ti < 2500) {
 		if(Ti%1000 == 0) {
 			//cout << "adhesion"<< endl;
 			growing_Tissue.update_Adhesion();
 		}
-		}
+		//}
 		//else {
 		//if(Ti%10000 == 0) {
 			//cout << "adhesion"<< endl;

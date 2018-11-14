@@ -37,6 +37,7 @@ class Tissue{
 		void update_Cell_Cycle(int Ti);
 		void add_Wall(int Ti);
 		void delete_Wall(int Ti);
+		void update_Linear_Bending_Springs();
 		void calc_New_Forces(int Ti);
 		void update_Cell_Locations();
 		void update_Neighbor_Cells();

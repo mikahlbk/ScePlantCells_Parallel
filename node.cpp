@@ -19,12 +19,17 @@ Node::Node(Coord loc) {
 	new_force = Coord();
 	int vtk_id;
 }
-void Node::set_Damping(double damping){
-	this damping = new_damping;
+void Node::set_Damping(double new_damping){
+	this-> damping = new_damping;
 	return;
 }
 void Node::update_Location() {
+	//cout << "New Force after" << new_force << endl;
+	//cout << "Location" << my_loc << endl;
+	//cout << "damping" << damping << endl;
+	//cout << "dt" << dt << endl;
 	my_loc += new_force*dt*damping;
+	//cout << "updated" << my_loc << endl;
 	return;
 }
 void Node::update_VTK_Id(int id) {
@@ -51,8 +56,11 @@ void Cyt_Node::new_location(Coord location) {
 void Cyt_Node::calc_Forces(int Ti) {
 	//for cytoplasm, just need morse potential for int-int and int-membr
 	Coord Fii = calc_Morse_II(Ti);
+	//cout << "II" << Fii << endl;
 	Coord Fmi = calc_Morse_MI(my_cell->get_Left_Corner(),Ti);
+	//cout << "MI" << Fmi << endl;
    	new_force = Fmi + Fii;
+	//cout << "New Force before" << new_force << endl;
 	return;
 }
 
@@ -161,6 +169,7 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 	//equilibrium length
 	//angle
 	//klinear
+	//kbend
 	//equi angle
 	//cross prod
 	this->cyt_force = Coord(0,0);
@@ -177,6 +186,7 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> l
 	//equilibrium length
 	update_Angle();
 	//klinear
+	//kbend
 	//equi angle
 	//cross prod
 	this->cyt_force = Coord(0,0);
@@ -234,6 +244,10 @@ void Wall_Node::update_Angle() {
 }
 void Wall_Node::set_K_LINEAR(double k_lin){
 	this->K_LINEAR = k_lin;
+	return;
+}
+void Wall_Node::set_K_BEND(double k_bend) {
+	this->K_BEND = k_bend;
 	return;
 }
 void Wall_Node::update_Equi_Angle(double new_theta) {
@@ -485,7 +499,7 @@ Coord Wall_Node::bending_Equation_Center() {
 }
 Coord Wall_Node::bending_Equation_Left() {
 	Coord F_left;
-	//double left_k_bend = left->get_Bending_Spring();
+	double K_BEND = left->get_K_BEND();
 	double left_equi_angle = left->get_Equi_Angle();
 	double left_angle = left->get_Angle();
 	double left_Constant;
@@ -515,7 +529,7 @@ Coord Wall_Node::bending_Equation_Left() {
 
 Coord Wall_Node::bending_Equation_Right() {
 	Coord F_right;
-	//double right_k_bend = right->get_Bending_Spring();
+	double K_BEND = right->get_K_BEND();
 	double right_equ_angle = right->get_Equi_Angle();
 	double right_angle = right->get_Angle();
 	double right_Constant;

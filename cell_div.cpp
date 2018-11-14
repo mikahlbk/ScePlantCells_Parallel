@@ -467,8 +467,8 @@ keep*/
 	//update cell center
 	this->update_Cell_Center();
 	sister->update_Cell_Center();
-	this->calc_WUS(0);
-	sister->calc_WUS(0);
+	this->calc_WUS();
+	sister->calc_WUS();
 //	this->calc_CYT();
 //	sister->calc_CYT();
 //	this->calc_Total_Signal();
@@ -523,7 +523,7 @@ keep*/
 		else{
 			temp_cyts.at(i)->update_Cell(sister);
 			sister->update_cyt_node_vec(temp_cyts.at(i));
-			sister->update_Cell_Progress_Var();
+			//sister->update_Cell_Progress_Var();
 		}
 		counter++;
 		//cout << counter << endl;

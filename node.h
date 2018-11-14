@@ -70,6 +70,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		double membr_equ_len;
 		double my_angle;
 		double K_LINEAR;
+		double K_BEND;
 		double equi_angle;
 		double cross_Prod;
 		Coord cyt_force;
@@ -106,6 +107,9 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		//set/get K_linear
 		void set_K_LINEAR(double k_lin);
 		double get_k_lin(){return K_LINEAR;}
+		//set/get K_Bend
+		void set_K_BEND(double k_bend);
+		double get_K_BEND(){return K_BEND;}
 		//set/get equi angle
 		void update_Equi_Angle(double new_theta);
 		double get_Equi_Angle() {return equi_angle;}

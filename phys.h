@@ -15,14 +15,16 @@ const double dt = .0003;
 const int Init_Num_Cyt_Nodes = 15;
 const int Init_Wall_Nodes = 150;
 const double pi = acos(-1.0);
-//
+const double pi_fourths = acos(sqrt(2)/2.0);
+const double three_pi_fourths = acos(-sqrt(2)/2.0);
 ////// Cell wall mechanical parameters
-const double K_BEND = 12;
-//const double K_BEND_L1 =2;
-//
+const double K_BEND_STIFF = 12;
+const double K_BEND_LOOSE =12;
+const double K_LINEAR_STIFF = 500;
+const double K_LINEAR_LOOSE = 150;
 ////Adhesion spring mechanical params
-const double K_ADH = 45;
-const double K_ADH_L1 = 45;
+const double K_ADH = 0;
+const double K_ADH_L1 = 0;
 const double MembrEquLen_ADH = .8;
 const double ADHThresh = 2;
 /////Microfibril spring mechanical params
@@ -35,7 +37,7 @@ const double MembrEquLen = .07;
 const double MEMBR_THRESH_LENGTH = 0.15; 
 //
 /////// Subcellular element parameters for membrane - membrane interactions
-const double U_MM = 10;
+const double U_MM = 100;
 const double W_MM =  0;
 const double xsi_MM = 0.5;
 const double gamma_MM = 1.5625;	
