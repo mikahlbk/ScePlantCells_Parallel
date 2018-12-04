@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <memory>
+#include <algorithm>
 //=========================
 #include "phys.h"
 #include "coord.h"
@@ -172,14 +173,15 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 	//kbend
 	//equi angle
 	//cross prod
+	added = 0;
 	this->cyt_force = Coord(0,0);
-	this->curr_closest = NULL;
 	this->closest = NULL;
 	this->closest_len = 100;
-	//adhesion pairs
+	//adhesion pairs vec
 }
 
 Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right) : Node(loc)   {
+	//functions that use this must set
 	this->left = left;
     	this->right = right;
 	this-> my_cell = my_cell;
@@ -189,11 +191,11 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> l
 	//kbend
 	//equi angle
 	//cross prod
+	added = 1;
 	this->cyt_force = Coord(0,0);
-	this->curr_closest = NULL;
 	this->closest = NULL;
 	this->closest_len = 100;
-	//adhesion pairs
+	//adhesion pairs vec
 }
 
 Wall_Node::~Wall_Node() {
@@ -254,38 +256,46 @@ void Wall_Node::update_Equi_Angle(double new_theta) {
 	this->equi_angle = new_theta;
 	return;
 }
+void Wall_Node::set_added(int update){
+	this->added = update;
+	return;
+}
 //==========================================================
 //Adhesion functions
 
 shared_ptr<Wall_Node> Wall_Node::find_Closest_Node(vector<shared_ptr<Cell>> neighbors) {
-	shared_ptr<Wall_Node> curr = NULL;
-	shared_ptr<Wall_Node> orig = NULL;
-	shared_ptr<Wall_Node> next = NULL;
-	shared_ptr<Cell> curr_cell = NULL;
-	shared_ptr<Wall_Node> closest = NULL;
-;	double curr_dist = 0;
-	double smallest = 100;
-	for(int i = 0; i < neighbors.size(); i++) {
-		curr_cell = neighbors.at(i);
-		//find the closest node on curr_Side
-		curr = curr_cell->get_Left_Corner();
-		orig = curr;
-		do{
-			next = curr->get_Left_Neighbor();
-			curr_dist = (this->my_loc - curr->get_Location()).length();
-			if(curr_dist < ADHThresh) {
-				if(curr_dist < smallest) {
-					closest = curr;
-					smallest = curr_dist;
+	
+	vector<shared_ptr<Wall_Node>> walls;
+	double curr_dist = 0;
+	double smallest_dist = 100;
+	shared_ptr<Wall_Node> closest;
+	for(unsigned int i = 0; i < neighbors.size(); i++){
+		//cout << "Neighbor" << neighbors.at(i) << endl;
+		neighbors.at(i)->get_Wall_Nodes_Vec(walls);
+		for(unsigned int j = 0; j< walls.size(); j++){
+			//cout << "walls" <<  walls.at(j) << endl;
+			curr_dist = (this->my_loc - walls.at(j)->get_Location()).length();
+			if(curr_dist < ADHThresh){
+				if(curr_dist<smallest_dist){
+					closest = walls.at(j);
+					smallest_dist = curr_dist;
 				}
 			}
-			curr = next;
-		} while (next != orig);
+		}
 	}
+
 	return closest;
 }
-void Wall_Node::set_curr_Closest(shared_ptr<Wall_Node> curr_closest){
-	this->curr_closest = curr_closest;
+void Wall_Node::make_Connection(shared_ptr<Wall_Node> curr_Closest) {
+	double curr_dist = 0;
+	shared_ptr<Wall_Node> this_ptr=shared_from_this();
+		
+	if(curr_Closest != NULL) {
+		curr_dist = (this_ptr->get_Location() - curr_Closest->get_Location()).length();
+		this_ptr->set_Closest(curr_Closest,curr_dist);
+		curr_Closest->add_adh_pair(this_ptr);
+	}
+
 	return;
 }
 void Wall_Node::set_Closest(shared_ptr<Wall_Node>  closest, double closest_len) {
@@ -293,25 +303,36 @@ void Wall_Node::set_Closest(shared_ptr<Wall_Node>  closest, double closest_len) 
 	this->closest_len = closest_len;
 	return;
 }
-void Wall_Node::make_Connection(shared_ptr<Wall_Node> curr_Closest) {
-	double curr_dist = 0;
-	shared_ptr<Wall_Node> this_ptr=shared_from_this();
-	if(curr_Closest != NULL) {
-	//	if(curr_Closest->get_curr_Closest() == this){
-			this_ptr->closest = curr_Closest;
-			curr_Closest->add_adh_pair(this_ptr);
-			curr_dist = (this_ptr->get_Location() - curr_Closest->get_Location()).length();
-			this_ptr->closest_len = curr_dist;
-	//	}	
-	}
-	return;
-}
+
 void Wall_Node::add_adh_pair(shared_ptr<Wall_Node> pair) {
 	this->adhesion_pairs.push_back(pair);
 	return;
 }
 void Wall_Node::clear_adh_vec(){
 	this->adhesion_pairs.clear();	
+	return;
+}
+void Wall_Node::remove_from_adh_vec(){
+	shared_ptr<Wall_Node> me = shared_from_this();
+	vector<shared_ptr<Wall_Node>> adh_pairs;
+	//cout << "set vec" << endl;
+	if(this->closest != NULL) {
+		adh_pairs = this->closest->get_adhesion_vec();
+		//cout << "clear vec" << endl;
+		this->closest->clear_adh_vec();
+		for(unsigned int i = 0; i < adh_pairs.size(); i++){
+			if(adh_pairs.at(i) != me){
+				this->closest->add_adh_pair(adh_pairs.at(i));
+			}
+		}
+	}
+	return;
+}
+void Wall_Node::clear_closest_in_adh_vec(){
+	cout << "undo closest" << endl;
+	for(unsigned int i = 0; i<adhesion_pairs.size(); i++){
+		adhesion_pairs.at(i)->set_Closest(NULL, 100);
+	}
 	return;
 }
 //===========================================================
@@ -327,6 +348,7 @@ void Wall_Node::calc_Forces(int Ti) {
 	//on current wall node
 	sum += calc_Morse_SC(Ti);
 	//cout << "SC success" << endl;
+	//cout << sum << endl;
 	//each wall node wiil keep 
 	//track of force from cytoplasm
 	//for pressure measurements	
@@ -345,7 +367,6 @@ void Wall_Node::calc_Forces(int Ti) {
 	sum += calc_Morse_DC(Ti);
 	//cout << "DC Success" << calc_Morse_DC(Ti) << endl;
 	new_force = sum;
-
 	return;
 }
 //morse potential between wall node i and every cyt node in cell
@@ -396,6 +417,7 @@ Coord Wall_Node::calc_Morse_DC(int Ti) {
 	Coord Fdc;
 	vector<shared_ptr<Cell>> cells;
 	my_cell->get_Neighbor_Cells(cells);	
+	//cout << "Neighbor cells: " << cells.size()<<endl;
 	//cout << "getting neighbors" << endl;
 	#pragma omp parallel 
 	{
@@ -405,7 +427,7 @@ Coord Wall_Node::calc_Morse_DC(int Ti) {
 			Fdc += neighbor_nodes(cells.at(i), Ti);
 		}
 	}
-	cout << "Fdc" << Fdc << endl;
+	//cout << "Fdc" << Fdc << endl;
 	//cout << "adhesion" << endl;
 	if(this->closest != NULL){
 	//	cout << "closest not null" << endl;
@@ -422,6 +444,7 @@ Coord Wall_Node::neighbor_nodes(shared_ptr<Cell> neighbor, int Ti) {
 	Coord sum;
 	vector<shared_ptr<Wall_Node>> walls;
 	neighbor->get_Wall_Nodes_Vec(walls);
+	//cout << "Number walls" << walls.size() << endl;
 	shared_ptr<Wall_Node> me = shared_from_this();
 	#pragma omp parallel
 	{
@@ -431,6 +454,7 @@ Coord Wall_Node::neighbor_nodes(shared_ptr<Cell> neighbor, int Ti) {
 			sum += me->morse_Equation(walls.at(j), Ti);
 		}
 	}
+	//cout<< "Sum: " << sum << endl;
 	return sum;
 }			
 //===========================================================
@@ -569,7 +593,7 @@ Coord Wall_Node::linear_Equation(shared_ptr<Wall_Node> wall) {
 	double diff_len = diff_vect.length();
 
 	F_lin = (diff_vect/diff_len)*K_LINEAR*(diff_len - this->membr_equ_len);
-
+	//cout << "linear" << F_lin << endl;
 	return F_lin;	
 }
 
@@ -584,7 +608,7 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 //	cout << "wall loc"  << endl;
 	Coord loc = my_loc;
 //	cout << "my loc " << endl;
-	Coord diff_vect = wall->get_Location() - my_loc;
+	Coord diff_vect = wall_loc - loc;
 //	cout << "coord diff is : " << diff_vect << endl;
 	double diff_len = diff_vect.length();
 	F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
@@ -592,4 +616,3 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 }
 //==========================================================
 // End of node.cpp
-

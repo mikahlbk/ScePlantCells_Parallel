@@ -24,7 +24,7 @@ class Node{
 		Coord new_force;
 		double damping;
 		int vtk_id;
-   public:
+    public:
     //functions that you will want performed on all nodes
         //Constructor
         Node(Coord loc);
@@ -73,10 +73,10 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		double K_BEND;
 		double equi_angle;
 		double cross_Prod;
+		int added;
 		Coord cyt_force;
 		
 		//variables used for adhesion
-		shared_ptr<Wall_Node> curr_closest;
 		shared_ptr<Wall_Node> closest;
 		double closest_len;
 		vector<shared_ptr<Wall_Node>> adhesion_pairs;
@@ -114,20 +114,21 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		void update_Equi_Angle(double new_theta);
 		double get_Equi_Angle() {return equi_angle;}
 		//crossprod necessary?
+		void set_added(int update);
+		int get_added() {return added;}
 		Coord get_CytForce() {return cyt_force;}
 	
 		//Adhesion functions
 		shared_ptr<Wall_Node> find_Closest_Node(vector<shared_ptr<Cell>> neighbors);
-		void set_curr_Closest(shared_ptr<Wall_Node> curr_closest);
-		shared_ptr<Wall_Node> get_curr_Closest(){return curr_closest;}
 		void make_Connection(shared_ptr<Wall_Node> curr_Closest);
 		void set_Closest(shared_ptr<Wall_Node> closest, double closest_len);
 		shared_ptr<Wall_Node> get_Closest(){return closest;}
-		double get_Closest_Len() {return closest_len;}
+		double get_closest_len() {return closest_len;}
 		void add_adh_pair(shared_ptr<Wall_Node> pair);
 		vector<shared_ptr<Wall_Node>>get_adhesion_vec(){return adhesion_pairs;}
       		void clear_adh_vec();
-		
+		void remove_from_adh_vec();	
+		void clear_closest_in_adh_vec();
 		//functions for calculating forces
 		void calc_Forces(int Ti);
 		Coord calc_Morse_SC(int Ti);
