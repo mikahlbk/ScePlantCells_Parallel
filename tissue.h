@@ -28,6 +28,7 @@ class Tissue{
 	public:
 		Tissue(string filename);
 		void get_Cells(vector<shared_ptr<Cell>>& cells);
+		//set/get the number of cells in the tissue
 		void update_Num_Cells(shared_ptr<Cell>& new_Cell);
 		int  get_num_cells() {return num_cells;}
 		void update_Neighbor_Cells();

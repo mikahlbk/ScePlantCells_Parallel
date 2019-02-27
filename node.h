@@ -78,7 +78,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		
 		//variables used for adhesion
 		vector<shared_ptr<Wall_Node>> adhesion_vector;
-    public:
+   public:
     //function that you want performed on all wall nodes
 		
     		// Constructors
@@ -116,6 +116,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord get_CytForce() {return cyt_force;}
 	
 		//Adhesion functions
+
 		void make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls);
 		void one_to_one_check();
 		vector<shared_ptr<Wall_Node>>get_adh_vec(){return adhesion_vector;}

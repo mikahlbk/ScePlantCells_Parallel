@@ -121,7 +121,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//adhesion
 		void clear_adhesion_vectors();
 		void update_adhesion_springs();
-	
+
 		//Forces and Positionsing
 		void calc_New_Forces(int Ti);
 		void update_Node_Locations();

@@ -93,7 +93,11 @@ void Tissue::update_Num_Cells(shared_ptr<Cell>& new_Cell) {
 	cells.push_back(new_Cell);
 	return;
 }
+<<<<<<< HEAD
 //**********functions for tissue to perform on cells********//
+=======
+//**********function for tissue to perform on cells********//
+>>>>>>> a2bf06681773baa571abc6fd5a40d41c9f3f6e87
 //updates current neighbors of each cell
 void Tissue::update_Neighbor_Cells() {
 	//update vectors of neighboring cells
@@ -135,7 +139,6 @@ void Tissue::update_Adhesion() {
 	for(unsigned int i=0;i<cells.size();i++) {
 		cells.at(i)->update_adhesion_springs();
 	}
-	
 	return;
 }
 //this function is not in use
@@ -152,11 +155,14 @@ void Tissue::update_Cell_Cycle(int Ti) {
 	int number_cells = cells.size();
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
+
 		//cout << "updating cell" << i << endl;
+
 		cells.at(i)->update_Cell_Progress(Ti);
 	}
 	//cout << "Number cells is: " << cells.size() << endl;
 	return;
+<<<<<<< HEAD
 
 }
 void Tissue::division_check(){
@@ -189,7 +195,7 @@ void Tissue::update_Cell_Locations() {
 		cells.at(i)->update_Node_Locations();
 	}
 
-return;
+	return;
 }
 
 void Tissue::locations_output(ofstream& ofs){
@@ -353,8 +359,9 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << endl;
 
 
+
 	ofs << "POINT_DATA " << num_Points << endl;
-	/*ofs << "SCALARS WUS  double " << 1 << endl;
+	ofs << "SCALARS WUS  double " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Scalars_WUS(ofs);
@@ -367,7 +374,8 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);
 	}
-	ofs << endl;*/
+	ofs << endl;
+
 
 	ofs << "Scalars wall_pressure float" << endl;
 	ofs << "LOOKUP_TABLE default" << endl;

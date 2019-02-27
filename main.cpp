@@ -40,6 +40,7 @@ int main(int argc, char* argv[]) {
 	string locations_folder = argv[3];
 	//keep track of time
 	int start = clock();	
+
 	//.txt file that tells initial
 	//cell configuration 
 	string init_tissue = "new_cells.txt";
@@ -154,7 +155,7 @@ int main(int argc, char* argv[]) {
 		growing_Tissue.division_check();
 		
 		//Calculate new forces on cells and nodes
-		//cout << "forces" << endl;
+		cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
 	
 		//Update node positions

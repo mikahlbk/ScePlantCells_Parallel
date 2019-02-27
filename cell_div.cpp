@@ -118,7 +118,6 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 	return;
 }
 shared_ptr<Cell> Cell::division() {
-
 	//current cell will split into two daughter cells
 	//	-"this" will keep its entity as parent cell
 	//	this function will create a sister cell
@@ -251,6 +250,7 @@ shared_ptr<Cell> Cell::division() {
 	double curr_X = start_daughter_one->get_Location().get_X()+2*delta_x_one;
 	double curr_Y = start_daughter_one->get_Location().get_Y()+2*delta_y_one;
 	//this counter was for debugging
+
 	int counter = 0;
 	
 	//cout << "Make daughter one new cell wall nodes" << endl;
@@ -334,7 +334,7 @@ shared_ptr<Cell> Cell::division() {
 		//cout << curr->get_Location() << endl;
 		if(curr == NULL) {
 	
-			cout << "notlinked" << endl;
+		cout << "notlinked" << endl;
 	
 			exit(1);
 		
@@ -415,7 +415,7 @@ shared_ptr<Cell> Cell::division() {
 	for(unsigned int i = 0; i < temp_cyts.size(); i++) {
 		length_1 = (temp_cyts.at(i)->get_Location() - this->get_Cell_Center()).length();
 		length_2 = (temp_cyts.at(i)->get_Location() - sister->get_Cell_Center()).length();
-		if(length_1 < length_2) {
+	if(length_1 < length_2) {
 			temp_cyts.at(i)->update_Cell(this_cell);
 			this->update_cyt_node_vec(temp_cyts.at(i));
 			//cout << temp_cyts.at(i)->get_Location() << endl;
@@ -452,6 +452,7 @@ void Cell::move_cyt_nodes(Coord center_point){
 	for(unsigned int i=0; i<cyt_nodes.size(); i++){
 		length_from_center_pt = (cyt_nodes.at(i)->get_Location()-center_point).length();
 		vector_from_center = cyt_nodes.at(i)->get_Location() - this->cell_center;
+
 		//if(length_from_center_pt< 4) {
 	
 			location = cell_center + vector_from_center*.8;
