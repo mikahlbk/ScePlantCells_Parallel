@@ -87,15 +87,14 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
          else {
                  this->growth_direction = Coord(0,1);
          }
-	 //cout << "layer" << this->layer << endl;
-	 //cout << "gd" << this->growth_direction << endl;
+	//cout << "layer" << this->layer << endl;
+	//cout << "gd" << this->growth_direction << endl;
 	//neighbors update function called after initialization
-
-//left corner set in make nodes function called by tissue constuctor
+	//left corner set in make nodes function called by tissue constuctor
 }
 //calls compute membrane equi length for each node
-//calls compute linear spring constatn for each node
-//calls comput bending spring constant for each node
+//calls compute linear spring constant for each node
+//calls compute bending spring constant for each node
 //calls update wall equi angles for each node
 //calls update wall angles to get initial angle of each node
 void Cell::make_nodes(double radius){
@@ -268,10 +267,10 @@ void Cell::calc_WUS() {
 void Cell::set_growth_rate() {
 	//this->growth_rate = 2000;//unifRandInt(1000,2000);
 	if(this->layer == 1) {
-		this->growth_rate = 5000;
+		this->growth_rate = 4500;
 	}
 	else{
-		this->growth_rate = 8500;
+		this->growth_rate = 9000;
 	}
 	/*if(this->wuschel < 12){
 		this->growth_rate = unifRandInt(2000,3000);
@@ -635,11 +634,10 @@ void Cell::update_Neighbor_Cells() {
 
 	return;
 }
-//this function finds the closest node on a neighboring cell to each wall node
-//if there is such a node that is under the AHThresh distance
-//calls find closest node on each wall node of the given cell
-//calls make connection on each wall node of the given cell
-void Cell::clear_adhesion_vectors_tissue(){
+//each cell wall node holds a vector of adhesion 
+//connections and this function clears that for
+//all cell wall nodes in the cell
+void Cell::clear_adhesion_vectors() {
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
 	#pragma omp parallel
@@ -647,64 +645,50 @@ void Cell::clear_adhesion_vectors_tissue(){
 
 		#pragma omp for schedule(static,1)	
 		for(unsigned int i=0; i< walls.size();i++) {
-			walls.at(i)->clear_adh_vec();
-			walls.at(i)->set_is_connected(0);
+			walls.at(i)->clear_adhesion_vec();
 		}
 	}
 	return;
 }
-void Cell::update_adhesion_springs_tissue() {
-	//cout<<"tissue making variables" << endl;
-	vector<shared_ptr<Wall_Node>> walls;
-	this->get_Wall_Nodes_Vec(walls);
-	int counter;
+//for each cell wall node on current cell 
+//this function searches through all the cell wall nodes on neighboring cells
+//if a cell wall node on a neighboring cell is within the ADHthresh
+//this function updates adhesion vector which is a private
+//member variable for each cell wall node on the current cell
+//this function pushes the current wall node on the neighboring cell
+//onto adhesion vector
+void Cell::update_adhesion_springs() {
+	//get wall nodes for this cell
+	vector<shared_ptr<Wall_Node>> current_cell_walls;
+	this->get_Wall_Nodes_Vec(current_cell_walls);
+	vector<shared_ptr<Wall_Node>> nghbr_walls_total;
+	vector<shared_ptr<Wall_Node>> nghbr_walls_current;
+	//int counter;
+	//get all neighboring cells to this cell
 	vector<shared_ptr<Cell>> neighbors;
 	this->get_Neighbor_Cells(neighbors);
-	//cout << "tissue variables made" << endl;
+	for(unsigned int i = 0; i < neighbors.size(); i++) {
+		neighbors.at(i)->get_Wall_Nodes_Vec(nghbr_walls_current);
+		nghbr_walls_total.insert(nghbr_walls_total.end(), nghbr_walls_current.begin(), nghbr_walls_current.end());
+	}
 	//#pragma omp parallel 
 	//{
 		//#pragma omp for schedule(static,1)
-		for(unsigned int i=0; i < walls.size(); i++) {
-			//finds the closest node on neighboring cells 
-			//to the current wall node
-			counter++;
+		for(unsigned int i=0; i < current_cell_walls.size(); i++) {
+			//counter++;
 			//cout<< counter << endl;
-		        //cout << "Wall node" << walls.at(i) << endl;
-			walls.at(i)->make_connection(neighbors);
+		        //cout << "Wall node" << current_cell_walls.at(i) << endl;
+			current_cell_walls.at(i)->make_connection(nghbr_walls_total);
 			//cout << "connection made" << endl;
-			//vector<pair<double, shared_ptr<Wall_Node>>> vec = walls.at(i)->get_adhesion_vec();
-			//cout << "adhesion vector wall " << vec.size() << endl;
 		}
-		counter = 0;
-		for(unsigned int i = 0; i < walls.size() ; i++) {
-			vector<pair<double, shared_ptr<Wall_Node>>> vec = walls.at(i)->get_adhesion_vec();
-			if(vec.size() == 1){
-				counter++;
-			}
-			//cout << "adhesion vector wall " << vec.size() << endl;
-		}
-		//cout << "Counter: " << counter << endl;
-	
 	//}
-	return;
-}
-void Cell::update_adhesion_springs_individual() {
-	vector<shared_ptr<Wall_Node>> walls;
-	this->get_Wall_Nodes_Vec(walls);
-	vector<shared_ptr<Cell>> neighbors;
-	this->get_Neighbor_Cells(neighbors);
-	vector<pair<shared_ptr<Wall_Node>,double>> two_closest;
-	//#pragma omp parallel 
-	//{
-		//#pragma omp for schedule(static,1)
-		for(unsigned int i=0; i < walls.size(); i++) {
-			if(walls.at(i)->get_is_connected() == 0) {
-				walls.at(i)->make_connection(neighbors);
-				//vector<pair<double, shared_ptr<Wall_Node>>> vec = walls.at(i)->get_adhesion_vec();
-				//cout << "adhesion vector wall j" << vec.size() << endl;
-			}
-		}	
-	//}
+	//for all cell wall nodes
+	//look at adh vector, is a nodes is in the curr cell wall
+	//nodes adh vector make sure the current cell wall node
+	//is in that nodes adh vector
+	for(unsigned int i = 0; i < current_cell_walls.size(); i++) {
+		current_cell_walls.at(i)->one_to_one_check();
+	}
 	return;
 }
 //===============================================================
@@ -830,11 +814,12 @@ void Cell::division_check(){
 		//left corner in divison function  
 		//cout << "adhesion division" << endl;
 		new_Cell->update_Neighbor_Cells();
-		new_Cell->update_adhesion_springs_individual();
+		//new_Cell->update_adhesion_springs_individual();
 		new_Cell->get_Neighbor_Cells(neighbor_cells);
 		for(unsigned int i =0; i < neighbor_cells.size(); i++) {
 			neighbor_cells.at(i)->update_Neighbor_Cells();
-			neighbor_cells.at(i)->update_adhesion_springs_individual();
+			neighbor_cells.at(i)->clear_adhesion_vectors();
+			neighbor_cells.at(i)->update_adhesion_springs();
 		}
 	}
 	return;
@@ -905,7 +890,13 @@ void Cell::add_Wall_Node(int Ti) {
 		vector<shared_ptr<Cell>> neighbors;
 		this->get_Neighbor_Cells(neighbors);
 		//cout << "adh added node find closest" << endl;
-		added_node->make_connection(neighbors);
+		vector<shared_ptr<Wall_Node>> nghbr_walls_total;
+		vector<shared_ptr<Wall_Node>> nghbr_walls_current;
+		for(unsigned int i = 0; i < neighbors.size(); i++) {
+			neighbors.at(i)->get_Wall_Nodes_Vec(nghbr_walls_current);
+			nghbr_walls_total.insert(nghbr_walls_total.end(), nghbr_walls_current.begin(), nghbr_walls_current.end());
+		}
+		added_node->make_connection(nghbr_walls_total);
 		//cout << "adh added node success" << endl;
 		//update angles
 		//should i update k_bennnnndddddd?????
@@ -933,8 +924,8 @@ void Cell::delete_Wall_Node(int Ti) {
 		}
 		//need to make sure all nodes connected to small
 		//via adhesion are erased
-		small->remove_from_adh_vecs();
-		small->clear_adh_vec();
+		//small->remove_from_adh_vecs();
+		//small->clear_adh_vec();
 		//set new neighbors so nothing points at small
 		left->set_Right_Neighbor(right);
 		right->set_Left_Neighbor(left);
@@ -1057,7 +1048,7 @@ int Cell::update_VTK_Indices(int& id) {
 	do { 
 		curr_wall->update_VTK_Id(id);
 		id++;
-		for(unsigned int i = 0; i < curr_wall->get_adhesion_vec().size(); i++){
+		for(unsigned int i = 0; i < curr_wall->get_adh_vec().size(); i++){
 			rel_cnt++;
 		}
 		curr_wall = curr_wall->get_Left_Neighbor();
@@ -1075,10 +1066,11 @@ void Cell::print_VTK_Adh(ofstream& ofs) {
 	int my_id, nei_id;
 	shared_ptr<Wall_Node> neighbor = NULL;
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
-
+	vector<shared_ptr<Wall_Node>> nodes;
 	do {
-		for(unsigned int i = 0; i < curr_wall->get_adhesion_vec().size(); i++){
-			neighbor = curr_wall->get_adhesion_vec()[i].second;
+		for(unsigned int i = 0; i < curr_wall->get_adh_vec().size(); i++){
+			nodes = curr_wall->get_adh_vec();
+			neighbor = nodes.at(i);
 			if(neighbor != NULL) {
 				my_id = curr_wall->get_VTK_Id();
 				nei_id = neighbor->get_VTK_Id();

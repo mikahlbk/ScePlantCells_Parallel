@@ -175,7 +175,6 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 	//cross prod
 	added = 0;
 	this->cyt_force = Coord(0,0);
-	this->is_connected = 0;
 	//this->closest = NULL;
 	//this->closest_len = 100;
 	//adhesion pairs vec
@@ -194,7 +193,6 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> l
 	//cross prod
 	added = 1;
 	this->cyt_force = Coord(0,0);
-	this->is_connected = 0;
 	//this->closest = NULL;
 	//this->closest_len = 100;
 	//adhesion pairs vec
@@ -264,176 +262,92 @@ void Wall_Node::set_added(int update){
 }
 //==========================================================
 //Adhesion functions
-
-shared_ptr<Wall_Node> Wall_Node::find_Closest_Node(Coord this_location,shared_ptr<Cell> closest_neighbor, vector<shared_ptr<Wall_Node>> unavailable_nodes){
-	//for closest neighbor cell get wall nodes
-	vector<shared_ptr<Wall_Node>> walls;
-	closest_neighbor->get_Wall_Nodes_Vec(walls);
-	//find the closest node
-	shared_ptr<Wall_Node> closest_node;
-	double curr_dist;
-	double smallest_distance = 100;
-	bool unavailable = false;
-	for(unsigned int i= 0; i<walls.size(); i++) {
-		//cout << "computing distance between node of interest and curr wall" << endl;
-		curr_dist = (walls.at(i)->get_Location() - this_location).length();
-		//cout << "check within adhesion range" << endl;
-		if(curr_dist < ADHThresh){
-			//cout << "if within adhesion range is it smaller than current possible" << endl;
-			if(curr_dist < smallest_distance) {
-				//cout << "it is the smallest but will we keep it" << endl;
-				for(unsigned int j=0; j < unavailable_nodes.size();j++) {
-					if(walls.at(i) == unavailable_nodes.at(j)){
-						unavailable = true;
+//determines which nodes on neighbor cells are within adhesion
+//threshold and pushes them onto connection vector
+void Wall_Node::make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls) {
+	shared_ptr<Wall_Node> this_ptr = shared_from_this();
+	Coord this_ptr_loc = this_ptr->get_Location();
+	vector<shared_ptr<Wall_Node>> this_ptr_adh_vec;
+	this_ptr_adh_vec = this_ptr->get_adh_vec();
+	Coord neighbor_node_loc;
+	double biggest_dist;
+	double curr_distance;
+	int counter = 0;
+	//cout << "neighbor walls size : " << neighbor_walls.size() << endl;
+	for(unsigned int i= 0; i < neighbor_walls.size() ; i++) {
+		counter++;
+		//cout << "neighbor wall: " << counter << endl;
+		neighbor_node_loc = neighbor_walls.at(i)->get_Location();
+		curr_distance = (this_ptr_loc - neighbor_node_loc).length();
+			if(curr_distance < ADHThresh){
+				cout << "within adh thresh" << endl;
+				if(this_ptr_adh_vec.size() < NUMBER_ADH_CONNECTIONS){
+					this_ptr->adh_push_back(neighbor_walls.at(i));
+					this_ptr_adh_vec = this_ptr->get_adh_vec();
+				}
+				else{
+					//sort in descending order
+					reverse(this_ptr_adh_vec.begin(),this_ptr_adh_vec.end());
+					biggest_dist = (this_ptr_loc - this_ptr_adh_vec.at(0)->get_Location()).length();
+					
+					if(curr_distance < biggest_dist){
+						this_ptr->update_adh_vec(neighbor_walls.at(i));
+						this_ptr_adh_vec = this_ptr->get_adh_vec();
 					}
 				}
-				if(unavailable){
-					//dont connect
-				}
-				else{
-					//cout << "closest found in find closest" << endl;
-					smallest_distance = curr_dist;
-					closest_node = walls.at(i);
-				}
 			}
-		}
+		//cout << "adhesion vec size: " << this_ptr_adh_vec.size()<< endl;
 	}
-	return closest_node;
+	return;
 }
-void Wall_Node::make_connection(vector<shared_ptr<Cell>> neighbors) {
-	shared_ptr<Wall_Node> this_ptr=shared_from_this();
-	Coord this_location = this_ptr->get_Location();
-	//neighbor cells passed in
-	//find closest neighbor
-	shared_ptr<Cell> closest_neighbor;
-	Coord curr_center;
-	double curr_distance_to_center;
-	double smallest_distance_to_center = 100;
-	vector<shared_ptr<Wall_Node>> unavailable_nodes;
-	//cout << "Finding closest neighbor" << endl;
-	for(unsigned int i= 0; i < neighbors.size() ; i++) {
-		//cout << "getting center of current neighbor" << endl;
-		curr_center = neighbors.at(i)->get_Cell_Center();
-		//cout << "location from current node to center" << endl;
-		curr_distance_to_center = (curr_center - this_ptr->get_Location()).length();
-		//cout << "if statement" << endl;
-		if(curr_distance_to_center < smallest_distance_to_center) {
-			smallest_distance_to_center = curr_distance_to_center;
-			closest_neighbor = neighbors.at(i);
-		}
-	}
-	//cout << "Closest neighbor " << closest_neighbor << endl;
-	//cout<< "out of if" << endl;
-	//find the closest node on that neighbor cell within adhesion range
-	shared_ptr<Wall_Node> possible_connection;
-	//cout << "find closest node" << endl;
-	possible_connection = find_Closest_Node(this_location,closest_neighbor,unavailable_nodes);
-	//cout << "found closest node first " << possible_connection <<  endl;
-	int counter = 0;
-	//Determine connection
-	//is this node already connected
-	bool not_connected = true;
-	//cout << "determining connection" << endl;
-	do{
-		if(possible_connection != NULL) {
-		//cout << "back at top" << endl;
-		vector<pair<double, shared_ptr<Wall_Node>>> adh_pairs = possible_connection->get_adhesion_vec();
-		//cout << "adhesion vector size prior to other cell: " << adh_pairs.size() << endl;
-		double curr_dist_adhesion = (possible_connection->get_Location() -this_ptr->get_Location()).length();
-	
-		if(adh_pairs.size() == 0){
-			//no ----> connect
-			//cout << "Connected, curr dist adhesion" << curr_dist_adhesion <<endl;
-			possible_connection->adh_push_back(curr_dist_adhesion,this_ptr);
-			possible_connection->set_is_connected(1);
-			this_ptr->adh_push_back(curr_dist_adhesion,possible_connection);
-			this_ptr->set_is_connected(1);
-			not_connected = false;
-		}
-		else{
-			//yes ---> am i closer?
-			//cout << "curr dist adhesion: " << curr_dist_adhesion << endl;
-			//cout << "adh curr dist: " << adh_pairs.at(0).first << endl;
-			if(curr_dist_adhesion < adh_pairs.at(0).first){
-				//yes --->  make connection
-				//cout << "Connected" << endl;
-				//cout << "current connect" << adh_pairs.at(0).second << endl;
-				adh_pairs.at(0).second->clear_adh_vec();
-				adh_pairs.at(0).second->set_is_connected(0);
-				possible_connection->clear_adh_vec();
-				possible_connection->adh_push_back(curr_dist_adhesion,this_ptr);
-				possible_connection->set_is_connected(1);
-				this_ptr->adh_push_back(curr_dist_adhesion,possible_connection);
-				this_ptr->set_is_connected(1);
-				not_connected = false;
-			}
-			else {
-				//go through this up to fifth choice then quit
-				counter++;
-				//cout << "unavailale: " << counter << endl;
-				if(counter < 3) {
-					//no ---> update unavailable vector
-					//cout << "pushed back unavailable" << endl;
-					unavailable_nodes.push_back(possible_connection);
-					//find next closest
-					//cout << "find next closest" << endl;
-					possible_connection = find_Closest_Node(this_location,closest_neighbor,unavailable_nodes);
-					//cout << "found next closest" << possible_connection << endl;
-				}
-				else{
-					not_connected = false;
-				}
-			}
-		}
+void Wall_Node::one_to_one_check(){
+	shared_ptr<Wall_Node> this_ptr = shared_from_this();
+	vector<shared_ptr<Wall_Node>> this_adh_vec;
+	this_adh_vec = this_ptr->adhesion_vector;
+	vector<shared_ptr<Wall_Node>> connection_adh_vec;
+	for(unsigned int i = 0; i < this_adh_vec.size(); i++){
+		connection_adh_vec = this_adh_vec.at(i)->get_adh_vec();
+		if(find(connection_adh_vec.begin(), connection_adh_vec.end(), this_ptr) != connection_adh_vec.end()){
+			//do nothing its already in there
 		}
 		else {
-			not_connected = false;
+			this_adh_vec.at(i)->adh_push_back(this_ptr);
 		}
-	}while(not_connected);
-	//cout << "out of while" << endl;
+	}
 	return;
 }
-/*void Wall_Node::set_Closest(shared_ptr<Wall_Node>  closest, double closest_len) {
-	this->closest = closest;
-	this->closest_len = closest_len;
-	return;
-}*/
-void Wall_Node::set_is_connected(int is_connected_truth){
-	this->is_connected = is_connected_truth;
+//clears adhesion vector of current node
+void Wall_Node::clear_adhesion_vec(){
+	this->adhesion_vector.clear();	
 	return;
 }
-void Wall_Node::clear_adh_vec(){
-	this->adhesion_pairs.clear();	
+//push back a cell wall node onto adhesion vector 
+//of current node
+void Wall_Node::adh_push_back(shared_ptr<Wall_Node> neighbor_node){
+	this->adhesion_vector.push_back(neighbor_node);
 	return;
 }
-void Wall_Node::adh_push_back(double distance, shared_ptr<Wall_Node> closest){
-	this->adhesion_pairs.push_back(make_pair(distance,closest));
+void Wall_Node::update_adh_vec(shared_ptr<Wall_Node> node) {
+	reverse(this->adhesion_vector.begin(),this->adhesion_vector.end());
+	this->adhesion_vector.at(0) = node;
 	return;
 }
+//removes the current node from adhesion vector of
+//cell wall nodes from neighboring cells 
 void Wall_Node::remove_from_adh_vecs(){
-	shared_ptr<Wall_Node> curr_closest;
 	shared_ptr<Wall_Node> me = shared_from_this();
-	vector<pair<double, shared_ptr<Wall_Node>>> adh_pairs;
-
-	for(unsigned int i=0; i< adhesion_pairs.size();i++) {
-		curr_closest = adhesion_pairs[i].second;
-		adh_pairs = curr_closest->get_adhesion_vec();
-		curr_closest->clear_adh_vec();
-		for(unsigned int j = 0; j < adh_pairs.size();j++){
-			if(adh_pairs[j].second != me){
-				curr_closest->adh_push_back(adh_pairs[j].first, adh_pairs[j].second);
+	vector<shared_ptr<Wall_Node>> neighbor_connections;
+	for(unsigned int i = 0; i < adhesion_vector.size(); i++){
+		neighbor_connections = adhesion_vector.at(i)->get_adh_vec();
+		adhesion_vector.at(i)->clear_adhesion_vec();
+		for(unsigned int j = 0; j<neighbor_connections.size();j++){
+			if(neighbor_connections.at(i) != me){
+				adhesion_vector.at(i)->adh_push_back(neighbor_connections.at(i));
 			}
 		}
 	}
 	return;
 }
-/*void Wall_Node::clear_closest_in_adh_vec(){
-	cout << "undo closest" << endl;
-	for(unsigned int i = 0; i<adhesion_pairs.size(); i++){
-		adhesion_pairs.at(i)->set_Closest(NULL, 100);
-	}
-	return;
-}*/
 //===========================================================
 // Calc Force Functions -----------------------
 //calculates total force on current wall node
@@ -528,15 +442,10 @@ Coord Wall_Node::calc_Morse_DC(int Ti) {
 	}
 	//cout << "Fdc" << Fdc << endl;
 	//cout << "adhesion" << endl;
-	//if(this->closest != NULL){
-	//	cout << "closest not null" << endl;
-	//	closest->get_Location();
-	//	cout << "got location" << endl;
-	//	Fdc += this->linear_Equation_ADH(this->closest);
-	//	cout << "computed adh successfully" << endl;
-	//}
+	vector<shared_ptr<Wall_Node>> adhesion_pairs;
+	adhesion_pairs = this->get_adh_vec();
 	for(unsigned int i = 0; i < adhesion_pairs.size(); i++){
-		Fdc += this->linear_Equation_ADH(adhesion_pairs[i].second);
+		Fdc += this->linear_Equation_ADH(adhesion_pairs.at(i));	
 	}
 	return Fdc;
 }
@@ -712,7 +621,12 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 	Coord diff_vect = wall_loc - loc;
 //	cout << "coord diff is : " << diff_vect << endl;
 	double diff_len = diff_vect.length();
-	F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
+	if(this->get_My_Cell()->get_Layer() == 1){
+		F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
+	}
+	else{
+		F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
+	}
 	return F_lin;
 }
 //==========================================================

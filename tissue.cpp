@@ -15,7 +15,8 @@
 #include "tissue.h"
 //=========================
 // Public Member Functions for Tissue.cpp
-
+//tissue constructor makes new tissue from 
+//.txt file that is read in
 Tissue::Tissue(string filename) {
 	num_cells = 0;
 	ifstream ifs(filename.c_str());
@@ -59,7 +60,8 @@ Tissue::Tissue(string filename) {
 			ss >> boundary;
 		}
 		else if (temp == "End_Cell") {
-			//create new cell with collected data and push onto vector 
+			//create new cell with collected data 
+			//and push onto vector that holds all cells in tissue 
 			//cout<< "making a cell" << endl;
 			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary);
 			//give that cell wall nodes and internal nodes
@@ -91,7 +93,7 @@ void Tissue::update_Num_Cells(shared_ptr<Cell>& new_Cell) {
 	cells.push_back(new_Cell);
 	return;
 }
-//**********function for tissue to perform on cells********//
+//**********functions for tissue to perform on cells********//
 //updates current neighbors of each cell
 void Tissue::update_Neighbor_Cells() {
 	//update vectors of neighboring cells
@@ -128,9 +130,12 @@ void Tissue::update_Adhesion() {
 	for(unsigned int i=0;i<cells.size();i++) {
 
 		//cout << "Updating adhesion for cell" << i <<  endl;
-		cells.at(i)->clear_adhesion_vectors_tissue();
-		cells.at(i)->update_adhesion_springs_tissue();
+		cells.at(i)->clear_adhesion_vectors();
 	}
+	for(unsigned int i=0;i<cells.size();i++) {
+		cells.at(i)->update_adhesion_springs();
+	}
+	
 	return;
 }
 //this function is not in use
@@ -147,7 +152,7 @@ void Tissue::update_Cell_Cycle(int Ti) {
 	int number_cells = cells.size();
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-//		cout << "updating cell" << i << endl;
+		//cout << "updating cell" << i << endl;
 		cells.at(i)->update_Cell_Progress(Ti);
 	}
 	//cout << "Number cells is: " << cells.size() << endl;
@@ -158,8 +163,7 @@ void Tissue::division_check(){
 	int number_cells = cells.size();
 	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-
-	//cout << "updating cell" << i << endl;
+		//cout << "updating cell" << i << endl;
 		cells.at(i)->division_check();
 	}
 	return;
@@ -171,11 +175,9 @@ void Tissue::calc_New_Forces(int Ti) {
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		
-//		cout << "Calc forces for cell: " << i << endl;
-		
+		//cout << "Calc forces for cell: " << i << endl;
 		cells.at(i)->calc_New_Forces(Ti);
-		
-//		cout << "success for cell: " << i << endl;
+		//cout << "success for cell: " << i << endl;
 	
 	}
 	return;

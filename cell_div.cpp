@@ -89,10 +89,10 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 			area_2 += curr_area;
 			curr = next;
 		} while(next != orig);
-		//cout << "area two" << endl;
-		//cout << area_2 << endl;
+		cout << "area two" << endl;
+		cout << area_2 << endl;
 		curr_diff = abs(area_1 - area_2);
-		//cout << "curr diff " << curr_diff << endl;
+		cout << "curr diff " << curr_diff << endl;
 		if(curr_diff < diff){
 			second = pairs[i].second;
 			diff = curr_diff;
@@ -100,10 +100,10 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 
 	
 	}
-	//cout << "diff" << diff << endl;
-	//cout << "end second" << endl;
-	//cout << "first" << first << endl;
-	//cout << "Second"  << second << endl;
+	cout << "diff" << diff << endl;
+	cout << "end second" << endl;
+	cout << "first" << first << endl;
+	cout << "Second"  << second << endl;
 	if((first == NULL)||(second == NULL)){
 	
 		cout << "Did not pick up div plane nodes" << endl;
@@ -114,7 +114,7 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 	}
 	nodes.push_back(first);
 	nodes.push_back(second);
-	//cout << "nodes size " << nodes.size() << endl;
+	cout << "nodes size " << nodes.size() << endl;
 	return;
 }
 shared_ptr<Cell> Cell::division() {
@@ -151,20 +151,20 @@ shared_ptr<Cell> Cell::division() {
 	shared_ptr<Wall_Node> first  = nodes.at(0);
 	//finds node on other side of cell
 	shared_ptr<Wall_Node> second = nodes.at(1); 	
-	//***Warning***make sure the nodes you are getting rid of dont have 
-	//any other nodes pointing to them
-	//left and right neighbors will be reset below
-	//other pointers come from adhesion!!!!
-	//cout << "adhesion pointers" << endl;
-	//to delete node we have to clear everything that points to it
-	//neighbors will be reassigned later
-	//other pointing is adhesion vec
-	//every node in adhesion pairs vec has this node in its
-	//adhesions pairs vec
+	//these nodes need to be deleted by 
+	//making sure nothing points to them
+	//and that they don't point to anything
+	//left and right neighbor will be reset below
+	//they will no longer be in the ndoes vector for 
+	//this cell
+	//and adhesion will be re-assigned
+	//for this cell and neighbor cells
+	//so adh vectors for neighboring nodes will be cleared
+	//and no neighboring nodes will find them in a pair
 	first->remove_from_adh_vecs();
-	first->clear_adh_vec();
+	first->clear_adhesion_vec();
 	second->remove_from_adh_vecs();
-	second->clear_adh_vec();
+	second->clear_adhesion_vec();
 	//cout << "adhesion success" << endl;
 	
 	//set the starting point of daughter cell one
@@ -172,46 +172,46 @@ shared_ptr<Cell> Cell::division() {
 	//move over one so that cells have enough room between them
 	//but first need to get rid of pointers in adhesion	
 	start_daughter_one->remove_from_adh_vecs();
-	start_daughter_one->clear_adh_vec();	
+	start_daughter_one->clear_adhesion_vec();	
 	start_daughter_one = start_daughter_one->get_Left_Neighbor();
 	//move over one so that cells have enough room between them
 	//but first need to get rid of pointers in adhesion	
-	//start_daughter_one->remove_from_adh_vec();
-	//start_daughter_one->clear_closest_in_adh_vec();	
+	start_daughter_one->remove_from_adh_vecs();
+	start_daughter_one->clear_adhesion_vec();	
 	//move happens here
-	//start_daughter_one = start_daughter_one->get_Left_Neighbor();
+	start_daughter_one = start_daughter_one->get_Left_Neighbor();
 	
 	//set ending point for daughter cell one
 	shared_ptr<Wall_Node>end_daughter_one = second->get_Right_Neighbor();
 	//move over one so that cells have enough room between them
 	//but first need to get rid of pointers in adhesion
 	end_daughter_one->remove_from_adh_vecs();
-	end_daughter_one->clear_adh_vec();	
+	end_daughter_one->clear_adhesion_vec();	
 	end_daughter_one = end_daughter_one ->get_Right_Neighbor();
 	//move over one so that cells have enough room between them
 	//but first get rid of adhesion pointers
-	//end_daughter_one->remove_from_adh_vec();
-	//end_daughter_one->clear_closest_in_adh_vec();	
+	end_daughter_one->remove_from_adh_vecs();
+	end_daughter_one->clear_adhesion_vec();	
 	//move happens here
-	//end_daughter_one = end_daughter_one ->get_Right_Neighbor();
+	end_daughter_one = end_daughter_one ->get_Right_Neighbor();
 	
 	//set starting point for daughter cell two	
 	shared_ptr<Wall_Node>start_daughter_two = second->get_Left_Neighbor();
 	start_daughter_two->remove_from_adh_vecs();
-	start_daughter_two->clear_adh_vec();	
+	start_daughter_two->clear_adhesion_vec();	
 	start_daughter_two = start_daughter_two->get_Left_Neighbor();
-	//start_daughter_two->remove_from_adh_vec();
-	//start_daughter_two->clear_closest_in_adh_vec();	
-	//start_daughter_two = start_daughter_two->get_Left_Neighbor();
+	start_daughter_two->remove_from_adh_vecs();
+	start_daughter_two->clear_adhesion_vec();	
+	start_daughter_two = start_daughter_two->get_Left_Neighbor();
 	
 	//set ending point for daughter cell two
 	shared_ptr<Wall_Node>end_daughter_two = first->get_Right_Neighbor();
 	end_daughter_two->remove_from_adh_vecs();
-	end_daughter_two->clear_adh_vec();	
+	end_daughter_two->clear_adhesion_vec();	
 	end_daughter_two = end_daughter_two ->get_Right_Neighbor();
-	//end_daughter_two->remove_from_adh_vec();
-	//end_daughter_two->clear_closest_in_adh_vec();	
-	//end_daughter_two = end_daughter_two ->get_Right_Neighbor();
+	end_daughter_two->remove_from_adh_vecs();
+	end_daughter_two->clear_adhesion_vec();	
+	end_daughter_two = end_daughter_two ->get_Right_Neighbor();
 
 
 	//this is the length of the division plane

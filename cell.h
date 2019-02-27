@@ -119,9 +119,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		void update_Neighbor_Cells();
 		
 		//adhesion
-		void clear_adhesion_vectors_tissue();
-		void update_adhesion_springs_tissue();
-		void update_adhesion_springs_individual();
+		void clear_adhesion_vectors();
+		void update_adhesion_springs();
 	
 		//Forces and Positionsing
 		void calc_New_Forces(int Ti);

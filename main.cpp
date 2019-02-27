@@ -40,12 +40,14 @@ int main(int argc, char* argv[]) {
 	string locations_folder = argv[3];
 	//keep track of time
 	int start = clock();	
-	//.txt file that tells configuration 
-	//that cells start in
+	//.txt file that tells initial
+	//cell configuration 
 	string init_tissue = "new_cells.txt";
-	
 	//cout << "Read in cell starter" << endl;	
-	//make new cell objects in tissue
+	
+	//instantiate tissue
+	//new cell and node objects
+	//are made in this call
 	Tissue growing_Tissue(init_tissue);
 	//cout << "Finished creating Cells" << endl;
 	
@@ -76,7 +78,7 @@ int main(int argc, char* argv[]) {
 	//seconds each time step reprsents (2.5?)
 	for(int Ti = 0; Ti*dt< numSteps; Ti++) {
 		// print to dataOutput and vtk files
-		if(Ti%1000 ==0) {
+		if(Ti%500==0) {
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
 				Number = "0000" + to_string(out);
@@ -106,21 +108,19 @@ int main(int argc, char* argv[]) {
 		//}
 	
 		// Tissue Growth
-
+		
 		//fills vector of neighbor cells for each cell
 		//in tissue class this goes through each cell and calls
 		//updated neighbor on each cell
-	
-		if(Ti==0) {
-			cout << "Find Neighbors" << endl;
+		if(Ti%10000==0) {
+			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}	
 		
 		//adds one new cell wall node per cell everytime it is called
 		//dont call it right away to give cell time to find initial configuration
-	
 		if(Ti%2000 == 0){	
-			cout << "add new cell wall nodes if needed" << endl;
+			//cout << "add new cell wall nodes if needed" << endl;
 			growing_Tissue.add_Wall(Ti);
 		}
 	
@@ -131,35 +131,37 @@ int main(int argc, char* argv[]) {
 			//growing_Tissue.delete_Wall(Ti);
 		//}
 	
-		/*if(Ti < 2000){
-			if(Ti%100 == 0) {
-				cout << "adhesion" << endl;
+		if(Ti < 3000){
+			if(Ti%1000 == 0) {
+		//		cout << "adhesion early" << endl;
 				growing_Tissue.update_Adhesion();
 			}
 		}
 		else{	
-			if(Ti%5000 == 0) {
-				cout << "adhesion"<< endl;
+			if(Ti%10000 == 0) {
+				//cout << "adhesion"<< endl;
 				growing_Tissue.update_Adhesion();
 			}
-		}*/
+		}
 		
-		cout << "cell cycle" << endl;
-		//this is where the cell decides if 
-		//it will divide
+		//adds internal node according to 
+		//individual cell growth rate
+		//cout << "cell cycle" << endl;
 		growing_Tissue.update_Cell_Cycle(Ti);
-		cout << "divide necessary cells" << endl;
+		
+		//will divide cell if time
+		//cout << "divide necessary cells" << endl;
 		growing_Tissue.division_check();
 		
 		//Calculate new forces on cells and nodes
-		cout << "forces" << endl;
+		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
 	
-		cout << "locations" << endl;
 		//Update node positions
+		//cout << "locations" << endl;
 		growing_Tissue.update_Cell_Locations();	
 		
-		cout << "Finished" << endl;
+		//cout << "Finished" << endl;
 		
 		//data output from simulations
 		//for cell center etc
