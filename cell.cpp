@@ -412,18 +412,6 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 		k_bend = K_BEND_LOOSE;
 
 	}
-	else if(this->growth_direction == Coord(1,0)){
-		if((theta > ANGLE_FIRST_QUAD)&& (theta < ANGLE_SECOND_QUAD)){
-			k_bend = K_BEND_STIFF;
-		}
-		else { 
-			k_bend = K_BEND_LOOSE;
-		}
-	}
-	else {
-		cout << "No growth direction assigned" << endl;
-		exit(1);
-	}
 	//cout << "K bend: " << k_bend << endl;
 	return k_bend;
 }
@@ -649,7 +637,7 @@ void Cell::update_Neighbor_Cells() {
 	//cout << "Cell: " << rank << " -- neighbors: " << neigh_cells.size() << endl;
 
 	return;
-}D
+}
 //each cell wall node holds a vector of adhesion 
 //connections and this function clears that for
 //all cell wall nodes in the cell
@@ -706,27 +694,6 @@ void Cell::update_adhesion_springs() {
 		current_cell_walls.at(i)->one_to_one_check();
 
 	}
-	vector<shared_ptr<Cell>> neighbors;
-	this->get_Neighbor_Cells(neighbors);
-	//cout << "cleared" << endl;
-	//int counter = 0;	
-	//#pragma omp parallel 
-	//{
-		//shared_ptr<Wall_Node> curr_closest;
-		//#pragma omp for schedule(static,1)
-		for(unsigned int i=0; i < walls.size(); i++) {
-			//finds the closest node on neighboring cells 
-			//to the current wall node
-			//counter++;
-			//cout<< counter << endl;
-		       	//cout << "Wall node" << walls.at(i) << endl;
-			shared_ptr<Wall_Node> curr_closest = NULL;
-			curr_closest = walls.at(i)->find_Closest_Node(neighbors);
-			//cout << "found closest" << curr_closest<<endl;
-			walls.at(i)->make_Connection(curr_closest);
-			//cout << "made connection" << endl;
-		}	
-	//}
 	return;
 }
 //===============================================================

@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
 		growing_Tissue.division_check();
 		
 		//Calculate new forces on cells and nodes
-		cout << "forces" << endl;
+		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
 	
 		//Update node positions

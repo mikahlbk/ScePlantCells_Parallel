@@ -348,29 +348,6 @@ void Wall_Node::remove_from_adh_vecs(){
 	}
 	return;
 }
-void Wall_Node::remove_from_adh_vec(){
-	shared_ptr<Wall_Node> me = shared_from_this();
-	vector<shared_ptr<Wall_Node>> adh_pairs;
-	//cout << "set vec" << endl;
-	if(this->closest != NULL) {
-		adh_pairs = this->closest->get_adhesion_vec();
-		//cout << "clear vec" << endl;
-		this->closest->clear_adh_vec();
-		for(unsigned int i = 0; i < adh_pairs.size(); i++){
-			if(adh_pairs.at(i) != me){
-				this->closest->add_adh_pair(adh_pairs.at(i));
-			}
-		}
-	}
-	return;
-}
-void Wall_Node::clear_closest_in_adh_vec(){
-	cout << "undo closest" << endl;
-	for(unsigned int i = 0; i<adhesion_pairs.size(); i++){
-		adhesion_pairs.at(i)->set_Closest(NULL, 100);
-	}
-	return;
-}
 //===========================================================
 // Calc Force Functions -----------------------
 //calculates total force on current wall node

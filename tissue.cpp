@@ -93,11 +93,7 @@ void Tissue::update_Num_Cells(shared_ptr<Cell>& new_Cell) {
 	cells.push_back(new_Cell);
 	return;
 }
-<<<<<<< HEAD
 //**********functions for tissue to perform on cells********//
-=======
-//**********function for tissue to perform on cells********//
->>>>>>> a2bf06681773baa571abc6fd5a40d41c9f3f6e87
 //updates current neighbors of each cell
 void Tissue::update_Neighbor_Cells() {
 	//update vectors of neighboring cells
@@ -162,7 +158,6 @@ void Tissue::update_Cell_Cycle(int Ti) {
 	}
 	//cout << "Number cells is: " << cells.size() << endl;
 	return;
-<<<<<<< HEAD
 
 }
 void Tissue::division_check(){
