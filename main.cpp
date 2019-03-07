@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 
 	//.txt file that tells initial
 	//cell configuration 
-	string init_tissue = "new_cells.txt";
+	string init_tissue = "one_cell.txt";
 	//cout << "Read in cell starter" << endl;	
 	
 	//instantiate tissue
