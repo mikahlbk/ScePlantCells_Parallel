@@ -3,9 +3,3 @@ Center:8,0
 Radius:3.75
 Layer:1
 End_Cell
-
-CellRank:2
-Center: 0,0
-Radius:3.75
-Layer:1
-End_Cell

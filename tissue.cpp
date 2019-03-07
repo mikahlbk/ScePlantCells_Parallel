@@ -354,7 +354,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 
 
 	ofs << "POINT_DATA " << num_Points << endl;
-	/*ofs << "SCALARS WUS  double " << 1 << endl;
+	ofs << "SCALARS WUS  double " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Scalars_WUS(ofs);
@@ -362,7 +362,14 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 
 	ofs << endl;
 
-	ofs << "Scalars average_pressure float" << endl;
+	ofs << "SCALARS CK  double " << 1 << endl;
+	ofs << "LOOKUP_TABLE default" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Scalars_CK(ofs);
+	}
+
+	ofs << endl;
+	/*ofs << "Scalars average_pressure float" << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);

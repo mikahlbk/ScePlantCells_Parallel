@@ -20,6 +20,8 @@ const double ANGLE_FIRST_QUAD = 0.785398;
 const double ANGLE_SECOND_QUAD = 2.35619;
 const double ANGLE_FIRST_QUAD_Div = .43;
 const double ANGLE_SECOND_QUAD_Div = 2.7;
+const double ADD_WALL_NODE_ANGLE_FIRST_QUAD =.436;
+const double ADD_WALL_NODE_ANGLE_SECOND_QUAD = 2.0;
 const double BOUNDARY_DAMP = .3;
 const double BOTTOM_DAMP = .1;
 const double REG_DAMP = 1;
@@ -29,12 +31,14 @@ const double K_BEND_STIFF =29.688;//38.3622;
 const double K_BEND_LOOSE =4.5433;//12.8128;
 //9.9898;//2.5416;//10.9974;//11.1948;//5.2617;//6.1530;//3.8290;//1.4132;//7.5802;//6.9589;//0.8149;//4.5433;//0.6185;//9.3159;//4.8077;//2.9080;//11.8757;//8.6403;//7.9421;//
 //K_LINEAR_STIFF not used
+const double K_BEND_UNIFORM = 12;
 const double K_LINEAR_STIFF = 0;
 const double K_LINEAR_LOOSE =280.1636;//54.2730;
 //157.7281;//674.3111;//511.3433;//746.0824;//461.8290;//230.2545;//134.8271;//336.2897;//581.4058;//551.7969;//84.7288;//280.1636;//688.4090;//396.0437;//612.7239;//320.9386;//381.9915;//204.3934;//477.1815;//
 ////Adhesion spring mechanical params
 const double K_ADH = 20;
 const double K_ADH_L1 = 8;
+const double K_ADH_L2 = 20;
 const double MembrEquLen_ADH = 1.2;
 const double ADHThresh = 2;
 const double NUMBER_ADH_CONNECTIONS = 2;
