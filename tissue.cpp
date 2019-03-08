@@ -380,13 +380,13 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 		//cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);
 	}
 	ofs << endl;
-
+	*/
 
 	ofs << "Scalars wall_pressure float" << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Scalars_Node(ofs);
-	}*/
+	}
 	return;
 }
 
