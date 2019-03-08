@@ -29,6 +29,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		int rank;
 		int layer;
 		int boundary;
+		int stem;
 		double damping;
 		int life_length;
 		int num_cyt_nodes;
@@ -37,7 +38,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		vector<shared_ptr<Wall_Node>> wall_nodes;
 		double Cell_Progress;
 		Coord cell_center;
-		//double cytokinin;
+		double cytokinin;
 		double wuschel;
 		int growth_rate;
 		Coord growth_direction;
@@ -46,7 +47,7 @@ class Cell: public enable_shared_from_this<Cell> {
 	public:
 		
 		Cell(Tissue* tissue);
-		Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary);
+		Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem);
 		void make_nodes(double radius);
 		
 		// Destructor
@@ -92,8 +93,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		//set/get WUS conc
 		void calc_WUS();
 		double get_WUS_concentration() {return wuschel;}
-		//void calc_CYT();
-		//double get_CYT_concentration() {return cytokinin;}
+		void calc_CK();
+		double get_CYT_concentration() {return cytokinin;}
 		//set growth rate based on WUS
 		void set_growth_rate();
 		//set/get growth direction
@@ -154,7 +155,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_VTK_Scalars_Average_Pressure_cell(ofstream& ofs);
 		void print_VTK_Scalars_WUS(ofstream& ofs);
 		void print_VTK_Scalars_WUS_cell(ofstream& ofs);
-		void print_VTK_Scalars_CYT(ofstream& ofs);
+		void print_VTK_Scalars_CK(ofstream& ofs);
 		void print_VTK_Scalars_Total(ofstream& ofs);
 		void print_VTK_Vectors(ofstream& ofs);
 		void print_VTK_Scalars_Node(ofstream& ofs);	

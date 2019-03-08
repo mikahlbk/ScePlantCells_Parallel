@@ -33,6 +33,7 @@ Tissue::Tissue(string filename) {
 	int rank;
 	int layer;
 	int boundary;
+	int stem;
 	double radius;
 	Coord center;
 	double x, y;
@@ -59,11 +60,14 @@ Tissue::Tissue(string filename) {
 		else if (temp == "Boundary"){
 			ss >> boundary;
 		}
+		else if(temp == "Stem"){
+			ss >> stem;
+		}
 		else if (temp == "End_Cell") {
 			//create new cell with collected data 
 			//and push onto vector that holds all cells in tissue 
 			//cout<< "making a cell" << endl;
-			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary);
+			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
 			//give that cell wall nodes and internal nodes
 			curr->make_nodes(radius);
 			num_cells++;
@@ -172,7 +176,6 @@ void Tissue::division_check(){
 	
 //calculates the forces for nodes of  each cell 
 void Tissue::calc_New_Forces(int Ti) {
-
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		
@@ -364,7 +367,14 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 
 	ofs << endl;
 
-	ofs << "Scalars average_pressure float" << endl;
+	ofs << "SCALARS CK  double " << 1 << endl;
+	ofs << "LOOKUP_TABLE default" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Scalars_CK(ofs);
+	}
+
+	ofs << endl;
+	/*ofs << "Scalars average_pressure float" << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);

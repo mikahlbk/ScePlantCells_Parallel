@@ -280,7 +280,7 @@ void Wall_Node::make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls) {
 		neighbor_node_loc = neighbor_walls.at(i)->get_Location();
 		curr_distance = (this_ptr_loc - neighbor_node_loc).length();
 			if(curr_distance < ADHThresh){
-				cout << "within adh thresh" << endl;
+			//	cout << "within adh thresh" << endl;
 				if(this_ptr_adh_vec.size() < NUMBER_ADH_CONNECTIONS){
 					this_ptr->adh_push_back(neighbor_walls.at(i));
 					this_ptr_adh_vec = this_ptr->get_adh_vec();
@@ -623,6 +623,9 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 	double diff_len = diff_vect.length();
 	if(this->get_My_Cell()->get_Layer() == 1){
 		F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
+	}
+	else if(this->get_My_Cell()->get_Layer() == 2){
+		F_lin = (diff_vect/diff_len)*(K_ADH_L2*(diff_len - MembrEquLen_ADH));
 	}
 	else{
 		F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));

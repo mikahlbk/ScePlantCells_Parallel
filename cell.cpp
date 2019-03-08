@@ -27,8 +27,7 @@ Cell::Cell(Tissue* tissue) {
 	my_tissue = tissue;
 	//rank assigned in division function
 	//layer inherited from parent	
-	//boundary need to think about the best
-	//way to do this
+	//boundary cells don't divide
 	//damping assigned in div function
 	//just divided so reset life length
 	life_length = 0;
@@ -42,7 +41,7 @@ Cell::Cell(Tissue* tissue) {
 	//center calculate in division function
 	//will calculate signals in div function
 	wuschel = 0;
-	//cytokinin = 0;
+	cytokinin = 0;
 	//growth_rate assigned in div function
 	//growth direction assigned in division
 	//neighbors assigned in div function
@@ -50,7 +49,7 @@ Cell::Cell(Tissue* tissue) {
 }
 //this constructor is used to initialize first set of cells
 //calls set_growth_rate which detemrines growth rate based on WUS CONC
-Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary)    {
+Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem)    {
 	this->my_tissue = tiss;
 	this->rank = rank;
 	this->layer = layer;
@@ -58,9 +57,10 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//then the cell will have higher damping
 	//which is assigned below
 	//boundary conditions are read in from initial text file
-	//this->boundary = boundary
+	this->boundary = boundary;
+	this-> stem = stem;
 	//set damping for cells that act as anchor points
-	if(layer == 6) {
+	if(stem == 1) {
 		this->damping = BOTTOM_DAMP;
 	}
 	else if((this->boundary == 1)){
@@ -76,19 +76,36 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//wall nodes initialized in tissue constructor which 
 	//calls the make nodes function on each new cell
 	num_wall_nodes = 0;
+<<<<<<< HEAD
 	Cell_Progress = 0; //unifRandInt(0,10);
+=======
+	Cell_Progress = unifRandInt(0,10);
+	if((this->stem == 1 ) || (this->boundary == 1)){
+		Cell_Progress = 15;
+	}
+>>>>>>> 3af51dfedf63442d5364ca12fc45c0fe56741d80
 	this->cell_center = center;
 	this->calc_WUS();
-	//this->cytokinin = 0;
+	this->calc_CK();
 	this->set_growth_rate();
-	if((this->layer == 1)||(this->layer == 2)) {
+	if(this->boundary == 1){
+		this->growth_direction = Coord(0,0);
+	}
+	else if(this->stem == 1){
+		this->growth_direction = Coord(0,1);
+	}
+        
+	else if((this->layer == 1)||(this->layer == 2)) {
                  this->growth_direction = Coord(1,0);
-         }
-         else {
-                 this->growth_direction = Coord(0,1);
-         }
-	//cout << "layer" << this->layer << endl;
-	//cout << "gd" << this->growth_direction << endl;
+        }
+        else{
+	 	this->growth_direction = Coord(0,1);
+	}
+	cout << "layer" << this->layer << endl;
+	cout << "stem" << this->stem << endl;
+	cout << "boundary" << this-> boundary << endl;
+	cout << "gd" << this->growth_direction << endl;
+	cout << "damping" << this->damping << endl;
 	//neighbors update function called after initialization
 	//left corner set in make nodes function called by tissue constuctor
 }
@@ -261,19 +278,29 @@ void Cell::update_Cell_Progress() {
 	return;
 }
 void Cell::calc_WUS() {
-	this->wuschel = 109.6*exp(-0.02928*cell_center.length()) + 27.69*exp(-0.0008808*cell_center.length());
+	this->wuschel = 109.6*exp(-0.02928*(cell_center-Coord(0,-24)).length()) + 27.69*exp(-0.0008808*(cell_center-Coord(0,-24)).length());
+	return;
+}
+void Cell::calc_CK() {
+	this->cytokinin = 132.9*exp(-0.01637*(cell_center-Coord(0,-40)).length());
 	return;
 }
 void Cell::set_growth_rate() {
 	//this->growth_rate = 2000;//unifRandInt(1000,2000);
-	if(this->layer == 1) {
+	/*if(this->layer == 1) {
 		this->growth_rate = 4500;
 	}
 	else{
+<<<<<<< HEAD
 		this->growth_rate = 9000;
 	}
 
 	/*if(this->wuschel < 12){
+=======
+		this->growth_rate = 4500;
+	}*/
+	if(this->wuschel < 12){
+>>>>>>> 3af51dfedf63442d5364ca12fc45c0fe56741d80
 		this->growth_rate = unifRandInt(2000,3000);
 	}
 	else if((this->wuschel >= 12) &&(this->wuschel <24)) {
@@ -308,7 +335,7 @@ void Cell::set_growth_rate() {
 	}
 	else if(this->wuschel>= 132) {
 		this->growth_rate = unifRandInt(15000,16000);
-	}*/
+	}
 
 	return;
 }
@@ -386,7 +413,7 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	//high bending coefficient
 	//nodes that are perpendicular to growth direction have 
 	//low bending coefficient
-	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))) {
+	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))||(growth_direction == Coord(0,0))) {
 		//fine
 	}
 	else{
@@ -394,6 +421,7 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 		exit(1);
 	}
 	double k_bend = 0;
+<<<<<<< HEAD
         double theta = 0;
         double costheta = 0;
 	double curr_len = 0;
@@ -411,8 +439,31 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	else { 
 		k_bend = K_BEND_LOOSE;
 
+=======
+       	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))){
+		double theta = 0;
+        	double costheta = 0;
+		double curr_len = 0;
+		double growth_len = 0;
+		Coord curr_vec;	
+		curr_vec = current->get_Left_Neighbor()->get_Location() - current->get_Location();
+		curr_len = curr_vec.length();	
+		growth_len = 1;
+		costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+		theta = acos( min( max(costheta,-1.0), 1.0) );
+		//cout << "Theta: " << theta << endl;
+		if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
+			k_bend = K_BEND_STIFF;
+		}
+		else { 
+			k_bend = K_BEND_LOOSE;
+		}
 	}
-	//cout << "K bend: " << k_bend << endl;
+	else{
+		k_bend = K_BEND_UNIFORM;
+>>>>>>> 3af51dfedf63442d5364ca12fc45c0fe56741d80
+	}
+	cout << "K bend: " << k_bend << endl;
 	return k_bend;
 }
 double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
@@ -421,7 +472,7 @@ double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
 	//high bending coefficient
 	//nodes that are perpendicular to growth direction have 
 	//low bending coefficient
-	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))) {
+	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0)) || (growth_direction == Coord(0,0))) {
 		//fine
 	}
 	else{
@@ -429,22 +480,27 @@ double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
 		exit(1);
 	}
 	double k_bend = 0;
-        double theta = 0;
-        double costheta = 0;
-	double curr_len = 0;
-	double growth_len = 0;
-	Coord curr_vec;	
-	curr_vec = current->get_Left_Neighbor()->get_Location() - current->get_Location();
-	curr_len = curr_vec.length();	
-	growth_len = 1;
-	costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
-	theta = acos( min( max(costheta,-1.0), 1.0) );
-	//cout << "Theta: " << theta << endl;
-	if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
-		k_bend = K_BEND_STIFF;
+        if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))){
+		double theta = 0;
+        	double costheta = 0;
+		double curr_len = 0;
+		double growth_len = 0;
+		Coord curr_vec;	
+		curr_vec = current->get_Left_Neighbor()->get_Location() - current->get_Location();
+		curr_len = curr_vec.length();	
+		growth_len = 1;
+		costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+		theta = acos( min( max(costheta,-1.0), 1.0) );
+		//cout << "Theta: " << theta << endl;
+		if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
+			k_bend = K_BEND_STIFF;
+		}
+		else { 
+			k_bend = K_BEND_LOOSE;
+		}
 	}
-	else { 
-		k_bend = K_BEND_LOOSE;
+	else{
+		k_bend = K_BEND_UNIFORM;
 	}
 	//cout << "K bend: " << k_bend << endl;
 	return k_bend;
@@ -477,21 +533,25 @@ void Cell::update_Wall_Equi_Angles() {
 		//int counter = 0;
 		double new_equi_angle = 0; 
 		double circle_angle  = (this->num_wall_nodes-2)*pi/(this->num_wall_nodes);
-	
 		#pragma omp parallel for schedule(static,1)
 		for(unsigned int i = 0; i < walls.size();i++) {	
-			curr_vec = walls.at(i)->get_Left_Neighbor()->get_Location() - walls.at(i)->get_Location();
-			curr_len = curr_vec.length();	
-			growth_len = this->growth_direction.length();
-			costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
-			theta = acos( min( max(costheta,-1.0), 1.0) );
-			if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
-				new_equi_angle = pi;
+			if(this->growth_direction != Coord(0,0)){
+				curr_vec = walls.at(i)->get_Left_Neighbor()->get_Location() - walls.at(i)->get_Location();
+				curr_len = curr_vec.length();	
+				growth_len = this->growth_direction.length();
+				costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+				theta = acos( min( max(costheta,-1.0), 1.0) );
+				if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
+					new_equi_angle = pi;
+				}
+				else{
+					//counter++;
+					new_equi_angle = circle_angle;
+	
+				}
 			}
 			else{
-				//counter++;
 				new_equi_angle = circle_angle;
-	
 			}
 			
 					
@@ -502,7 +562,7 @@ void Cell::update_Wall_Equi_Angles() {
 		//	new_equi_angle =  (counter*2-2)*pi/(counter*2);
 		//}
 	
-		walls.at(i)->update_Equi_Angle(new_equi_angle);
+			walls.at(i)->update_Equi_Angle(new_equi_angle);
 		}
 	}
 	return;
@@ -521,21 +581,24 @@ void Cell::update_Wall_Equi_Angles_Div() {
 		//int counter = 0;
 		double new_equi_angle = 0; 
 		double circle_angle  = (this->num_wall_nodes-2)*pi/(this->num_wall_nodes);
-	
 		#pragma omp parallel for schedule(static,1)
 		for(unsigned int i = 0; i < walls.size();i++) {	
-			curr_vec = walls.at(i)->get_Left_Neighbor()->get_Location() - walls.at(i)->get_Location();
-			curr_len = curr_vec.length();	
-			growth_len = this->growth_direction.length();
-			costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
-			theta = acos( min( max(costheta,-1.0), 1.0) );
-			if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
-				new_equi_angle = circle_angle;
+			if(this->growth_direction != Coord(0,0)){
+				curr_vec = walls.at(i)->get_Left_Neighbor()->get_Location() - walls.at(i)->get_Location();
+				curr_len = curr_vec.length();	
+				growth_len = this->growth_direction.length();
+				costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+				theta = acos( min( max(costheta,-1.0), 1.0) );
+				if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
+					new_equi_angle = circle_angle;
+				}
+				else{
+					//counter++;
+					new_equi_angle = circle_angle;
+				}
 			}
-			else{
-				//counter++;
+			else {
 				new_equi_angle = circle_angle;
-	
 			}
 		//this was an idea to make the round part of the cell
 		//smaller in radius but not necessary
@@ -543,8 +606,12 @@ void Cell::update_Wall_Equi_Angles_Div() {
 		//	new_equi_angle =  (counter*2-2)*pi/(counter*2);
 		//}
 	
+<<<<<<< HEAD
 		walls.at(i)->update_Equi_Angle(new_equi_angle);
 
+=======
+			walls.at(i)->update_Equi_Angle(new_equi_angle);
+>>>>>>> 3af51dfedf63442d5364ca12fc45c0fe56741d80
 		}
 	}
 	return;
@@ -770,19 +837,31 @@ void Cell::update_Node_Locations() {
 void Cell::update_Cell_Progress(int& Ti) {
 	//update life length of the current cell
 	this->update_Life_Length();
-	if(Ti<=80000){
-	if((Ti%growth_rate == (growth_rate -1))){
-		this->add_Cyt_Node();
-	  	this->Cell_Progress++;
+	if(this->stem == 1){
+		//do nothing
 	}
+	else if (this->boundary == 1){
+		//do nothing
+	}
+	else if(Ti<=80000){
+		if((Ti%growth_rate == (growth_rate -1))){
+			this->add_Cyt_Node();
+	  		this->Cell_Progress++;
+		}
 	}
 
-return;
+	return;
 }
 void Cell::division_check(){
 	vector<shared_ptr<Cell>> neighbor_cells;
 	//cout <<"Before div progress" << Cell_Progress << endl;	
-	if(this->Cell_Progress >= 30){
+	if(this-> stem ==1){
+		//do nothing
+	}
+	else if(this->boundary == 1){
+		//do nothing
+	}
+	else if(this->Cell_Progress >= 30){
 
 
 		cout << "dividing" << endl;
@@ -1009,9 +1088,13 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& largest) {
 		growth_len = 1;
 		costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
 		theta = acos( min( max(costheta,-1.0), 1.0) );
+<<<<<<< HEAD
 
 		if((theta < ANGLE_FIRST_QUAD) ||(theta > ANGLE_SECOND_QUAD)){
 
+=======
+		//if((theta < ADD_WALL_NODE_ANGLE_FIRST_QUAD) ||(theta > ADD_WALL_NODE_ANGLE_SECOND_QUAD)){
+>>>>>>> 3af51dfedf63442d5364ca12fc45c0fe56741d80
 			left_neighbor = walls.at(i)->get_Left_Neighbor();
 			current_len = (walls.at(i)->get_Location()-left_neighbor->get_Location()).length();
 			//if(curr_len > MEMBR_THRESH_LENGTH) {			
@@ -1022,7 +1105,7 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& largest) {
 
 			}	
 
-		}
+		//}
 	}
 	largest = right;
 
@@ -1200,6 +1283,25 @@ void Cell::print_VTK_Scalars_WUS(ofstream& ofs) {
 
 	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
 		concentration = cyt_nodes.at(i)->get_My_Cell()->get_WUS_concentration();
+		ofs << concentration << endl;
+	}
+	return;
+}
+void Cell::print_VTK_Scalars_CK(ofstream& ofs) {
+
+	double concentration = 0;
+	shared_ptr<Wall_Node> curr_wall = left_Corner;
+	do {
+		concentration = curr_wall->get_My_Cell()->get_CYT_concentration();
+		ofs << concentration << endl;
+
+		curr_wall = curr_wall->get_Left_Neighbor();
+		
+	} while (curr_wall != left_Corner);
+
+
+	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+		concentration = cyt_nodes.at(i)->get_My_Cell()->get_CYT_concentration();
 		ofs << concentration << endl;
 	}
 	return;
