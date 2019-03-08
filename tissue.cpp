@@ -386,7 +386,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Scalars_Node(ofs);
-	}
+	}*/
 	return;
 }
 

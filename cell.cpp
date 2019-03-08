@@ -76,14 +76,10 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//wall nodes initialized in tissue constructor which 
 	//calls the make nodes function on each new cell
 	num_wall_nodes = 0;
-<<<<<<< HEAD
-	Cell_Progress = 0; //unifRandInt(0,10);
-=======
 	Cell_Progress = unifRandInt(0,10);
 	if((this->stem == 1 ) || (this->boundary == 1)){
 		Cell_Progress = 15;
 	}
->>>>>>> 3af51dfedf63442d5364ca12fc45c0fe56741d80
 	this->cell_center = center;
 	this->calc_WUS();
 	this->calc_CK();
@@ -287,20 +283,7 @@ void Cell::calc_CK() {
 }
 void Cell::set_growth_rate() {
 	//this->growth_rate = 2000;//unifRandInt(1000,2000);
-	/*if(this->layer == 1) {
-		this->growth_rate = 4500;
-	}
-	else{
-<<<<<<< HEAD
-		this->growth_rate = 9000;
-	}
-
-	/*if(this->wuschel < 12){
-=======
-		this->growth_rate = 4500;
-	}*/
 	if(this->wuschel < 12){
->>>>>>> 3af51dfedf63442d5364ca12fc45c0fe56741d80
 		this->growth_rate = unifRandInt(2000,3000);
 	}
 	else if((this->wuschel >= 12) &&(this->wuschel <24)) {
@@ -421,25 +404,7 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 		exit(1);
 	}
 	double k_bend = 0;
-<<<<<<< HEAD
-        double theta = 0;
-        double costheta = 0;
-	double curr_len = 0;
-	double growth_len = 0;
-	Coord curr_vec;	
-	curr_vec = current->get_Left_Neighbor()->get_Location() - current->get_Location();
-	curr_len = curr_vec.length();	
-	growth_len = 1;
-	costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
-	theta = acos( min( max(costheta,-1.0), 1.0) );
-	//cout << "Theta: " << theta << endl;D
-	if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
-		k_bend = K_BEND_STIFF;
-	}
-	else { 
-		k_bend = K_BEND_LOOSE;
 
-=======
        	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))){
 		double theta = 0;
         	double costheta = 0;
@@ -461,7 +426,6 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	}
 	else{
 		k_bend = K_BEND_UNIFORM;
->>>>>>> 3af51dfedf63442d5364ca12fc45c0fe56741d80
 	}
 	cout << "K bend: " << k_bend << endl;
 	return k_bend;
@@ -606,12 +570,7 @@ void Cell::update_Wall_Equi_Angles_Div() {
 		//	new_equi_angle =  (counter*2-2)*pi/(counter*2);
 		//}
 	
-<<<<<<< HEAD
-		walls.at(i)->update_Equi_Angle(new_equi_angle);
-
-=======
 			walls.at(i)->update_Equi_Angle(new_equi_angle);
->>>>>>> 3af51dfedf63442d5364ca12fc45c0fe56741d80
 		}
 	}
 	return;
@@ -1088,13 +1047,8 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& largest) {
 		growth_len = 1;
 		costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
 		theta = acos( min( max(costheta,-1.0), 1.0) );
-<<<<<<< HEAD
 
-		if((theta < ANGLE_FIRST_QUAD) ||(theta > ANGLE_SECOND_QUAD)){
-
-=======
 		//if((theta < ADD_WALL_NODE_ANGLE_FIRST_QUAD) ||(theta > ADD_WALL_NODE_ANGLE_SECOND_QUAD)){
->>>>>>> 3af51dfedf63442d5364ca12fc45c0fe56741d80
 			left_neighbor = walls.at(i)->get_Left_Neighbor();
 			current_len = (walls.at(i)->get_Location()-left_neighbor->get_Location()).length();
 			//if(curr_len > MEMBR_THRESH_LENGTH) {			
