@@ -341,8 +341,8 @@ void Wall_Node::remove_from_adh_vecs(){
 		neighbor_connections = adhesion_vector.at(i)->get_adh_vec();
 		adhesion_vector.at(i)->clear_adhesion_vec();
 		for(unsigned int j = 0; j<neighbor_connections.size();j++){
-			if(neighbor_connections.at(i) != me){
-				adhesion_vector.at(i)->adh_push_back(neighbor_connections.at(i));
+			if(neighbor_connections.at(j) != me){
+				adhesion_vector.at(i)->adh_push_back(neighbor_connections.at(j));
 			}
 		}
 	}

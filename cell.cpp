@@ -77,9 +77,6 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//calls the make nodes function on each new cell
 	num_wall_nodes = 0;
 	Cell_Progress = unifRandInt(0,10);
-	if((this->stem == 1 ) || (this->boundary == 1)){
-		Cell_Progress = 15;
-	}
 	this->cell_center = center;
 	this->calc_WUS();
 	this->calc_CK();
@@ -95,13 +92,13 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
                  this->growth_direction = Coord(1,0);
         }
         else{
-	 	this->growth_direction = Coord(0,1);
+	 	this->growth_direction = Coord(0,0);
 	}
-	cout << "layer" << this->layer << endl;
-	cout << "stem" << this->stem << endl;
-	cout << "boundary" << this-> boundary << endl;
-	cout << "gd" << this->growth_direction << endl;
-	cout << "damping" << this->damping << endl;
+	//cout << "layer" << this->layer << endl;
+	//cout << "stem" << this->stem << endl;
+	//cout << "boundary" << this-> boundary << endl;
+	//cout << "gd" << this->growth_direction << endl;
+	//cout << "damping" << this->damping << endl;
 	//neighbors update function called after initialization
 	//left corner set in make nodes function called by tissue constuctor
 }
@@ -282,8 +279,8 @@ void Cell::calc_CK() {
 	return;
 }
 void Cell::set_growth_rate() {
-	//this->growth_rate = 2000;//unifRandInt(1000,2000);
-	if(this->wuschel < 12){
+	this->growth_rate = unifRandInt(2500,4500);
+	/*if(this->wuschel < 12){
 		this->growth_rate = unifRandInt(2000,3000);
 	}
 	else if((this->wuschel >= 12) &&(this->wuschel <24)) {
@@ -318,7 +315,7 @@ void Cell::set_growth_rate() {
 	}
 	else if(this->wuschel>= 132) {
 		this->growth_rate = unifRandInt(15000,16000);
-	}
+	}*/
 
 	return;
 }
@@ -427,7 +424,7 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	else{
 		k_bend = K_BEND_UNIFORM;
 	}
-	cout << "K bend: " << k_bend << endl;
+	//cout << "K bend: " << k_bend << endl;
 	return k_bend;
 }
 double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
@@ -797,10 +794,20 @@ void Cell::update_Cell_Progress(int& Ti) {
 	//update life length of the current cell
 	this->update_Life_Length();
 	if(this->stem == 1){
-		//do nothing
+		if(this->Cell_Progress < 30){
+			if((Ti%growth_rate == (growth_rate -1))){
+				this->add_Cyt_Node();
+				this->Cell_Progress++;
+			}
+		}
 	}
 	else if (this->boundary == 1){
-		//do nothing
+		if(this->Cell_Progress < 30){
+			if((Ti%growth_rate == (growth_rate -1))){
+				this->add_Cyt_Node();
+				this->Cell_Progress++;
+			}
+		}
 	}
 	else if(Ti<=80000){
 		if((Ti%growth_rate == (growth_rate -1))){

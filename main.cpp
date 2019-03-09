@@ -78,33 +78,10 @@ int main(int argc, char* argv[]) {
 	//which matlab file tells you how many
 	//seconds each time step reprsents (2.5?)
 	for(int Ti = 0; Ti*dt< numSteps; Ti++) {
-		// print to dataOutput and vtk files
-		if(Ti%500==0) {
-			digits = ceil(log10(out + 1));
-			if (digits == 1 || digits == 0) {
-				Number = "0000" + to_string(out);
-			}	
-			else if (digits == 2) {
-				Number = "000" + to_string(out);
-			}	
-			else if (digits == 3) {
-				Number = "00" + to_string(out);
-			}
-			else if (digits == 4) {
-				Number = "0" + to_string(out);
-			}
-
-			Filename = anim_folder+ initial + Number + format;
-
-			ofs_anim.open(Filename.c_str());
-			growing_Tissue.print_VTK_File(ofs_anim);
-			ofs_anim.close();	
-			out++;
-		}
-
+		
 			
 		//keep track of simulation runs
-		//if (Ti % 1000 == 0) {
+		//if (Ti %500 == 0) {
 		//	cout << "Simulation still running. Ti: " << Ti << endl;
 		//}
 	
@@ -134,12 +111,12 @@ int main(int argc, char* argv[]) {
 	
 		if(Ti < 3000){
 			if(Ti%1000 == 0) {
-		//		cout << "adhesion early" << endl;
+				//cout << "adhesion early" << endl;
 				growing_Tissue.update_Adhesion();
 			}
 		}
 		else{	
-			if(Ti%10000 == 0) {
+			if(Ti%100000 == 0) {
 				//cout << "adhesion"<< endl;
 				growing_Tissue.update_Adhesion();
 			}
@@ -163,7 +140,30 @@ int main(int argc, char* argv[]) {
 		growing_Tissue.update_Cell_Locations();	
 		
 		//cout << "Finished" << endl;
-		
+		// print to dataOutput and vtk files
+		if(Ti%1000==0) {
+			digits = ceil(log10(out + 1));
+			if (digits == 1 || digits == 0) {
+				Number = "0000" + to_string(out);
+			}	
+			else if (digits == 2) {
+				Number = "000" + to_string(out);
+			}	
+			else if (digits == 3) {
+				Number = "00" + to_string(out);
+			}
+			else if (digits == 4) {
+				Number = "0" + to_string(out);
+			}
+
+			Filename = anim_folder+ initial + Number + format;
+
+			ofs_anim.open(Filename.c_str());
+			growing_Tissue.print_VTK_File(ofs_anim);
+			ofs_anim.close();	
+			out++;
+		}
+	
 		//data output from simulations
 		//for cell center etc
 		/*if(Ti%5000 == 1){
