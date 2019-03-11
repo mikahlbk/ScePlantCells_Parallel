@@ -28,6 +28,9 @@ Cell::Cell(Tissue* tissue) {
 	//rank assigned in division function
 	//layer inherited from parent	
 	//boundary cells don't divide
+	boundary = 0;
+	//stem cells don't divide 
+	stem = 0;
 	//damping assigned in div function
 	//just divided so reset life length
 	life_length = 0;
@@ -76,7 +79,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//wall nodes initialized in tissue constructor which 
 	//calls the make nodes function on each new cell
 	num_wall_nodes = 0;
-	Cell_Progress = unifRandInt(0,10);
+	Cell_Progress = 10;//unifRandInt(0,10);
 	this->cell_center = center;
 	this->calc_WUS();
 	this->calc_CK();
@@ -865,7 +868,7 @@ void Cell::division_check(){
 		//left corner in divison function  
 		//cout << "adhesion division" << endl;
 		new_Cell->update_Neighbor_Cells();
-		//new_Cell->update_adhesion_springs_individual();
+		new_Cell->update_adhesion_springs();
 		new_Cell->get_Neighbor_Cells(neighbor_cells);
 		for(unsigned int i =0; i < neighbor_cells.size(); i++) {
 			neighbor_cells.at(i)->update_Neighbor_Cells();

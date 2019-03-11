@@ -10,7 +10,7 @@
 
 export OMP_NUM_THREADS 48
 mkdir Animate_test_5
-mkdir Nematic_test_1       
+mkdir Nematic_test_1      
 mkdir Locations_test_1         
 ./program Animate_test_5 Locations_test_1 Nematic_test_1                                  
                       

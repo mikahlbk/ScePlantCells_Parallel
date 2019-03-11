@@ -2,4 +2,6 @@ CellRank:1
 Center:8,0
 Radius:3.75
 Layer:1
+Boundary:0
+Stem:0
 End_Cell
