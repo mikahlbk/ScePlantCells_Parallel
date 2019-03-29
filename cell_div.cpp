@@ -18,7 +18,7 @@
 #include "tissue.h"
 //==========================
 //find the nodes to set up the division plane
-void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_Node>>& nodes) {
+void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_Node>>& nodes, int search_amount) {
 	//we will find the longest axis of the cell and feed in
 	//the vector perpendicular to that axis to this function
 	//this input  vector is the orientation vector above
@@ -65,7 +65,8 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 	double diff = 100;
 	double curr_diff;
 	//cout << "Second" << endl;
-	for(unsigned int i = 1; i<11; i++){
+	for(unsigned int i = 1; i<search_amount; i++){
+		curr = first;
 		orig = pairs[i].second;
 		do {
 			next = curr->get_Left_Neighbor();
@@ -102,8 +103,8 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 	}
 	//cout << "diff" << diff << endl;
 	//cout << "end second" << endl;
-	cout << "first" << first << endl;
-	cout << "Second"  << second << endl;
+	//cout << "first" << first << endl;
+	//cout << "Second"  << second << endl;
 	if((first == NULL)||(second == NULL)){
 	
 		cout << "Did not pick up div plane nodes" << endl;
@@ -112,9 +113,73 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 
 
 	}
+	nodes.clear();
 	nodes.push_back(first);
 	nodes.push_back(second);
 	cout << "div plane nodes size " << nodes.size() << endl;
+	return;
+}
+void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_Node> second,vector<shared_ptr<Wall_Node>>& daughter_ends){
+	daughter_ends.clear();
+	//to delete a node we nedd to
+	//making sure nothing points to them
+	//and that they don't point to anything
+	//left and right neighbor will be reset in div function
+	//thus when reindexed they will no longer 
+	//be in the ndoes vector for this cell
+	//and adhesion will be re-assigned
+	//for this cell and neighbor cells
+	//so adh vectors for neighboring nodes will be cleared
+	//and no neighboring nodes will find them in a pair
+	//thus all we need to do is clear their adhesion vec
+	first->clear_adhesion_vec();
+	//cout << "first clear adh" << endl;
+	second->clear_adhesion_vec();
+	//cout << "second clear adh" << endl;
+	
+	//move once
+	shared_ptr<Wall_Node> start_daughter_one = first->get_Left_Neighbor();
+	//cout << "new daughter one" << endl;
+	start_daughter_one->clear_adhesion_vec();
+	//cout << "daughter one clear adh" << endl;
+	//move twice
+	//set the new starting point of daughter cell one
+	start_daughter_one = start_daughter_one->get_Left_Neighbor();
+	//cout << "daught one move over" << endl;
+	
+	//move once
+	shared_ptr<Wall_Node>end_daughter_one = second->get_Right_Neighbor();
+	//cout << "new daughter one" << endl;
+	end_daughter_one->clear_adhesion_vec();
+	//cout << "clear adh" << endl;
+	//move twice
+	//set ending point for daughter cell one
+	end_daughter_one = end_daughter_one ->get_Right_Neighbor();
+
+	//move once
+	shared_ptr<Wall_Node>start_daughter_two = second->get_Left_Neighbor();
+	//cout << "daughter two start" << endl;
+	start_daughter_two->clear_adhesion_vec();
+	//cout << "daughter two clear" << endl;
+	//move twice
+	//set start point for daughter two
+	start_daughter_two = start_daughter_two->get_Left_Neighbor();
+
+	//move once
+	shared_ptr<Wall_Node>end_daughter_two = first->get_Right_Neighbor();
+	//cout << "daughter two end" << endl;
+	end_daughter_two->clear_adhesion_vec();
+	//cout << "end two clear" << endl;
+	//move twice
+	//set end point for daughter two
+	end_daughter_two = end_daughter_two ->get_Right_Neighbor();
+	//cout << "Made it through deletions" << endl;
+	
+	daughter_ends.push_back(start_daughter_one);
+	daughter_ends.push_back(end_daughter_one);
+	daughter_ends.push_back(start_daughter_two);
+	daughter_ends.push_back(end_daughter_two);
+
 	return;
 }
 shared_ptr<Cell> Cell::division() {
@@ -135,131 +200,75 @@ shared_ptr<Cell> Cell::division() {
 	
 	//this is the vector for the desired division orientation
 	Coord orientation;
-	if((this->layer == 1) || (this->layer == 2)){
-		orientation = Coord(0,1);
-	}
-	else {
-		orientation = Coord(1,0);
-	}
+	//if((this->layer == 1) || (this->layer == 2)){
+		//orientation = Coord(0,1);
+	//}
+	//else {
+	//	orientation = Coord(1,0);
+	//}
+	orientation = this->compute_direction_of_highest_tensile_stress();
 	//finds node on one side of cell
 	vector<shared_ptr<Wall_Node>> nodes;
-	//cout << "Nodes before" << nodes.size() << endl;
-	find_nodes_for_div_plane(orientation, nodes);
-	//cout << "Nodes after" << nodes.size() << endl;
+	cout << "Nodes before" << nodes.size() << endl;
+	find_nodes_for_div_plane(orientation, nodes,11);
+	cout << "Nodes after" << nodes.size() << endl;
+	shared_ptr<Wall_Node> first = nodes.at(0);
+	int halfway = this->num_wall_nodes/2;
+	shared_ptr<Wall_Node> curr_node = first;
+	shared_ptr<Wall_Node> second;
+	for(unsigned int i =0; i<halfway ; i++){
+		curr_node = curr_node->get_Left_Neighbor();
+	}
+	second = curr_node;
+	//these nodes need to be deleted and 
+	//we will move move some spaces over
+	//that is where we will place the new wall
+	vector<shared_ptr<Wall_Node>> daughter_ends;
+	move_start_end_points(nodes.at(0), second, daughter_ends);
 
-	shared_ptr<Wall_Node> first  = nodes.at(0);
-	//finds node on other side of cell
-	//cout << "node 1 success" << endl;
-	shared_ptr<Wall_Node> second = nodes.at(1); 	
-	//these nodes need to be deleted by
-	//cout << "node 2 success" << endl;
-	//cout << "got the nodes" << endl;
-	//making sure nothing points to them
-	//and that they don't point to anything
-	//left and right neighbor will be reset below
-	//they will no longer be in the ndoes vector for 
-	//this cell
-	//and adhesion will be re-assigned
-	//for this cell and neighbor cells
-	//so adh vectors for neighboring nodes will be cleared
-	//and no neighboring nodes will find them in a pair
-	cout << "first remove adh vec" << endl;
-	first->remove_from_adh_vecs();
-	//cout << "first remove" << endl;
-	first->clear_adhesion_vec();
-	//cout << "first clear adh" << endl;
-	cout << "Second remove adh vec" << endl;
-	second->remove_from_adh_vecs();
-	//cout << "second remove"  << endl;
-	second->clear_adhesion_vec();
-	//cout << "second clear adh" << endl;
+	//this gets the length of the division plane
+	int counting = 0;
+	shared_ptr<Wall_Node> starter= daughter_ends.at(0);;
+	do{
+		starter = starter->get_Left_Neighbor();
+		counting++;
+	} while(starter!=daughter_ends.at(1));
+	cout<< "space between" << counting << endl;
+	int number = 21;
+	int number2 = 0;
+	if(counting > 90) {
+		do{
+			find_nodes_for_div_plane(orientation, nodes,number);
+			number = number + 10;
+			counting = 0;
+			move_start_end_points(nodes.at(0), nodes.at(1),daughter_ends);
+			starter = daughter_ends.at(0);
+			do{
+				starter = starter->get_Left_Neighbor();
+				counting++;
+			} while(starter!=daughter_ends.at(1));
+			number2++;
+			if(number2 > 10){
+				cout << "isnt gonna happen" << endl;
+				counting = 1;
+			}
+		} while(counting > 90);
+	}
 	
-	//set the starting point of daughter cell one
-	shared_ptr<Wall_Node> start_daughter_one = first->get_Left_Neighbor();
-	//cout << "new daughter one" << endl;
-	//move over one so that cells have enough room between them
-	//but first need to get rid of pointers in adhesion
-	cout << "start daughter one remove" << endl;
-	start_daughter_one->remove_from_adh_vecs();
-	//cout << "daughter one remove" << endl;
-	start_daughter_one->clear_adhesion_vec();
-	//cout << "daughter one clear adh" << endl;
-	start_daughter_one = start_daughter_one->get_Left_Neighbor();
-	//cout << "daught one move over" << endl;
-	//move over one so that cells have enough room between them
-	//but first need to get rid of pointers in adhesion	
-	//start_daughter_one->remove_from_adh_vecs();
-	//cout << "remove" << endl;
-	//start_daughter_one->clear_adhesion_vec();	
-	//cout << "clear" << endl;
-	//move happens here
-	//start_daughter_one = start_daughter_one->get_Left_Neighbor();
-	//cout << "daughter one move over" << endl;
-	
-	//set ending point for daughter cell one
-	shared_ptr<Wall_Node>end_daughter_one = second->get_Right_Neighbor();
-	//cout << "daughter one move agagin" << endl;
-	//move over one so that cells have enough room between them
-	//but first need to get rid of pointers in adhesion
-	cout << "end daughter one remove" << endl;
-	end_daughter_one->remove_from_adh_vecs();
-	//cout << "daughter one remove" << endl;
-	end_daughter_one->clear_adhesion_vec();
-	//cout << "clear adh" << endl;
-	end_daughter_one = end_daughter_one ->get_Right_Neighbor();
-	//cout << "move over" << endl;
-	//move over one so that cells have enough room between them
-	//but first get rid of adhesion pointers
-	//end_daughter_one->remove_from_adh_vecs();
-	//cout << "end remove" << endl;
-	//end_daughter_one->clear_adhesion_vec();	
-	//cout << "end clear" << endl;
-	//move happens here
-	//end_daughter_one = end_daughter_one ->get_Right_Neighbor();
-	//cout << "end move" << endl;
-	
-	//set starting point for daughter cell two	
-	shared_ptr<Wall_Node>start_daughter_two = second->get_Left_Neighbor();
-	cout << "daughter two remove" << endl;
-	start_daughter_two->remove_from_adh_vecs();
-	//cout << "daughter two remove" << endl;
-	start_daughter_two->clear_adhesion_vec();
-	//cout << "daughter two clear" << endl;
-	start_daughter_two = start_daughter_two->get_Left_Neighbor();
-	//cout << "daughter two move" << endl;
-	//start_daughter_two->remove_from_adh_vecs();
-	//cout << "daughter two remove" << endl;
-	//start_daughter_two->clear_adhesion_vec();
-	//cout << "daughter two clear" << endl;
-	//start_daughter_two = start_daughter_two->get_Left_Neighbor();
-	//cout << "daughter two move" << endl;
-	
-	//set ending point for daughter cell two
-	shared_ptr<Wall_Node>end_daughter_two = first->get_Right_Neighbor();
-	cout << "daughter two remove again" << endl;
-	end_daughter_two->remove_from_adh_vecs();
-	//cout << "end two remove" << endl;
-	end_daughter_two->clear_adhesion_vec();
-	//cout << "end two clear" << endl;
-	end_daughter_two = end_daughter_two ->get_Right_Neighbor();
-	//cout << "end daughter two move" << endl;
-	//end_daughter_two->remove_from_adh_vecs();
-	//cout << "end daughter two remove" << endl;
-	//end_daughter_two->clear_adhesion_vec();	
-	//cout << "end daughter two clear" << endl;
-	//end_daughter_two = end_daughter_two ->get_Right_Neighbor();
-	//cout << "end daughter two move again" << endl;
-
-	//cout << "Made it through deletions" << endl;
-
-	//this is the length of the division plane
+	shared_ptr<Wall_Node> start_daughter_one = daughter_ends.at(0);
+	shared_ptr<Wall_Node> start_daughter_two = daughter_ends.at(2);
+	shared_ptr<Wall_Node> end_daughter_one = daughter_ends.at(1);
+	shared_ptr<Wall_Node> end_daughter_two = daughter_ends.at(3);
 	double daughter_one_length = (start_daughter_one->get_Location() - end_daughter_one->get_Location()).length();
 	double daughter_two_length = (start_daughter_two->get_Location() - end_daughter_two->get_Location()).length();
+	cout << "d one length" << daughter_one_length << endl;
+	cout << "d two lenght" << daughter_two_length << endl;
 
 	//this is how many new nodes will be made for each cell
 	int total_num_one = static_cast<int>(daughter_one_length/(Membr_Equi_Len_Short*4));
 	int total_num_two = static_cast<int>(daughter_two_length/(Membr_Equi_Len_Short*4));
-		
+	cout << "Total num one" << total_num_one << endl;
+	cout << "Total num two" << total_num_two << endl;
 	//this is how much change there is in the x direction of divison plane for each cell
 	double x_one = end_daughter_one->get_Location().get_X() - start_daughter_one->get_Location().get_X();
 	double x_two = end_daughter_two->get_Location().get_X() - start_daughter_two->get_Location().get_X();
@@ -357,7 +366,7 @@ shared_ptr<Cell> Cell::division() {
 	double k_lin = 0;
 	double k_bend = 0;
 	int number_nodes_B = 0;
-	cout << "Cell two counting" << endl;
+	//cout << "Cell two counting" << endl;
 	do {
 		number_nodes_B++;
 		curr->update_Cell(sister);
@@ -372,6 +381,10 @@ shared_ptr<Cell> Cell::division() {
 		sister->add_wall_node_vec(curr);
 		curr = curr->get_Left_Neighbor();
 		//cout << number_nodes_B << endl;
+		if(number_nodes_B > 250) {
+			cout << "blowing up!" << endl;
+			exit(1);
+		}
 		//cout << curr->get_Location() << endl;
 		if(curr == NULL) {
 	
@@ -407,6 +420,10 @@ shared_ptr<Cell> Cell::division() {
 		this->add_wall_node_vec(curr);
 		curr = curr->get_Left_Neighbor();
 		//cout << number_nodes_A << endl;
+		if(number_nodes_A > 300){
+			cout << "blowing up" << endl;
+			exit(1);
+		}
 		//cout << curr->get_Location() << endl;
 		if(curr == NULL) {
 	
@@ -425,8 +442,10 @@ shared_ptr<Cell> Cell::division() {
 	sister->update_Wall_Angles();
 	this->update_Cell_Center();
 	sister->update_Cell_Center();
-	//this->calc_WUS();
-	//sister->calc_WUS();
+	this->calc_WUS();
+	sister->calc_WUS();
+	this->calc_CK();
+	sister->calc_CK();
 	
 
 	this->set_growth_rate();
@@ -478,8 +497,8 @@ shared_ptr<Cell> Cell::division() {
 	}
 	//move cyt nodes that are too close 
 	//to the new cell wall
-	cout << "sister" << sister->get_cyt_count()<< endl;
-	cout << "this" << this->get_cyt_count()<< endl;
+	//cout << "sister" << sister->get_cyt_count()<< endl;
+	//cout << "this" << this->get_cyt_count()<< endl;
 	cout << "Move cyts here" << endl;
 	//Coord center_1 = Coord(0,0);
 	//Coord center_2 = Coord(0,0);
@@ -501,7 +520,7 @@ void Cell::move_cyt_nodes(Coord center_point){
 
 	//	if(length_from_center_pt< 4) {
 	
-			location = cell_center + vector_from_center*.2;
+			location = cell_center + vector_from_center*.5;
 			cyt_nodes.at(i)->new_location(location);
 			//cout << cyt_nodes.at(i)->get_Location() << endl;
 	//	}

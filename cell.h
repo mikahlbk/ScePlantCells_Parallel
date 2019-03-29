@@ -138,16 +138,21 @@ class Cell: public enable_shared_from_this<Cell> {
 		
 		void find_Smallest_Length(shared_ptr<Wall_Node>& right);
 		void find_Largest_Length(shared_ptr<Wall_Node>& right);
+		Coord compute_direction_of_highest_tensile_stress();
+		Coord compute_point_on_line(double t);;
 		void add_Cyt_Node();
 		
 		//Functions for Division
-		void find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_Node>>& nodes);
+		void find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_Node>>& nodes, int search_amount);
+		void move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_Node> second, vector<shared_ptr<Wall_Node>>& daughter_ends);
 		void move_cyt_nodes(Coord center_pt);
 	
 		//Output Functions
 		void print_Data_Output(ofstream& ofs);
 		int update_VTK_Indices(int& id);
 		void print_VTK_Adh(ofstream& ofs);
+		Coord average_coordinates();
+		void print_direction_vec(ofstream& ofs);
 		void print_locations(ofstream& ofs);
 		void print_VTK_Points(ofstream& ofs, int& count);
 		void print_VTK_Scalars_Wall_Pressure(ofstream& ofs);

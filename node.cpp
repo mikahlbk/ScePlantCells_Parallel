@@ -264,6 +264,7 @@ void Wall_Node::set_added(int update){
 //Adhesion functions
 //determines which nodes on neighbor cells are within adhesion
 //threshold and pushes them onto connection vector
+//number of connections specified in phys.h
 void Wall_Node::make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls) {
 	shared_ptr<Wall_Node> this_ptr = shared_from_this();
 	Coord this_ptr_loc = this_ptr->get_Location();
@@ -300,6 +301,8 @@ void Wall_Node::make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls) {
 	}
 	return;
 }
+//ensures that if a node has made a connection
+//both nodes apply force to each other
 void Wall_Node::one_to_one_check(){
 	shared_ptr<Wall_Node> this_ptr = shared_from_this();
 	vector<shared_ptr<Wall_Node>> this_adh_vec;

@@ -44,12 +44,12 @@ class Tissue{
 		void update_Cell_Locations();
 		
 		//stuff for data output
-		void nematic_output(ofstream& ofs);
+		void plot_direction_vec(ofstream& ofs);
 		void print_Data_Output(ofstream& ofs);
 		void locations_output(ofstream& ofs);
 		int update_VTK_Indices();
 		void print_VTK_File(ofstream& ofs);
-		
+		void print_VTK_Direction_File(ofstream& ofs);	
 		//Destructor
 		~Tissue();
 };

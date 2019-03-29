@@ -79,7 +79,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//wall nodes initialized in tissue constructor which 
 	//calls the make nodes function on each new cell
 	num_wall_nodes = 0;
-	Cell_Progress = 10;//unifRandInt(0,10);
+	Cell_Progress = unifRandInt(0,10);
 	this->cell_center = center;
 	this->calc_WUS();
 	this->calc_CK();
@@ -282,8 +282,8 @@ void Cell::calc_CK() {
 	return;
 }
 void Cell::set_growth_rate() {
-	this->growth_rate = unifRandInt(2500,4500);
-	/*if(this->wuschel < 12){
+	//this->growth_rate = unifRandInt(2500,4500);
+	if(this->wuschel < 12){
 		this->growth_rate = unifRandInt(2000,3000);
 	}
 	else if((this->wuschel >= 12) &&(this->wuschel <24)) {
@@ -318,7 +318,10 @@ void Cell::set_growth_rate() {
 	}
 	else if(this->wuschel>= 132) {
 		this->growth_rate = unifRandInt(15000,16000);
-	}*/
+	}
+	if(this->cytokinin > 1200){
+		this->growth_rate = unifRandInt(2000,5000);
+	}
 
 	return;
 }
@@ -427,6 +430,7 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	else{
 		k_bend = K_BEND_UNIFORM;
 	}
+	k_bend = K_BEND_UNIFORM;
 	//cout << "K bend: " << k_bend << endl;
 	return k_bend;
 }
@@ -436,6 +440,7 @@ double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
 	//high bending coefficient
 	//nodes that are perpendicular to growth direction have 
 	//low bending coefficient
+	cout << "k bend div" << endl;
 	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0)) || (growth_direction == Coord(0,0))) {
 		//fine
 	}
@@ -517,7 +522,7 @@ void Cell::update_Wall_Equi_Angles() {
 			else{
 				new_equi_angle = circle_angle;
 			}
-			
+			new_equi_angle = circle_angle;
 					
 			
 		//this was an idea to make the round part of the cell
@@ -532,7 +537,7 @@ void Cell::update_Wall_Equi_Angles() {
 	return;
 }
 void Cell::update_Wall_Equi_Angles_Div() {
-	//cout << "equi angles" << endl;
+	cout << "equi angles div" << endl;
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
 	#pragma omp parallel 
@@ -700,10 +705,10 @@ void Cell::update_adhesion_springs() {
 	for(unsigned int i = 0; i < neighbors.size(); i++) {
 		neighbors.at(i)->get_Wall_Nodes_Vec(nghbr_walls_current);
 		nghbr_walls_total.insert(nghbr_walls_total.end(), nghbr_walls_current.begin(), nghbr_walls_current.end());
-	}
-	//#pragma omp parallel 
-	//{
-		//#pragma omp for schedule(static,1)
+	}	
+//	#pragma omp parallel 
+//	{
+//		#pragma omp for schedule(static,1)
 		for(unsigned int i=0; i < current_cell_walls.size(); i++) {
 			//counter++;
 			//cout<< counter << endl;
@@ -711,7 +716,7 @@ void Cell::update_adhesion_springs() {
 			current_cell_walls.at(i)->make_connection(nghbr_walls_total);
 			//cout << "connection made" << endl;
 		}
-	//}
+//	}
 	//for all cell wall nodes
 	//look at adh vector, is a nodes is in the curr cell wall
 	//nodes adh vector make sure the current cell wall node
@@ -793,6 +798,7 @@ void Cell::update_Node_Locations() {
 // Growth of Cell
 //==========================================
 //=====================================================================
+
 void Cell::update_Cell_Progress(int& Ti) {
 	//update life length of the current cell
 	this->update_Life_Length();
@@ -833,7 +839,7 @@ void Cell::division_check(){
 	else if(this->Cell_Progress >= 30){
 
 
-		cout << "dividing" << endl;
+		cout << "dividing cell" << this->rank <<  endl;
 		//orientation of division should be 
 		//fed to the division  function here
 		shared_ptr<Cell> new_Cell= this->division();
@@ -845,13 +851,17 @@ void Cell::division_check(){
 		//cout << "Num cells" << this->my_tissue->get_num_cells() << endl;
 		new_Cell->set_Rank(this->my_tissue->get_num_cells()-1);
 		//cout << "set rank" << endl;
-		//cout << "Parent rank: " << this->rank << endl;
-		//cout << "sister rank: " << new_Cell->get_Rank() << endl;
-		//cout << new_Cell->get_wall_count() << endl;
-		//cout << new_Cell->get_cyt_count() << endl;
-		//cout << this->get_wall_count() << endl;
-		//cout << new_Cell->get_cyt_count() << endl;
-		
+		cout << "Parent rank: " << this->rank << endl;
+		cout << "sister rank: " << new_Cell->get_Rank() << endl;
+		cout << new_Cell->get_wall_count() << endl;
+		cout << new_Cell->get_cyt_count() << endl;
+		cout << this->get_wall_count() << endl;
+		cout << this->get_cyt_count() << endl;
+		cout << "parent" << this << endl;
+		cout << "Parent progress: " << this->get_Cell_Progress() << endl;
+		cout << "new cell" << new_Cell << endl;
+		cout << "New progress: " << new_Cell->get_Cell_Progress() << endl;
+
 		//layer in division function		
 		//damping in division function
 		//boundary needs to be figured out
@@ -1076,6 +1086,44 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& largest) {
 return;
 
 }
+Coord Cell::compute_direction_of_highest_tensile_stress(){
+	//average position of all cell wall nodes
+	vector<shared_ptr<Wall_Node>> wall_nodes;
+	this->get_Wall_Nodes_Vec(wall_nodes);
+	Coord next_coord;
+	Coord curr_coord;
+	Coord direction_vec;
+	shared_ptr<Wall_Node> curr = wall_nodes.at(0);
+	shared_ptr<Wall_Node> next;
+	double delta_x = 0;
+	double delta_y = 0;
+	double x = 0;
+	double y = 0;
+	double average_x;
+	double average_y;
+	int counter = 0;
+	do{
+		next = curr->get_Left_Neighbor();
+		curr_coord = curr->get_Location();
+		next_coord = next->get_Location();
+		delta_x = next_coord.get_X() - curr_coord.get_X();
+		delta_y = next_coord.get_Y() - curr_coord.get_Y();
+		x = x+ delta_x;
+		y = y+ delta_x;
+		counter++;
+	} while(next != wall_nodes.at(1));
+	average_x = x/counter;
+	average_y = y/counter;
+
+	direction_vec = Coord(-average_y,average_x);
+	return direction_vec;
+}
+/*Coord Cell::compute_point_on_line(double t){
+	Coord r_0 = this->get_Cell_Center();
+	Coord v = this->compute_longest_axis();
+	Coord p = Coord(r_0.get_X() + v.get_X()*t, r_0.get_Y() + v.get_Y()*t);
+	return p;
+}*/
 void Cell::add_Cyt_Node() {
 	double new_damping = this->get_Damping();
 	shared_ptr<Cell> this_cell = shared_from_this();
@@ -1100,7 +1148,7 @@ void Cell::print_Data_Output(ofstream& ofs) {
 }
 
 int Cell::update_VTK_Indices(int& id) {
-//	cout << "ID before: " << id << endl;
+	//cout << "ID before: " << id << endl;
 	int rel_cnt = 0;
 
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
@@ -1117,7 +1165,7 @@ int Cell::update_VTK_Indices(int& id) {
 			cyt_nodes.at(i)->update_VTK_Id(id);
 			id++;
 	}
-//	cout << "ID after: " << id << endl;
+	//cout << "ID after: " << id << endl;
 	return rel_cnt;
 }
 void Cell::print_VTK_Adh(ofstream& ofs) {
@@ -1138,6 +1186,26 @@ void Cell::print_VTK_Adh(ofstream& ofs) {
 		}
 		curr_wall = curr_wall->get_Left_Neighbor();
 	} while(curr_wall != left_Corner);
+	return;
+}
+Coord Cell::average_coordinates(){
+	Coord direction = Coord(0,0);
+	for(unsigned int i = 0; i <wall_nodes.size() ;i++){
+		direction = direction + wall_nodes.at(i)->get_Location();
+	}
+	double num_nodes = (double) wall_nodes.size();
+	direction = direction/num_nodes;
+	return direction;
+}
+void Cell::print_direction_vec(ofstream& ofs){
+	//average coordinates of all nodes
+	Coord sum = this->average_coordinates();
+	//point 1 is center + 1*direction vector
+	Coord point1 = this->cell_center + sum*.05;
+	Coord point2 = this->cell_center - sum*.05;
+	ofs << point1.get_X() << ' ' << point1.get_Y() << ' ' << 0 << endl;
+	ofs << point2.get_X() << ' ' << point2.get_Y() << ' ' << 0 << endl;
+	
 	return;
 }
 void Cell::print_locations(ofstream& ofs) {
@@ -1184,7 +1252,8 @@ void Cell::print_VTK_Points(ofstream& ofs, int& count) {
 		Coord loc = cyt_nodes.at(i)->get_Location();
 		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 << endl;
 		count++;
-	}
+	};
+	
 	//cout << "points worked" << endl;
 	return;
 }

@@ -109,7 +109,7 @@ void Tissue::update_Neighbor_Cells() {
 }
 //adds node to cell wall for each cell
 void Tissue::add_Wall(int Ti) {
-//	#pragma omp parallel for schedule(static,1)
+	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->add_Wall_Node(Ti);
 	}
@@ -119,20 +119,16 @@ void Tissue::add_Wall(int Ti) {
 void Tissue::delete_Wall(int Ti) {
  	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-//		cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_wall_count() << endl;
-		
-//		cells.at(i)->delete_Wall_Node(Ti);
-
-
-//		cout<< "Wall Count Cell " << i << ": " << this->cells.at(i)->get_wall_count() << endl;
+		//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_wall_count() << endl;
+		//cells.at(i)->delete_Wall_Node(Ti);
+		//cout<< "Wall Count Cell " << i << ": " << this->cells.at(i)->get_wall_count() << endl;
 	}
 	return;
 }
 //updates adhesion springs for each cell
 void Tissue::update_Adhesion() {
-	//#pragma omp parallel for schedule(static,1)
+	#pragma omp parallel for schedule(static,1)
 	for(unsigned int i=0;i<cells.size();i++) {
-
 		//cout << "Updating adhesion for cell" << i <<  endl;
 		cells.at(i)->clear_adhesion_vectors();
 	}
@@ -168,7 +164,7 @@ void Tissue::division_check(){
 	int number_cells = cells.size();
 	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		//cout << "updating cell" << i << endl;
+		//cout << "dating cell" << i << endl;
 		cells.at(i)->division_check();
 	}
 	return;
@@ -203,10 +199,10 @@ void Tissue::locations_output(ofstream& ofs){
 
 return;
 }
-void Tissue::nematic_output(ofstream& ofs){
+/*void Tissue::nematic_output(ofstream& ofs){
 	Coord average;
 	double angle;
-	/*for(unsigned int i = 0; i<cells.size();i++){
+	for(unsigned int i = 0; i<cells.size();i++){
 		ofs << cells.at(i)->get_Layer()<<endl;
 		ofs << cells.at(i)->get_Rank() << endl;
 	}*/
@@ -224,7 +220,7 @@ void Tissue::nematic_output(ofstream& ofs){
 	for(unsigned int i=0; i < cells.size(); i++) {
 		cells.at(i)->nematic(average, angle);
 		ofs<< angle << endl;
-	}*/
+	}
 	//ofs<< "centers2" << endl;
 	//for(unsigned int i=0; i< cells.size();i++) {
 	//	if(cells.at(i)->get_Layer() ==2){
@@ -274,7 +270,7 @@ void Tissue::nematic_output(ofstream& ofs){
 
 	
 	return;
-}
+}*/
 //***Functions for VTK output****//
 int Tissue::update_VTK_Indices() {
 
@@ -287,21 +283,58 @@ int Tissue::update_VTK_Indices() {
 		rel_cnt += cells.at(i)->update_VTK_Indices(id);
 	}
 
-//	cout << "final ID: " << id << endl;
-//	cout << "rel_cnt: " << rel_cnt << endl;
+	//cout << "final ID: " << id << endl;
+	//cout << "rel_cnt: " << rel_cnt << endl;
 
 	return rel_cnt;
+}
+void Tissue::print_VTK_Direction_File(ofstream& ofs){
+	
+	ofs << "# vtk DataFile Version 3.0" << endl;
+	ofs << "Points representing direction vector for Cells" << endl;
+	ofs << "ASCII" << endl << endl;
+	ofs << "DATASET UNSTRUCTURED_GRID" << endl;
+	//Good up to here
+
+	//Need total number of points for all cells
+	int num_Points = 0;
+	for (unsigned int i = 0; i < cells.size(); i++){
+		num_Points = num_Points+2;;
+	}
+
+	ofs << "POINTS " << num_Points << " float" << endl;
+	
+	for(unsigned int i = 0; i < cells.size(); i++){
+		cells.at(i)->print_direction_vec(ofs);
+	}
+
+	ofs << endl;
+	
+	ofs << "CELLS " << cells.size() << ' ' << 2*cells.size() << endl;
+	
+	int k = 0;
+	for(unsigned int i = 0; i< cells.size() ; i++) {
+		ofs << 1 << ' ' << k << endl;
+		k++;
+	}
+
+	ofs << endl;
+
+	ofs << "CELL_TYPES " << cells.size() << endl;
+	for (unsigned int i = 0; i < cells.size(); i++){
+		ofs << 1 << endl;
+	}
+	return;
 }
 
 void Tissue::print_VTK_File(ofstream& ofs) {
 	int rel_cnt = update_VTK_Indices();
 
-
 	ofs << "# vtk DataFile Version 3.0" << endl;
 	ofs << "Point representing Sub_cellular elem model" << endl;
 	ofs << "ASCII" << endl << endl;
 	ofs << "DATASET UNSTRUCTURED_GRID" << endl;
-	// Good up to here
+	//Good up to here
 
 	//Need total number of points for all cells
 	int num_Points = 0;
@@ -316,13 +349,15 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	int count = 0;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		start_points.push_back(count);
-		cells.at(i)->print_VTK_Points(ofs, count);
+		cells.at(i)->print_VTK_Points(ofs,count);
 		end_points.push_back(count - 1);
 	}
 
 	ofs << endl;
+	
 	//to be used without visualizing ADH springs
 	//ofs << "CELLS " << cells.size()<< ' ' << (num_Points + start_points.size())  << endl;
+	
 	//to be used for visualizing adh springs
 	ofs << "CELLS " << cells.size()+rel_cnt<< ' ' << (num_Points + start_points.size())+(rel_cnt*3)  << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
@@ -334,17 +369,18 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 		ofs << endl;
 	}
 	
-//	//output pairs of node indices to draw adh line
+	//output pairs of node indices to draw adh line
 	for(unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Adh(ofs);
 	}
 
 	ofs << endl;
+
 	//no adh visualization
 	//ofs << "CELL_TYPES " << start_points.size() << endl;
+	
 	//adh visualization
 	ofs << "CELL_TYPES " << start_points.size()+rel_cnt << endl;
-	
 	for (unsigned int i = 0; i < start_points.size(); i++) {
 		ofs << 2 << endl;
 	}

@@ -36,9 +36,9 @@ const double K_LINEAR_STIFF = 0;
 const double K_LINEAR_LOOSE =280.1636;//54.2730;
 //157.7281;//674.3111;//511.3433;//746.0824;//461.8290;//230.2545;//134.8271;//336.2897;//581.4058;//551.7969;//84.7288;//280.1636;//688.4090;//396.0437;//612.7239;//320.9386;//381.9915;//204.3934;//477.1815;//
 ////Adhesion spring mechanical params
-const double K_ADH = 20;
-const double K_ADH_L1 = 8;
-const double K_ADH_L2 = 20;
+const double K_ADH = 12;
+const double K_ADH_L1 = 12;
+const double K_ADH_L2 = 12;
 const double MembrEquLen_ADH = 1.2;
 const double ADHThresh = 2;
 const double NUMBER_ADH_CONNECTIONS = 2;

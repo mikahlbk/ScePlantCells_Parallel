@@ -30,20 +30,22 @@ int main(int argc, char* argv[]) {
 	}
 	// reads in name of folder that 
 	// stores vtk files, given in run.sh
+	//usually called Animate1
 	string anim_folder = argv[1];
 	//reads in name of folder that 
 	//stores data output, given in run.sh
-	string nematic_folder = argv[2];
+	string nem_folder = argv[3];
 	//this is a folder that holds node
 	//locations in the fashion that weitao 
 	//asked for to couple the models
-	string locations_folder = argv[3];
+	string locations_folder = argv[2];
 	//keep track of time
 	int start = clock();	
 
 	//.txt file that tells initial
 	//cell configuration 
-	string init_tissue = "one_cell.txt";
+	//cout << "before cell file is read in" << endl;
+	string init_tissue = "cell_maker.txt";
 	//cout << "Read in cell starter" << endl;	
 	
 	//instantiate tissue
@@ -64,11 +66,14 @@ int main(int argc, char* argv[]) {
 	ofstream ofs_anim;
 	int out = 0;
 
-	ofstream ofs_nem;
-	int Number2 =0;
+	int digits2;
+	string Number2;
+	string initial2 = "/Direction_Vec_";
 	string nem_Filename;
-	string nem_initial = "/Nematic_";
-	
+	ofstream ofs_nem;
+	int out2 = 0;
+
+
 	ofstream ofs_loc;
 	string locations_Filename;
 	string locations_initial = "/Locations_";
@@ -82,7 +87,7 @@ int main(int argc, char* argv[]) {
 			
 		//keep track of simulation runs
 		//if (Ti %500 == 0) {
-		//	cout << "Simulation still running. Ti: " << Ti << endl;
+			//cout << "Simulation still running. Ti: " << Ti << endl;
 		//}
 	
 		// Tissue Growth
@@ -90,58 +95,61 @@ int main(int argc, char* argv[]) {
 		//fills vector of neighbor cells for each cell
 		//in tissue class this goes through each cell and calls
 		//updated neighbor on each cell
-		if(Ti%10000==0) {
-			//cout << "Find Neighbors" << endl;
+		if(Ti%5000==0) {
+			cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}	
 		
 		//adds one new cell wall node per cell everytime it is called
 		//dont call it right away to give cell time to find initial configuration
 		if(Ti%2000 == 0){	
-			//cout << "add new cell wall nodes if needed" << endl;
+			cout << "add new cell wall nodes if needed" << endl;
 			growing_Tissue.add_Wall(Ti);
 		}
 	
-		
+		//currently not in use
+		//was used previously to help stability of cells
 		//deletes a cell wall node if too close together
 		//if(Ti%1000 == 0){	
 			//cout << "delete wall" << endl;
 			//growing_Tissue.delete_Wall(Ti);
 		//}
 	
+		//make adhesion pairs for each cell
 		if(Ti < 3000){
 			if(Ti%1000 == 0) {
-				//cout << "adhesion early" << endl;
+				cout << "adhesion early" << endl;
 				growing_Tissue.update_Adhesion();
 			}
 		}
 		else{	
 			if(Ti%100000 == 0) {
-				//cout << "adhesion"<< endl;
+				cout << "adhesion"<< endl;
 				growing_Tissue.update_Adhesion();
 			}
 		}
-		
+			
 		//adds internal node according to 
 		//individual cell growth rate
-		//cout << "cell cycle" << endl;
+		cout << "cell cycle" << endl;
 		growing_Tissue.update_Cell_Cycle(Ti);
 		
 		//will divide cell if time
-		//cout << "divide necessary cells" << endl;
+		cout << "divide necessary cells" << endl;
 		growing_Tissue.division_check();
 		
 		//Calculate new forces on cells and nodes
-		//cout << "forces" << endl;
+		cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
 	
 		//Update node positions
-		//cout << "locations" << endl;
+		cout << "locations" << endl;
 		growing_Tissue.update_Cell_Locations();	
 		
-		//cout << "Finished" << endl;
+		cout << "Finished" << endl;
+
 		// print to dataOutput and vtk files
-		if(Ti%100==0) {
+		if(Ti%1000==0) {
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
 				Number = "0000" + to_string(out);
@@ -163,7 +171,28 @@ int main(int argc, char* argv[]) {
 			ofs_anim.close();	
 			out++;
 		}
-	
+		if(Ti%1000==0) {
+			digits2 = ceil(log10(out2 + 1));
+			if (digits2 == 1 || digits2 == 0) {
+				Number2 = "0000" + to_string(out2);
+			}	
+			else if (digits2 == 2) {
+				Number2 = "000" + to_string(out2);
+			}	
+			else if (digits2 == 3) {
+				Number2 = "00" + to_string(out2);
+			}
+			else if (digits2 == 4) {
+				Number2 = "0" + to_string(out2);
+			}
+
+			nem_Filename = nem_folder+ initial2 + Number2 + format;
+
+			ofs_nem.open(nem_Filename.c_str());
+			growing_Tissue.print_VTK_Direction_File(ofs_nem);
+			ofs_nem.close();	
+			out2++;
+		}	
 		//data output from simulations
 		//for cell center etc
 		/*if(Ti%5000 == 1){
