@@ -41,15 +41,16 @@ class Cell: public enable_shared_from_this<Cell> {
 		double cytokinin;
 		double wuschel;
 		int growth_rate;
+		double perimeter;
 		Coord growth_direction;
 		vector<shared_ptr<Cell>> neigh_cells;
-		shared_ptr<Wall_Node> left_Corner;	
+		shared_ptr<Wall_Node> left_Corner;
 	public:
 		
 		Cell(Tissue* tissue);
 		Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem);
 		void make_nodes(double radius);
-		
+		void signaling_Values();	
 		// Destructor
 		~Cell();
 
@@ -71,6 +72,9 @@ class Cell: public enable_shared_from_this<Cell> {
 		void reset_Life_Length();
 		//get total node count
 		int get_Node_Count();
+		void set_perimeter(double new_perimeter);
+		double get_perimeter(){return perimeter;}
+		double get_curr_perimeter();
 		//get counts of individual nodes
 		int get_wall_count() {return num_wall_nodes;}
 		int get_cyt_count() {return num_cyt_nodes;}
@@ -91,7 +95,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void update_Cell_Center();
 		Coord get_Cell_Center() {return cell_center;}
 		//set/get WUS conc
-		void calc_WUS();
+		void calc_WUS(Coord L1_AVG);
 		double get_WUS_concentration() {return wuschel;}
 		void calc_CK();
 		double get_CYT_concentration() {return cytokinin;}
@@ -137,7 +141,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void delete_Wall_Node(int Ti);
 		
 		void find_Smallest_Length(shared_ptr<Wall_Node>& right);
-		void find_Largest_Length(shared_ptr<Wall_Node>& right);
+		void find_Largest_Length(shared_ptr<Wall_Node>& node);//vector<pair<shared_ptr<Wall_Node>,double>>& nodes);
 		Coord compute_direction_of_highest_tensile_stress();
 		Coord compute_point_on_line(double t);;
 		void add_Cyt_Node();

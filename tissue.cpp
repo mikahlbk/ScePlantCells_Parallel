@@ -70,14 +70,18 @@ Tissue::Tissue(string filename) {
 			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
 			//give that cell wall nodes and internal nodes
 			curr->make_nodes(radius);
+			//cout<< "make nodes" << endl;
 			num_cells++;
 			cells.push_back(curr);
 		}
-
 		ss.clear();
 	}
 
 	ifs.close();
+	Coord L1_AVG = this->Compute_L1_AVG();
+	for(unsigned int i =0; i < num_cells; i++){
+		cells.at(i)->calc_WUS(L1_AVG);
+	}
 }
 
 Tissue::~Tissue() {
@@ -97,6 +101,24 @@ void Tissue::update_Num_Cells(shared_ptr<Cell>& new_Cell) {
 	cells.push_back(new_Cell);
 	return;
 }
+Coord Tissue::Compute_L1_AVG(){
+	Coord avg;
+	double avgx = 0;
+	double avgy = 0;
+	for(unsigned int i= 0; i< cells.size(); i++){
+		if(cells.at(i)->get_Layer() == 1){
+			avgx = avgx + cells.at(i)->get_Cell_Center().get_X();
+			avgy = avgy + cells.at(i)->get_Cell_Center().get_Y();
+		}
+	}
+	cout << avgx << endl;
+	cout << avgy << endl;
+	avgx = avgx/cells.size();
+	avgy = avgy/cells.size();
+	avg = Coord(avgx,avgy);
+
+	return avg;
+}
 //**********functions for tissue to perform on cells********//
 //updates current neighbors of each cell
 void Tissue::update_Neighbor_Cells() {
@@ -111,7 +133,7 @@ void Tissue::update_Neighbor_Cells() {
 void Tissue::add_Wall(int Ti) {
 	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->add_Wall_Node(Ti);
+		cells.at(i)->add_wall_Node_Check(Ti);
 	}
 	//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
 	return;
@@ -183,10 +205,14 @@ void Tissue::calc_New_Forces(int Ti) {
 	return;
 }
 //updates the location of all the nodes of each cell
-void Tissue::update_Cell_Locations() {
+void Tissue::update_Cell_Locations(int Ti) {
 	#pragma omp parallel for schedule(static,1)	
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->update_Node_Locations();
+		//if(Ti%5000 == 0){
+		//vector<pair<shared_ptr<Wall_Node>,double>> nodes;
+		//cells.at(i)->find_Largest_Length(nodes);
+		//}
 	}
 
 	return;
@@ -329,20 +355,20 @@ void Tissue::print_VTK_Direction_File(ofstream& ofs){
 
 void Tissue::print_VTK_File(ofstream& ofs) {
 	int rel_cnt = update_VTK_Indices();
-
+	
 	ofs << "# vtk DataFile Version 3.0" << endl;
 	ofs << "Point representing Sub_cellular elem model" << endl;
 	ofs << "ASCII" << endl << endl;
 	ofs << "DATASET UNSTRUCTURED_GRID" << endl;
 	//Good up to here
-
+	
 	//Need total number of points for all cells
 	int num_Points = 0;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		num_Points += cells.at(i)->get_Node_Count();
 	}
-
-	ofs << "POINTS " << num_Points << " float" << endl;
+	
+	ofs << "POINTS " << num_Points << " float64" << endl;
 	
 	vector<int> start_points;
 	vector<int> end_points;
@@ -384,7 +410,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	for (unsigned int i = 0; i < start_points.size(); i++) {
 		ofs << 2 << endl;
 	}
-
+	
 	for(unsigned int i = 0; i < rel_cnt; i++) {
 		//type for adh relationship
 		ofs << 3 << endl;
@@ -395,7 +421,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 
 
 	ofs << "POINT_DATA " << num_Points << endl;
-	ofs << "SCALARS WUS  double " << 1 << endl;
+	ofs << "SCALARS WUS float64 " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Scalars_WUS(ofs);
@@ -403,13 +429,14 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 
 	ofs << endl;
 
-	ofs << "SCALARS CK  double " << 1 << endl;
+	ofs << "SCALARS CK  float64 " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Scalars_CK(ofs);
 	}
 
 	ofs << endl;
+
 	/*ofs << "Scalars average_pressure float" << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
@@ -418,11 +445,13 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << endl;
 	*/
 
-	ofs << "Scalars wall_pressure float" << endl;
+	ofs << "Scalars wall_pressure float64" << 1 <<endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Scalars_Node(ofs);
 	}
+
+	ofs << endl;
 	return;
 }
 

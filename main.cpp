@@ -17,6 +17,9 @@
 #include "cell.h"
 #include "tissue.h"
 #include "rand.h"
+#include "MatlabEngine.hpp"
+#include "MatlabDataArray.hpp"
+
 //==============================
 
 using namespace std;
@@ -52,7 +55,7 @@ int main(int argc, char* argv[]) {
 	//new cell and node objects
 	//are made in this call
 	Tissue growing_Tissue(init_tissue);
-	//cout << "Finished creating Cells" << endl;
+	cout << "Finished creating Cells" << endl;
 	
 	//parameters for time step
 	double numSteps = 500;
@@ -86,27 +89,45 @@ int main(int argc, char* argv[]) {
 		
 			
 		//keep track of simulation runs
-		//if (Ti %500 == 0) {
-			//cout << "Simulation still running. Ti: " << Ti << endl;
-		//}
-	
+		if (Ti %1000 == 0) {
+			cout << "Simulation still running. Ti: " << Ti << endl;
+		}
+		/*if(Ti == 10) {
+
+		//update signaling distribution
+		using namespace matlab::engine;
+		std::unique_ptr<matlab::engine::MATLABEngine> matlabPtr = matlab::engine::startMATLAB();
+		
+		//Create MATLAB data array factory 
+		matlab::data::ArrayFactory factory;
+		
+		// Pass vector containing 2 scalar args in vector    
+		std::vector<matlab::data::Array> args({
+			factory.createScalar<int16_t>(30),
+			factory.createScalar<int16_t>(56) });
+		
+		matlab::data::TypedArray<int16_t> result = matlabPtr->feval(u"gcd", args);
+		int16_t v = result[0];
+		std::cout << "Result: " << v << std::endl;
+		}*/
 		// Tissue Growth
 		
 		//fills vector of neighbor cells for each cell
 		//in tissue class this goes through each cell and calls
 		//updated neighbor on each cell
 		if(Ti%5000==0) {
-			cout << "Find Neighbors" << endl;
+			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}	
 		
 		//adds one new cell wall node per cell everytime it is called
 		//dont call it right away to give cell time to find initial configuration
-		if(Ti%2000 == 0){	
-			cout << "add new cell wall nodes if needed" << endl;
-			growing_Tissue.add_Wall(Ti);
+		if(Ti>= 10000){
+			if(Ti%1000 == 0){	
+				//cout << "add new cell wall nodes if needed" << endl;
+				growing_Tissue.add_Wall(Ti);
+			}
 		}
-	
 		//currently not in use
 		//was used previously to help stability of cells
 		//deletes a cell wall node if too close together
@@ -116,37 +137,45 @@ int main(int argc, char* argv[]) {
 		//}
 	
 		//make adhesion pairs for each cell
-		if(Ti < 3000){
+		if(Ti < 10000){
 			if(Ti%1000 == 0) {
-				cout << "adhesion early" << endl;
+				//cout << "adhesion early" << endl;
 				growing_Tissue.update_Adhesion();
 			}
 		}
 		else{	
 			if(Ti%100000 == 0) {
-				cout << "adhesion"<< endl;
+				//cout << "adhesion"<< endl;
 				growing_Tissue.update_Adhesion();
 			}
 		}
 			
 		//adds internal node according to 
 		//individual cell growth rate
-		cout << "cell cycle" << endl;
-		growing_Tissue.update_Cell_Cycle(Ti);
+		if(Ti >= 10000){
+			//cout << "cell cycle" << endl;
+			growing_Tissue.update_Cell_Cycle(Ti);
+		}
 		
 		//will divide cell if time
-		cout << "divide necessary cells" << endl;
-		growing_Tissue.division_check();
+		//cout << "divide necessary cells" << endl;
+		if(Ti >= 10000){
+			growing_Tissue.division_check();
+		}
 		
 		//Calculate new forces on cells and nodes
-		cout << "forces" << endl;
+		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
-	
+		//if(Ti >=12000){
+		//if(Ti% 5000 == 0){
+		//growing_Tissue.update_Linear_Bending_Springs();
+		//}
+		//}
 		//Update node positions
-		cout << "locations" << endl;
-		growing_Tissue.update_Cell_Locations();	
+		//cout << "locations" << endl;
+		growing_Tissue.update_Cell_Locations(Ti);	
 		
-		cout << "Finished" << endl;
+		//cout << "Finished" << endl;
 
 		// print to dataOutput and vtk files
 		if(Ti%1000==0) {
@@ -192,7 +221,7 @@ int main(int argc, char* argv[]) {
 			growing_Tissue.print_VTK_Direction_File(ofs_nem);
 			ofs_nem.close();	
 			out2++;
-		}	
+		}
 		//data output from simulations
 		//for cell center etc
 		/*if(Ti%5000 == 1){

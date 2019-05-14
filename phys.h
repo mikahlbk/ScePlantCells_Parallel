@@ -23,10 +23,10 @@ const double ANGLE_SECOND_QUAD_Div = 2.7;
 const double ADD_WALL_NODE_ANGLE_FIRST_QUAD =.436;
 const double ADD_WALL_NODE_ANGLE_SECOND_QUAD = 2.0;
 const double BOUNDARY_DAMP = .3;
-const double BOTTOM_DAMP = .1;
+const double STEM_DAMP = .1;
 const double REG_DAMP = 1;
 ////// Cell wall mechanical parameters
-const double K_BEND_STIFF =29.688;//38.3622;
+const double K_BEND_STIFF =15;//29.688;//38.3622;
 //17.4656;//11.8299;//52.9211;//46.4343;//4.9925;//26.4730;//35.3732;//21.2845;//6.9738;//43.5946;//48.2636;//29.6880;//39.7634;//12.7912;//31.3144;//56.4474;//58.2084;//2.1002;//20.5976;//
 const double K_BEND_LOOSE =4.5433;//12.8128;
 //9.9898;//2.5416;//10.9974;//11.1948;//5.2617;//6.1530;//3.8290;//1.4132;//7.5802;//6.9589;//0.8149;//4.5433;//0.6185;//9.3159;//4.8077;//2.9080;//11.8757;//8.6403;//7.9421;//
@@ -44,7 +44,8 @@ const double ADHThresh = 2;
 const double NUMBER_ADH_CONNECTIONS = 2;
 //equilibrium length of linear springs
 //add node threshold length not being used
-const double MEMBR_THRESH_LENGTH = .7; 
+const double PERIM_INCREASE = .27;
+const double MEMBR_THRESH_LENGTH = .25981; 
 const double Membr_Equi_Len_Long = .07;
 const double Membr_Equi_Len_Short = .07;
 //
@@ -62,7 +63,7 @@ const double gamma_MI = 1.34;
 const double xsi_MI_div = .4;
 //
 /////// Subcellular element parameters for internal - internal interactions
-const double U_II = 75;
+const double U_II = 95;
 const double W_II = 6.71;
 const double xsi_II = .8;
 const double gamma_II = 1.34;

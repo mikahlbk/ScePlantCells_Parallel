@@ -191,6 +191,11 @@ shared_ptr<Cell> Cell::division() {
 	shared_ptr<Cell> sister = make_shared<Cell> (this->my_tissue);
 	sister->set_Layer(this->layer);
 	sister->set_growth_direction(this->get_growth_direction());
+	Coord L1_AVG = this->get_Tissue()->Compute_L1_AVG();
+	//cout << L1_AVG << endl;
+	
+	this->calc_WUS(L1_AVG);
+	sister->calc_WUS(L1_AVG);
 	this->set_growth_rate();
 	sister->set_growth_rate();
 	this->life_length = 0;	
@@ -200,13 +205,37 @@ shared_ptr<Cell> Cell::division() {
 	
 	//this is the vector for the desired division orientation
 	Coord orientation;
-	//if((this->layer == 1) || (this->layer == 2)){
-		//orientation = Coord(0,1);
-	//}
+	if((this->layer == 1) || (this->layer == 2)){
+		orientation = Coord(0,1);
+	}
 	//else {
 	//	orientation = Coord(1,0);
 	//}
-	orientation = this->compute_direction_of_highest_tensile_stress();
+	else if(this->cytokinin >= 85){
+		orientation = Coord(1,0);
+	}
+	else {
+		double random = ((double) rand()) / (double) RAND_MAX;
+		double diff = 1 + 1;
+		double  r = random * diff;
+		double x = -1 + r;
+		random = ((double) rand()) / (double) RAND_MAX;
+ 		r = random + diff;
+		double y = -1 + r;
+		orientation = Coord(x,y);
+	}
+	//orientation = this->compute_direction_of_highest_tensile_stress();
+	cout << "orientation" << orientation << endl;
+	///march 31, 2019
+	//if(this->layer == 1){
+	//	this->wuschel = 10;
+	//}
+	///else if(this->layer == 2){
+		this->wuschel = 15;
+	//}
+	//else{
+	//	this->wuschel = 72.53*exp(-0.01869*(cell_center).length());
+	//}
 	//finds node on one side of cell
 	vector<shared_ptr<Wall_Node>> nodes;
 	cout << "Nodes before" << nodes.size() << endl;
@@ -233,7 +262,7 @@ shared_ptr<Cell> Cell::division() {
 		starter = starter->get_Left_Neighbor();
 		counting++;
 	} while(starter!=daughter_ends.at(1));
-	cout<< "space between" << counting << endl;
+	//cout<< "space between" << counting << endl;
 	int number = 21;
 	int number2 = 0;
 	if(counting > 90) {
@@ -261,14 +290,14 @@ shared_ptr<Cell> Cell::division() {
 	shared_ptr<Wall_Node> end_daughter_two = daughter_ends.at(3);
 	double daughter_one_length = (start_daughter_one->get_Location() - end_daughter_one->get_Location()).length();
 	double daughter_two_length = (start_daughter_two->get_Location() - end_daughter_two->get_Location()).length();
-	cout << "d one length" << daughter_one_length << endl;
-	cout << "d two lenght" << daughter_two_length << endl;
+	//cout << "d one length" << daughter_one_length << endl;
+	//cout << "d two lenght" << daughter_two_length << endl;
 
 	//this is how many new nodes will be made for each cell
 	int total_num_one = static_cast<int>(daughter_one_length/(Membr_Equi_Len_Short*4));
 	int total_num_two = static_cast<int>(daughter_two_length/(Membr_Equi_Len_Short*4));
-	cout << "Total num one" << total_num_one << endl;
-	cout << "Total num two" << total_num_two << endl;
+	//cout << "Total num one" << total_num_one << endl;
+	//cout << "Total num two" << total_num_two << endl;
 	//this is how much change there is in the x direction of divison plane for each cell
 	double x_one = end_daughter_one->get_Location().get_X() - start_daughter_one->get_Location().get_X();
 	double x_two = end_daughter_two->get_Location().get_X() - start_daughter_two->get_Location().get_X();
@@ -317,7 +346,7 @@ shared_ptr<Cell> Cell::division() {
 		prevW = currW;
 		//debugging
 		counter++;
-		cout << counter << endl;	
+		//cout << counter << endl;	
 	}
 	currW->set_Right_Neighbor(end_daughter_one);
 	end_daughter_one->set_Left_Neighbor(currW);
@@ -346,7 +375,7 @@ shared_ptr<Cell> Cell::division() {
 		prevW = currW;	
 		//debugging
 		counter++;
-		cout<< counter << endl;
+		//cout<< counter << endl;
 
 	}
 	currW->set_Right_Neighbor(end_daughter_two);
@@ -366,7 +395,7 @@ shared_ptr<Cell> Cell::division() {
 	double k_lin = 0;
 	double k_bend = 0;
 	int number_nodes_B = 0;
-	//cout << "Cell two counting" << endl;
+	cout << "Cell two counting" << endl;
 	do {
 		number_nodes_B++;
 		curr->update_Cell(sister);
@@ -442,8 +471,10 @@ shared_ptr<Cell> Cell::division() {
 	sister->update_Wall_Angles();
 	this->update_Cell_Center();
 	sister->update_Cell_Center();
-	this->calc_WUS();
-	sister->calc_WUS();
+	//Coord L1_AVG = this->get_Tissue()->Compute_L1_AVG();
+	
+	this->calc_WUS(L1_AVG);
+	sister->calc_WUS(L1_AVG);
 	this->calc_CK();
 	sister->calc_CK();
 	

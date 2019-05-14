@@ -31,6 +31,7 @@ class Tissue{
 		//set/get the number of cells in the tissue
 		void update_Num_Cells(shared_ptr<Cell>& new_Cell);
 		int  get_num_cells() {return num_cells;}
+		Coord Compute_L1_AVG();
 		void update_Neighbor_Cells();
 		void add_Wall(int Ti);
 		void delete_Wall(int Ti);
@@ -41,7 +42,7 @@ class Tissue{
 		void update_Cell_Cycle(int Ti);
 		void division_check();
 		void calc_New_Forces(int Ti);
-		void update_Cell_Locations();
+		void update_Cell_Locations(int Ti);
 		
 		//stuff for data output
 		void plot_direction_vec(ofstream& ofs);
