@@ -32,6 +32,8 @@ class Tissue{
 		void update_Num_Cells(shared_ptr<Cell>& new_Cell);
 		int  get_num_cells() {return num_cells;}
 		Coord Compute_L1_AVG();
+		void update_Signal();
+		void update_growth_direction();
 		void update_Neighbor_Cells();
 		void add_Wall(int Ti);
 		void delete_Wall(int Ti);

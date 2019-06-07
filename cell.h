@@ -49,8 +49,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		
 		Cell(Tissue* tissue);
 		Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem);
-		void make_nodes(double radius);
-		void signaling_Values();	
+		void make_nodes(double radius);	
 		// Destructor
 		~Cell();
 
@@ -97,11 +96,13 @@ class Cell: public enable_shared_from_this<Cell> {
 		//set/get WUS conc
 		void calc_WUS(Coord L1_AVG);
 		double get_WUS_concentration() {return wuschel;}
-		void calc_CK();
+		void calc_CK(Coord L1_AVG);
 		double get_CYT_concentration() {return cytokinin;}
 		//set growth rate based on WUS
 		void set_growth_rate();
 		//set/get growth direction
+		void update_growth_direction();
+		void update_node_parameters_for_growth_direction();
 		void set_growth_direction(Coord gd);
 		Coord get_growth_direction(){return growth_direction;}
 		//get current neighbor cells		
@@ -150,7 +151,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_Node>>& nodes, int search_amount);
 		void move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_Node> second, vector<shared_ptr<Wall_Node>>& daughter_ends);
 		void move_cyt_nodes(Coord center_pt);
-	
+		Coord produce_random_vec();	
 		//Output Functions
 		void print_Data_Output(ofstream& ofs);
 		int update_VTK_Indices(int& id);

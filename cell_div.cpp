@@ -182,6 +182,19 @@ void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_No
 
 	return;
 }
+Coord Cell::produce_random_vec(){
+	//for random orientation
+		double random = ((double) rand()) / (double) RAND_MAX;
+		double diff = 1 + 1;
+		double  r = random * diff;
+		double x = -1 + r;
+		random = ((double) rand()) / (double) RAND_MAX;
+ 		r = random + diff;
+		double y = -1 + r;
+		Coord orientation = Coord(x,y);
+	return orientation;
+}
+
 shared_ptr<Cell> Cell::division() {
 	//current cell will split into two daughter cells
 	//	-"this" will keep its entity as parent cell
@@ -190,14 +203,7 @@ shared_ptr<Cell> Cell::division() {
 	//cout << "New Cell" << endl;
 	shared_ptr<Cell> sister = make_shared<Cell> (this->my_tissue);
 	sister->set_Layer(this->layer);
-	sister->set_growth_direction(this->get_growth_direction());
-	Coord L1_AVG = this->get_Tissue()->Compute_L1_AVG();
-	//cout << L1_AVG << endl;
-	
-	this->calc_WUS(L1_AVG);
-	sister->calc_WUS(L1_AVG);
-	this->set_growth_rate();
-	sister->set_growth_rate();
+
 	this->life_length = 0;	
 	this->Cell_Progress =0;		
 	sister->reset_Cell_Progress();
@@ -208,34 +214,20 @@ shared_ptr<Cell> Cell::division() {
 	if((this->layer == 1) || (this->layer == 2)){
 		orientation = Coord(0,1);
 	}
-	//else {
-	//	orientation = Coord(1,0);
-	//}
-	else if(this->cytokinin >= 85){
+	else{
 		orientation = Coord(1,0);
 	}
-	else {
-		double random = ((double) rand()) / (double) RAND_MAX;
-		double diff = 1 + 1;
-		double  r = random * diff;
-		double x = -1 + r;
-		random = ((double) rand()) / (double) RAND_MAX;
- 		r = random + diff;
-		double y = -1 + r;
-		orientation = Coord(x,y);
+	/*else if((this->get_CYT_concentration() > this->get_WUS_concentration())&&(this->get_CYT_concentration() > 80)){
+
+		orientation = Coord(1,0);
 	}
+	else {// if(this->get_WUS_concentration() > this->get_CYT_concentration()){
+
+		orientation = produce_random_vec();
+	}*/
+	//for mechanical division
 	//orientation = this->compute_direction_of_highest_tensile_stress();
 	cout << "orientation" << orientation << endl;
-	///march 31, 2019
-	//if(this->layer == 1){
-	//	this->wuschel = 10;
-	//}
-	///else if(this->layer == 2){
-		this->wuschel = 15;
-	//}
-	//else{
-	//	this->wuschel = 72.53*exp(-0.01869*(cell_center).length());
-	//}
 	//finds node on one side of cell
 	vector<shared_ptr<Wall_Node>> nodes;
 	cout << "Nodes before" << nodes.size() << endl;
@@ -471,21 +463,17 @@ shared_ptr<Cell> Cell::division() {
 	sister->update_Wall_Angles();
 	this->update_Cell_Center();
 	sister->update_Cell_Center();
-	//Coord L1_AVG = this->get_Tissue()->Compute_L1_AVG();
+	Coord L1_AVG = this->get_Tissue()->Compute_L1_AVG();
 	
 	this->calc_WUS(L1_AVG);
 	sister->calc_WUS(L1_AVG);
-	this->calc_CK();
-	sister->calc_CK();
+	this->calc_CK(L1_AVG);
+	sister->calc_CK(L1_AVG);
 	
 
 	this->set_growth_rate();
 	sister->set_growth_rate();
-	this->life_length = 0;	
-	this->Cell_Progress =0;		
-	sister->reset_Cell_Progress();
-	sister->reset_Life_Length();
-	
+
 
 	cout << "Reassign cyt nodes" << endl;
 	vector<shared_ptr<Cyt_Node>> temp_cyts;

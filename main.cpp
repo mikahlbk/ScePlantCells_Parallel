@@ -17,9 +17,6 @@
 #include "cell.h"
 #include "tissue.h"
 #include "rand.h"
-#include "MatlabEngine.hpp"
-#include "MatlabDataArray.hpp"
-
 //==============================
 
 using namespace std;
@@ -56,7 +53,8 @@ int main(int argc, char* argv[]) {
 	//are made in this call
 	Tissue growing_Tissue(init_tissue);
 	cout << "Finished creating Cells" << endl;
-	
+	growing_Tissue.update_Signal();
+	growing_Tissue.update_growth_direction();
 	//parameters for time step
 	double numSteps = 500;
 	
@@ -90,26 +88,9 @@ int main(int argc, char* argv[]) {
 			
 		//keep track of simulation runs
 		if (Ti %1000 == 0) {
-			cout << "Simulation still running. Ti: " << Ti << endl;
+		//	cout << "Simulation still running. Ti: " << Ti << endl;
 		}
-		/*if(Ti == 10) {
-
-		//update signaling distribution
-		using namespace matlab::engine;
-		std::unique_ptr<matlab::engine::MATLABEngine> matlabPtr = matlab::engine::startMATLAB();
 		
-		//Create MATLAB data array factory 
-		matlab::data::ArrayFactory factory;
-		
-		// Pass vector containing 2 scalar args in vector    
-		std::vector<matlab::data::Array> args({
-			factory.createScalar<int16_t>(30),
-			factory.createScalar<int16_t>(56) });
-		
-		matlab::data::TypedArray<int16_t> result = matlabPtr->feval(u"gcd", args);
-		int16_t v = result[0];
-		std::cout << "Result: " << v << std::endl;
-		}*/
 		// Tissue Growth
 		
 		//fills vector of neighbor cells for each cell
@@ -119,7 +100,10 @@ int main(int argc, char* argv[]) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}	
-		
+		if(Ti == 10000){
+			growing_Tissue.update_Signal();
+			growing_Tissue.update_growth_direction();
+		}
 		//adds one new cell wall node per cell everytime it is called
 		//dont call it right away to give cell time to find initial configuration
 		if(Ti>= 10000){
@@ -144,7 +128,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		else{	
-			if(Ti%100000 == 0) {
+			if(Ti%5000 == 0) {
 				//cout << "adhesion"<< endl;
 				growing_Tissue.update_Adhesion();
 			}
@@ -166,11 +150,7 @@ int main(int argc, char* argv[]) {
 		//Calculate new forces on cells and nodes
 		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
-		//if(Ti >=12000){
-		//if(Ti% 5000 == 0){
-		//growing_Tissue.update_Linear_Bending_Springs();
-		//}
-		//}
+		
 		//Update node positions
 		//cout << "locations" << endl;
 		growing_Tissue.update_Cell_Locations(Ti);	

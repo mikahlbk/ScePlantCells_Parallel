@@ -16,9 +16,6 @@
 #include "rand.h"
 #include "cell.h"
 #include "tissue.h"
-//#include "MatlabEngine.hpp"
-//#include "MatlabDataArray.hpp"
-
 //===================
 
 // Cell Class Member functions
@@ -85,19 +82,21 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	num_wall_nodes = 0;
 	Cell_Progress = unifRandInt(0,10);
 	this->cell_center = center;
+	//this gets reupdated after singal is assigned
+	//in tissue constructor
 	if(this->boundary == 1){
 		this->growth_direction = Coord(0,0);
 	}
 	else if(this->stem == 1){
 		this->growth_direction = Coord(0,1);
 	}
-        
-	else if((this->layer == 1)||(this->layer == 2)) {
+        else if((this->layer == 1)||(this->layer == 2)) {
                  this->growth_direction = Coord(1,0);
         }
         else{
 	 	this->growth_direction = Coord(0,1);
 	}
+
 	//cout << "layer" << this->layer << endl;
 	//cout << "stem" << this->stem << endl;
 	//cout << "boundary" << this-> boundary << endl;
@@ -201,14 +200,7 @@ void Cell::make_nodes(double radius){
 	//is_divided = false;
 	return;
 }
-void Cell::signaling_Values(){
-	Coord L1_AVG = this->get_Tissue()->Compute_L1_AVG();
-	cout << L1_AVG << endl;
-	this->calc_WUS(L1_AVG);
-	this->calc_CK();
-	this->set_growth_rate();
-}
-	
+
 // Destructor
 Cell::~Cell() {
 	//not needed using smartpointers
@@ -269,7 +261,7 @@ void Cell::update_Cell_Progress() {
 }
 void Cell::calc_WUS(Coord L1_AVG) {
 	
-		//new data from eric
+	//new data from eric
 	//CZ ~5 cells wide
 	//layer 1
 	/*if(this->rank == 0){
@@ -372,12 +364,27 @@ void Cell::calc_WUS(Coord L1_AVG) {
 	//this->wuschel = -0.01624*5*pow((cell_center-Coord(0,-24)).length(),2) + 1.519*5*(cell_center-Coord(0,-24)).length() + 9.253; 
 	}*/
 	//from 2018 paper
-	this->wuschel = 53*exp(-0.01573*(cell_center-(L1_AVG-Coord(0,20))).length());  
+	double distance = (cell_center-(L1_AVG-Coord(0,21))).length();
+	//if(distance < 140*.15){
+		this->wuschel = 84.6*exp(-0.01573*(distance));
+	//}
+	//else {
+	//	this->wuschel = 9.36*exp(0.01573*(-distance/.15+280));
+	//}
 	return;
 }
-void Cell::calc_CK() {
-	this->cytokinin = 132.9*exp(-0.01637*(cell_center-Coord(0,-30)).length());
-	if(this->layer==1){
+void Cell::calc_CK(Coord L1_AVG) {
+	double distance = (cell_center-(L1_AVG-Coord(0,21))).length();
+	if((this->get_Layer() == 1)||(this->get_Layer() ==2)){
+		this->cytokinin = 0;
+	}
+	else{// if((this->get_Layer() >2) && (this->get_Layer() < 6)){
+		this->cytokinin = 110*exp(-0.01637*distance);
+	}
+	//else {
+	//	this->cytokinin = 70;
+	//}
+	/*if(this->layer==1){
 		this->cytokinin = 10;
 	}
 	else if(this->layer==2){
@@ -397,44 +404,49 @@ void Cell::calc_CK() {
 	}
 	else{
 		this->layer = 10;
-	}
+	}*/
 	return;
 }
 void Cell::set_growth_rate() {
 	//this->growth_rate = unifRandInt(5000,30000);
-	if(this->wuschel < 68){
+	if(this->wuschel < 46){
+		this->growth_rate = unifRandInt(2000,10000);
+	}
+	else if((this->wuschel >= 46)&&(this->wuschel < 50)){
 		this->growth_rate = unifRandInt(10000,12510);
 	}
-	else if((this->wuschel >=68) && (this->wuschel < 76)){
+	else if((this->wuschel >=53.8) && (this->wuschel < 57)){
 		this->growth_rate = unifRandInt(12510,15012);
 	}
-	else if((this->wuschel >= 76)&&(this->wuschel <84)){
+	else if((this->wuschel >= 57)&&(this->wuschel <60.8)){
 		this->growth_rate = unifRandInt(15012,17514);
 	}
-	else if((this->wuschel >=84) &&(this->wuschel <92)){
+	else if((this->wuschel >=60.8) &&(this->wuschel <64)){
 		this->growth_rate = unifRandInt(17514,20016);
 	}
-	else if((this->wuschel >=92) &&(this->wuschel <100)){
+	else if((this->wuschel >=64) &&(this->wuschel <67.8)){
 		this->growth_rate = unifRandInt(20016,22518);
 	}
-	else if((this->wuschel >=100) &&(this->wuschel <108)){
+	else if((this->wuschel >=67.8) &&(this->wuschel <71)){
 		this->growth_rate = unifRandInt(22518,25020);
 	}
-	else if((this->wuschel >=108) &&(this->wuschel <116)){
+	else if((this->wuschel >=71) &&(this->wuschel <74.8)){
 		this->growth_rate = unifRandInt(25020,27522);
 	}
-	else if((this->wuschel >=116) &&(this->wuschel <124)){
+	else if((this->wuschel >=74.8) &&(this->wuschel <78)){
 		this->growth_rate = unifRandInt(27522,30024);
 	}
-	else if((this->wuschel >=124) && (this->wuschel <132)){
+	else if((this->wuschel >=78) && (this->wuschel <81.8)){
 		this->growth_rate = unifRandInt(30024,35526);
 	}
 	else{
 		this->growth_rate = unifRandInt(37530,40032);
 	}
-	if((this->cytokinin >= 100)){
-		this->growth_rate = growth_rate - 15000;
+	if((this->cytokinin >= 80)){
+
+		this->growth_rate = growth_rate*.1;
 	}
+
 	//this->growth_rate = 5000;
 	//2018 paper	
 	/*if(this->wuschel < 11){
@@ -477,6 +489,32 @@ void Cell::set_growth_rate() {
 	//	this->growth_rate = unifRandInt(2000,5000);
 	//}
 
+	return;
+}
+void Cell::update_growth_direction(){
+	//signaling stuff
+	if((this->layer == 1)||(this->layer ==2)){
+		this->growth_direction = Coord(1,0);
+	}
+	else if(this->wuschel > this->cytokinin){
+                 this->growth_direction = Coord(0,0);
+        }
+        else{
+	 	this->growth_direction = Coord(0,1);
+	}
+
+	this->update_node_parameters_for_growth_direction();
+	return;
+}
+void Cell::update_node_parameters_for_growth_direction(){
+	vector<shared_ptr<Wall_Node>> walls;
+	double k_bend;
+	this->get_Wall_Nodes_Vec(walls);
+	for(unsigned int i = 0; i < walls.size();i++) {	
+		k_bend = compute_k_bend(walls.at(i));
+		walls.at(i)->set_K_BEND(k_bend);
+	}
+	this->update_Wall_Equi_Angles();
 	return;
 }
 void Cell::set_growth_direction(Coord gd){
@@ -974,13 +1012,7 @@ void Cell::update_Cell_Progress(int& Ti) {
 void Cell::division_check(){
 	vector<shared_ptr<Cell>> neighbor_cells;
 	//cout <<"Before div progress" << Cell_Progress << endl;	
-	if(this-> stem ==1){
-		//do nothing
-	}
-	else if(this->boundary == 1){
-		//do nothing
-	}
-	else if(this->Cell_Progress >= 30){
+	if(this->Cell_Progress >= 30){
 
 
 		cout << "dividing cell" << this->rank <<  endl;

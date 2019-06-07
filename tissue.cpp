@@ -76,12 +76,7 @@ Tissue::Tissue(string filename) {
 		}
 		ss.clear();
 	}
-
 	ifs.close();
-	Coord L1_AVG = this->Compute_L1_AVG();
-	for(unsigned int i =0; i < num_cells; i++){
-		cells.at(i)->calc_WUS(L1_AVG);
-	}
 }
 
 Tissue::~Tissue() {
@@ -121,6 +116,24 @@ Coord Tissue::Compute_L1_AVG(){
 }
 //**********functions for tissue to perform on cells********//
 //updates current neighbors of each cell
+void Tissue::update_Signal(){
+	
+	Coord L1_AVG = this->Compute_L1_AVG();
+	for(unsigned int i =0; i < num_cells; i++){
+		cells.at(i)->calc_WUS(L1_AVG);
+		cells.at(i)->calc_CK(L1_AVG);
+		cells.at(i)->set_growth_rate();
+	}
+	return;
+
+}
+void Tissue::update_growth_direction(){
+	
+	for(unsigned int i =0; i < num_cells; i++){
+		cells.at(i)->update_growth_direction();
+	}
+	return;
+}
 void Tissue::update_Neighbor_Cells() {
 	//update vectors of neighboring cells
 	#pragma omp parallel for schedule(static,1)

@@ -34,7 +34,7 @@ CellRank:4
 Center:32,0
 Radius:3.75
 Layer:1
-Boundary:0
+Boundary:1
 Stem:0
 End_Cell
  
@@ -66,7 +66,7 @@ CellRank:8
 Center:-32,0
 Radius:3.75
 Layer:1
-Boundary:0
+Boundary:1
 Stem:0
 End_Cell
  
@@ -106,7 +106,7 @@ CellRank:13
 Center:32,-8
 Radius:3.75
 Layer:2
-Boundary:0
+Boundary:1
 Stem:0
 End_Cell
  
@@ -138,7 +138,7 @@ CellRank:17
 Center:-32,-8
 Radius:3.75
 Layer:2
-Boundary:0
+Boundary:1
 Stem:0
 End_Cell
  
@@ -354,7 +354,7 @@ CellRank:44
 Center:16,-48
 Radius:3.75
 Layer:6
-Boundary:0
+Boundary:1
 Stem:1
 End_Cell
  
@@ -370,7 +370,7 @@ CellRank:46
 Center:-16,-48
 Radius:3.75
 Layer:6
-Boundary:0
+Boundary:1
 Stem:1
 End_Cell
  
