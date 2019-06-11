@@ -65,7 +65,7 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 	double diff = 100;
 	double curr_diff;
 	//cout << "Second" << endl;
-	for(unsigned int i = 1; i<search_amount; i++){
+	for(int i = 1; i < search_amount; i++){
 		curr = first;
 		orig = pairs[i].second;
 		do {
@@ -237,7 +237,7 @@ shared_ptr<Cell> Cell::division() {
 	int halfway = this->num_wall_nodes/2;
 	shared_ptr<Wall_Node> curr_node = first;
 	shared_ptr<Wall_Node> second;
-	for(unsigned int i =0; i<halfway ; i++){
+	for(int i =0; i<halfway ; i++){
 		curr_node = curr_node->get_Left_Neighbor();
 	}
 	second = curr_node;
@@ -531,10 +531,10 @@ return sister;
 }
 void Cell::move_cyt_nodes(Coord center_point){
 	Coord vector_from_center;
-	double length_from_center_pt;
+	// double length_from_center_pt;
 	Coord location;
 	for(unsigned int i=0; i<cyt_nodes.size(); i++){
-		length_from_center_pt = (cyt_nodes.at(i)->get_Location()-center_point).length();
+		// UNUSED length_from_center_pt = (cyt_nodes.at(i)->get_Location()-center_point).length();
 		vector_from_center = cyt_nodes.at(i)->get_Location() - this->cell_center;
 
 	//	if(length_from_center_pt< 4) {

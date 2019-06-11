@@ -142,6 +142,9 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord linear_Equation_ADH(shared_ptr<Wall_Node>& wall);
 		~Wall_Node();
 
+		//Tensile Stress Calculations
+		double calc_Tensile_Stress();
+
 };
 //===========================
 #endif  

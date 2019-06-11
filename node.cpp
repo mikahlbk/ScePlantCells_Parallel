@@ -18,7 +18,7 @@
 Node::Node(Coord loc) {
 	my_loc = loc;
 	new_force = Coord();
-	int vtk_id;
+	//UNUSED int vtk_id;
 }
 void Node::set_Damping(double new_damping){
 	this-> damping = new_damping;
@@ -635,5 +635,23 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 	}
 	return F_lin;
 }
+
+double Wall_Node::calc_Tensile_Stress() { 
+	//Variable to store tensile stress is TS
+	double TS, TS_left, TS_right;
+	shared_ptr<Wall_Node> me = shared_from_this();
+	shared_ptr<Wall_Node> RNeighbor = me->get_Right_Neighbor();
+	shared_ptr<Wall_Node> LNeighbor = me->get_Left_Neighbor();
+	//Displacements of left and right node form this node)
+	Coord Delta_R = RNeighbor->get_Location() - me->get_Location();
+	Coord Delta_L = LNeighbor->get_Location() - me->get_Location();
+	TS_left = me->get_k_lin() * (Delta_R.length() - me->get_membr_len());
+	TS_right = me->get_k_lin() * (Delta_L.length() - me->get_membr_len());
+
+	//Naiive average of left and right tensile stress is TS.
+	TS = (TS_left + TS_right)/static_cast<double>(2);
+	return TS;
+}
+
 //==========================================================
 // End of node.cpp

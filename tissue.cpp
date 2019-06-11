@@ -119,7 +119,7 @@ Coord Tissue::Compute_L1_AVG(){
 void Tissue::update_Signal(){
 	
 	Coord L1_AVG = this->Compute_L1_AVG();
-	for(unsigned int i =0; i < num_cells; i++){
+	for(int i =0; i < num_cells; i++){
 		cells.at(i)->calc_WUS(L1_AVG);
 		cells.at(i)->calc_CK(L1_AVG);
 		cells.at(i)->set_growth_rate();
@@ -129,7 +129,7 @@ void Tissue::update_Signal(){
 }
 void Tissue::update_growth_direction(){
 	
-	for(unsigned int i =0; i < num_cells; i++){
+	for(int i =0; i < num_cells; i++){
 		cells.at(i)->update_growth_direction();
 	}
 	return;
@@ -183,7 +183,7 @@ void Tissue::update_Linear_Bending_Springs(){
 //**********updates cell cycle of each cell************//
 void Tissue::update_Cell_Cycle(int Ti) {
 	//cout << "Current number of cells: " << cells.size() << endl; 
-	int number_cells = cells.size();
+	// UNUSED int number_cells = cells.size();
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 
@@ -196,7 +196,7 @@ void Tissue::update_Cell_Cycle(int Ti) {
 
 }
 void Tissue::division_check(){
-	int number_cells = cells.size();
+	// UNUSED int number_cells = cells.size();
 	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cout << "dating cell" << i << endl;
@@ -424,7 +424,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 		ofs << 2 << endl;
 	}
 	
-	for(unsigned int i = 0; i < rel_cnt; i++) {
+	for(int i = 0; i < rel_cnt; i++) {
 		//type for adh relationship
 		ofs << 3 << endl;
 	}
@@ -462,6 +462,14 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Scalars_Node(ofs);
+	}
+
+	ofs << endl;
+	
+	ofs << "Scalars tensile_stress float64" << 1 <<endl;
+	ofs << "LOOKUP_TABLE default" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Tensile_Stress(ofs);
 	}
 
 	ofs << endl;

@@ -1273,10 +1273,10 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& node) {
 	//shared_ptr<Wall_Node> second_biggest;
 	//double temp_len;
 	//shared_ptr<Wall_Node> temp_pointer;
-	double theta = 0;
-        double costheta = 0;
+	// UNUSED double theta = 0;
+        // UNUSED double costheta = 0;
 	double curr_len = 0;
-	double growth_len = 0;
+	// UNUSED double growth_len = 0;
 	Coord curr_vec;	
 		
 	//#pragma omp parallel 
@@ -1292,9 +1292,9 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& node) {
 		left_neighbor = current->get_Left_Neighbor();
 		curr_vec = left_neighbor->get_Location() - current->get_Location();
 		curr_len = curr_vec.length();	
-		growth_len = 1;
-		costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
-		theta = acos( min( max(costheta,-1.0), 1.0) );
+		// UNUSED growth_len = 1;
+		// UNUSED costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+		// UNUSED theta = acos( min( max(costheta,-1.0), 1.0) );
 		if(curr_len > max_len){
 			max_len = curr_len;
 			biggest = current;
@@ -1639,15 +1639,29 @@ void Cell::print_VTK_Scalars_Node(ofstream& ofs) {
 	do {
 		if(currW->get_added()==1){
 			color = 30.0;
-		}
-		else{
+		} else {
 			color = 0.0;
 		}
 		ofs << color << endl;
 		currW = currW->get_Left_Neighbor();
-	} while(currW != left_Corner);
+	} while (currW != left_Corner);
 	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
 		color = 0.0;
+		ofs << color << endl;
+	}
+	return;
+}
+
+void Cell::print_VTK_Tensile_Stress(ofstream& ofs) {
+	shared_ptr<Wall_Node> currW = left_Corner;
+	double color;
+	do {
+		color = currW->calc_Tensile_Stress();
+		ofs << color << endl;
+		currW = currW->get_Left_Neighbor();
+	} while(currW != left_Corner);
+	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+		color = CYT_COLOR;
 		ofs << color << endl;
 	}
 	return;

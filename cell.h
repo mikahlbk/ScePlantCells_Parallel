@@ -169,6 +169,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_VTK_Scalars_Total(ofstream& ofs);
 		void print_VTK_Vectors(ofstream& ofs);
 		void print_VTK_Scalars_Node(ofstream& ofs);	
+		void print_VTK_Tensile_Stress(ofstream& ofs);
 		
 		//Division 
 		shared_ptr<Cell> division();

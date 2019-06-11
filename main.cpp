@@ -26,7 +26,7 @@ using namespace std;
 int main(int argc, char* argv[]) {
 
 	if (argc != 3) {
-	
+
 	}
 	// reads in name of folder that 
 	// stores vtk files, given in run.sh
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 	//cout << "before cell file is read in" << endl;
 	string init_tissue = "cell_maker.txt";
 	//cout << "Read in cell starter" << endl;	
-	
+
 	//instantiate tissue
 	//new cell and node objects
 	//are made in this call
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 	growing_Tissue.update_growth_direction();
 	//parameters for time step
 	double numSteps = 500;
-	
+
 	// Variable for dataoutput
 	int digits;
 	string format = ".vtk";
@@ -78,21 +78,21 @@ int main(int argc, char* argv[]) {
 	ofstream ofs_loc;
 	string locations_Filename;
 	string locations_initial = "/Locations_";
-	int Number3 = 0;
-	
+	// UNUSED int Number3 = 0;
+
 	//loop for time steps
 	//which matlab file tells you how many
 	//seconds each time step reprsents (2.5?)
 	for(int Ti = 0; Ti*dt< numSteps; Ti++) {
-		
-			
+
+
 		//keep track of simulation runs
 		if (Ti %1000 == 0) {
-		//	cout << "Simulation still running. Ti: " << Ti << endl;
+			//	cout << "Simulation still running. Ti: " << Ti << endl;
 		}
-		
+
 		// Tissue Growth
-		
+
 		//fills vector of neighbor cells for each cell
 		//in tissue class this goes through each cell and calls
 		//updated neighbor on each cell
@@ -116,10 +116,10 @@ int main(int argc, char* argv[]) {
 		//was used previously to help stability of cells
 		//deletes a cell wall node if too close together
 		//if(Ti%1000 == 0){	
-			//cout << "delete wall" << endl;
-			//growing_Tissue.delete_Wall(Ti);
+		//cout << "delete wall" << endl;
+		//growing_Tissue.delete_Wall(Ti);
 		//}
-	
+
 		//make adhesion pairs for each cell
 		if(Ti < 10000){
 			if(Ti%1000 == 0) {
@@ -133,28 +133,28 @@ int main(int argc, char* argv[]) {
 				growing_Tissue.update_Adhesion();
 			}
 		}
-			
+
 		//adds internal node according to 
 		//individual cell growth rate
 		if(Ti >= 10000){
 			//cout << "cell cycle" << endl;
 			growing_Tissue.update_Cell_Cycle(Ti);
 		}
-		
+
 		//will divide cell if time
 		//cout << "divide necessary cells" << endl;
 		if(Ti >= 10000){
 			growing_Tissue.division_check();
 		}
-		
+
 		//Calculate new forces on cells and nodes
 		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
-		
+
 		//Update node positions
 		//cout << "locations" << endl;
 		growing_Tissue.update_Cell_Locations(Ti);	
-		
+
 		//cout << "Finished" << endl;
 
 		// print to dataOutput and vtk files
@@ -205,26 +205,26 @@ int main(int argc, char* argv[]) {
 		//data output from simulations
 		//for cell center etc
 		/*if(Ti%5000 == 1){
-			nem_Filename = nematic_folder + nem_initial + to_string(Number2) + ".txt";
-			ofs_nem.open(nem_Filename.c_str());
-			growing_Tissue.nematic_output(ofs_nem);
-			ofs_nem.close();
-			Number2++;
-		}
-		if(Ti%1000 == 1){
-			locations_Filename = locations_folder + locations_initial + to_string(Number3) + ".txt";
-			ofs_loc.open(locations_Filename.c_str());
-			growing_Tissue.locations_output(ofs_loc);
-			ofs_loc.close();
-			Number3++;
-		}*/
+		  nem_Filename = nematic_folder + nem_initial + to_string(Number2) + ".txt";
+		  ofs_nem.open(nem_Filename.c_str());
+		  growing_Tissue.nematic_output(ofs_nem);
+		  ofs_nem.close();
+		  Number2++;
+		  }
+		  if(Ti%1000 == 1){
+		  locations_Filename = locations_folder + locations_initial + to_string(Number3) + ".txt";
+		  ofs_loc.open(locations_Filename.c_str());
+		  growing_Tissue.locations_output(ofs_loc);
+		  ofs_loc.close();
+		  Number3++;
+		  }*/
 
-}
+	}
 	/*nem_Filename = nematic_folder + nem_initial + to_string(Number2) + ".txt";
-	ofs_nem.open(nem_Filename.c_str());
-	growing_Tissue.nematic_output(ofs_nem);
-	ofs_nem.close();*/
-	
+	  ofs_nem.open(nem_Filename.c_str());
+	  growing_Tissue.nematic_output(ofs_nem);
+	  ofs_nem.close();*/
+
 	int stop = clock();
 
 	cout << "Time: " << (stop - start) / double(CLOCKS_PER_SEC) * 1000 << endl;

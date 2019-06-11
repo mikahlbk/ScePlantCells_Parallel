@@ -68,5 +68,9 @@ const double W_II = 6.71;
 const double xsi_II = .8;
 const double gamma_II = 1.34;
 const double xsi_II_div = .4;
+
+/////// VTK parameters
+//Tensile stress cytoplasm color (Calibrated from circle value)
+const double CYT_COLOR = 42.0;
 ////=====================
 #endif
