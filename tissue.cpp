@@ -473,6 +473,14 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	}
 
 	ofs << endl;
+
+	ofs << "Scalars shear_stress float64" << 1 <<endl;
+	ofs << "LOOKUP_TABLE default" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Shear_Stress(ofs);
+	}
+
+	ofs << endl;
 	return;
 }
 

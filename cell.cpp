@@ -1666,6 +1666,21 @@ void Cell::print_VTK_Tensile_Stress(ofstream& ofs) {
 	}
 	return;
 }
+
+void Cell::print_VTK_Shear_Stress(ofstream& ofs) {
+	shared_ptr<Wall_Node> currW = left_Corner;
+	double color;
+	do {
+		color = currW->calc_Shear_Stress();
+		ofs << color << endl;
+		currW = currW->get_Left_Neighbor();
+	} while(currW != left_Corner);
+	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+		color = CYT_COLOR;
+		ofs << color << endl;
+	}
+	return;
+}
 /*		   
 void Cell::print_VTK_Scalars_Total(ofstream& ofs) {
 

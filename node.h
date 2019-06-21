@@ -144,6 +144,8 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 
 		//Tensile Stress Calculations
 		double calc_Tensile_Stress();
+		double calc_Shear_Stress();
+		void getCircleVars(double& h, double& k);
 
 };
 //===========================

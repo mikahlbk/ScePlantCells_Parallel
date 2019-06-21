@@ -38,6 +38,8 @@ class Coord {
 		// Higher level math tasks
 		double dot(const Coord& c) const;
 		double cross(const Coord& c) const;
+		Coord projectOnto(const Coord& c) const;
+		Coord perpVector() const;
 		double length() const;
 		// Display Functions
 		friend ostream& operator<<(ostream& os, const Coord& c);

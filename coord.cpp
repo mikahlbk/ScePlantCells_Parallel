@@ -111,6 +111,33 @@ ostream& operator<<(ostream& os, const Coord& c) {
 	return os;
 }
 
+Coord Coord::projectOnto(const Coord& c) const { 
+	Coord proj;
+	if ( c.length() == 0 ) { 
+		Coord temp(0,0);
+		proj = temp;
+	} else { 
+		proj =  c * (c.dot(*this) / pow(c.length(),2) );
+	}
+	return proj;
+}
+
+//Returns a unit-length perpendicular vector to this with nonnegative y component.
+Coord Coord::perpVector() const { 
+	if (x == 0) {
+		if (y == 0) {
+			Coord q(0,0);
+			return q;
+		} else {
+			Coord q(1,0);
+			return q;
+		}
+	} else {
+		Coord q(-y/x,1);
+		return q/q.length();
+	}
+
+}
 
 
 
