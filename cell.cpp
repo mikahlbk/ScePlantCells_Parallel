@@ -93,8 +93,16 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
         else if((this->layer == 1)||(this->layer == 2)) {
                  this->growth_direction = Coord(1,0);
         }
-        else{
-	 	this->growth_direction = Coord(0,1);
+        else if(rand()% 100 < 30){
+	 	this->growth_direction = Coord(0,0);
+	}
+	else{
+		if(rand()% 100 < 36){
+			this->growth_direction = Coord(1,0);
+		}
+		else{
+			this->growth_direction = Coord(0,1);
+		}
 	}
 
 	//cout << "layer" << this->layer << endl;
@@ -442,10 +450,10 @@ void Cell::set_growth_rate() {
 	else{
 		this->growth_rate = unifRandInt(37530,40032);
 	}
-	if((this->cytokinin >= 80)){
+	//if((this->cytokinin >= 80)){
 
-		this->growth_rate = growth_rate*.1;
-	}
+		this->growth_rate = growth_rate*.7;
+	//}
 
 	//this->growth_rate = 5000;
 	//2018 paper	
@@ -1472,8 +1480,8 @@ void Cell::print_direction_vec(ofstream& ofs){
 	
 	return;
 }
-void Cell::print_locations(ofstream& ofs) {
-	ofs << this->get_Rank() << endl;
+void Cell::print_locations_cyt(ofstream& ofs) {
+	///ofs << this->get_Rank() << ' ' << this->get_Layer();
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
 	shared_ptr<Wall_Node> orig = curr_wall;
 	//	cout << "knows left corner" << endl;
@@ -1481,7 +1489,7 @@ void Cell::print_locations(ofstream& ofs) {
 
 
 		Coord loc = curr_wall->get_Location();
-		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 <<' '<< 1 << endl;
+		ofs << this->get_Rank()<<' '<< loc.get_X() << ' ' << loc.get_Y() <<' '<< 1 << endl;
 		//cout<< "maybe cant do left neighbor" << endl;
 		curr_wall = curr_wall->get_Left_Neighbor();
 	
@@ -1489,14 +1497,31 @@ void Cell::print_locations(ofstream& ofs) {
 	} while (curr_wall != orig);
 	
 	//cout << "walls worked" << endl;
-	/*for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
 	
 		Coord loc = cyt_nodes.at(i)->get_Location();
-		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 << 0 << endl;
-	}*/
+		ofs << this->get_Rank()<<' '<< loc.get_X() << ' ' << loc.get_Y() << ' '<< 0 << endl;
+	}
 	return;
 }
+void Cell::print_locations_no_cyt(ofstream& ofs) {
+	///ofs << this->get_Rank() << ' ' << this->get_Layer();
+	shared_ptr<Wall_Node> curr_wall = left_Corner;
+	shared_ptr<Wall_Node> orig = curr_wall;
+	//	cout << "knows left corner" << endl;
+	do {
 
+
+		Coord loc = curr_wall->get_Location();
+		ofs << this->get_Layer() <<' '<< this->get_Rank() <<' '<< loc.get_X() << ' ' << loc.get_Y() <<endl;
+		//cout<< "maybe cant do left neighbor" << endl;
+		curr_wall = curr_wall->get_Left_Neighbor();
+	
+	//cout << "did it  " << count << endl;
+	} while (curr_wall != orig);
+	
+	return;
+}
 void Cell::print_VTK_Points(ofstream& ofs, int& count) {
 
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
@@ -1658,6 +1683,8 @@ void Cell::print_VTK_Tensile_Stress(ofstream& ofs) {
 	do {
 		color = currW->calc_Tensile_Stress();
 		ofs << color << endl;
+		cout << "Tensile" << color << endl;
+		cout << "Angle" << currW->get_Angle() << endl;
 		currW = currW->get_Left_Neighbor();
 	} while(currW != left_Corner);
 	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {

@@ -49,7 +49,8 @@ class Tissue{
 		//stuff for data output
 		void plot_direction_vec(ofstream& ofs);
 		void print_Data_Output(ofstream& ofs);
-		void locations_output(ofstream& ofs);
+		void locations_output_cyt(ofstream& ofs);
+		void locations_output_no_cyt(ofstream& ofs);
 		int update_VTK_Indices();
 		void print_VTK_File(ofstream& ofs);
 		void print_VTK_Direction_File(ofstream& ofs);	

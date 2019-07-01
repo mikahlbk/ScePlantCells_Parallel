@@ -194,6 +194,60 @@ Coord Cell::produce_random_vec(){
 		Coord orientation = Coord(x,y);
 	return orientation;
 }
+/*void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Nodes>>& nodes){
+	vector<shared_ptr<Wall_Node>> mother_walls;
+	this->get_Wall_Nodes_Vec(mother_walls);
+
+	double theta = 0;
+	double costheta = 0;
+	double curr_len = 0;
+	double growth_len = 0;
+	Coord curr_vec;	
+	int counter = 0;
+	double curr_stress;
+	double max_stress  =0;
+	//double second_max_stress = 0;
+	shared_ptr<Wall_Node> first_node;
+	//shared_ptr<Wall_Node> second_node;
+	for(unsigned int i = 0; i < mother_walls.size();i++) {	
+	if(this->growth_direction != Coord(0,0)){
+		curr_vec = mother_walls.at(i)->get_Left_Neighbor()->get_Location() - mother_walls.at(i)->get_Location();
+		curr_len = curr_vec.length();	
+		growth_len = this->growth_direction.length();
+		costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+		theta = acos( min( max(costheta,-1.0), 1.0) );
+		if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
+			curr_stress = mother_walls.at(i)-> calc_Tensile_Stress();
+			if(curr_stress > second_max_stress){
+				if(curr_stress > max_stress){
+					second_node = first_node;
+					first_node = mother_walls.at(i);
+					second_max_stress = max_stress;
+					max_stress = curr_stress;
+				}
+				else{
+					second_max_stress = curr_stress;
+					second_node = mother_walls.at(i);
+				}
+			}
+		}
+	}
+	else{
+		curr_stress = mother_walls.at(i)-> calc_Tensile_Stress();
+		if(curr_stress > second_max_stress){
+			if(curr_stress > max_stress){
+				second_node = first_node;
+				first_node = mother_walls.at(i);
+				second_max_stress = max_stress;
+				max_stress = curr_stress;
+			}
+			else{
+				second_node = mother_walls.at(i);
+				second_max_stress = curr_stress;
+			}
+		}
+	}
+}*/
 
 shared_ptr<Cell> Cell::division() {
 	//current cell will split into two daughter cells
@@ -211,70 +265,48 @@ shared_ptr<Cell> Cell::division() {
 	
 	//this is the vector for the desired division orientation
 	Coord orientation;
-	if((this->layer == 1) || (this->layer == 2)){
+	//for layer and chemical division decision a vector called orientation
+	//is fed into the find nodes for div plane function
+	//find nodes for div plan takes as input orientation vector, all wall nodes of mother cell
+	//a hard coded search amount (could this be better?)
+	//return a vector with two pointers to two wall nodes nodes indicating where the cell wall 
+	//should be built
+	//orientation by layer
+	//if((this->layer == 1) || (this->layer == 2)){
+		//orientation = Coord(0,1);
+	//}
+	//else{
+		//orientation = Coord(1,0);
+	//}
+	
+	//orientation by chemical concentration
+	if((this->get_CYT_concentration() > this->get_WUS_concentration())){
+		orientation = Coord(1,0);
+	}
+	else{ 
 		orientation = Coord(0,1);
 	}
-	else{
-		orientation = Coord(1,0);
-	}
-	/*else if((this->get_CYT_concentration() > this->get_WUS_concentration())&&(this->get_CYT_concentration() > 80)){
-
-		orientation = Coord(1,0);
-	}
-	else {// if(this->get_WUS_concentration() > this->get_CYT_concentration()){
-
-		orientation = produce_random_vec();
-	}*/
-	//for mechanical division
+	//orientation by mechanical stress- various algorithms
 	//orientation = this->compute_direction_of_highest_tensile_stress();
-	cout << "orientation" << orientation << endl;
+	
+	//cout << "orientation" << orientation << endl;
 	//finds node on one side of cell
 	vector<shared_ptr<Wall_Node>> nodes;
-	cout << "Nodes before" << nodes.size() << endl;
+	//cout << "Nodes before" << nodes.size() << endl;
 	find_nodes_for_div_plane(orientation, nodes,11);
-	cout << "Nodes after" << nodes.size() << endl;
+	//cout << "Nodes after" << nodes.size() << endl;
 	shared_ptr<Wall_Node> first = nodes.at(0);
-	int halfway = this->num_wall_nodes/2;
-	shared_ptr<Wall_Node> curr_node = first;
-	shared_ptr<Wall_Node> second;
-	for(int i =0; i<halfway ; i++){
-		curr_node = curr_node->get_Left_Neighbor();
-	}
-	second = curr_node;
-	//these nodes need to be deleted and 
-	//we will move move some spaces over
-	//that is where we will place the new wall
+	shared_ptr<Wall_Node> second = nodes.at(1);
+	
+	
+	//shared_ptr<Wall_Node> first = first_node;
+	//shared_ptr<Wall_Node> second = second_node;
 	vector<shared_ptr<Wall_Node>> daughter_ends;
-	move_start_end_points(nodes.at(0), second, daughter_ends);
+	move_start_end_points(first, second, daughter_ends);
+	//move start end points returns daughter_ends as
+	//daughter_ends = {start_one, end_one, start_two, end_two}
 
-	//this gets the length of the division plane
-	int counting = 0;
-	shared_ptr<Wall_Node> starter= daughter_ends.at(0);;
-	do{
-		starter = starter->get_Left_Neighbor();
-		counting++;
-	} while(starter!=daughter_ends.at(1));
-	//cout<< "space between" << counting << endl;
-	int number = 21;
-	int number2 = 0;
-	if(counting > 90) {
-		do{
-			find_nodes_for_div_plane(orientation, nodes,number);
-			number = number + 10;
-			counting = 0;
-			move_start_end_points(nodes.at(0), nodes.at(1),daughter_ends);
-			starter = daughter_ends.at(0);
-			do{
-				starter = starter->get_Left_Neighbor();
-				counting++;
-			} while(starter!=daughter_ends.at(1));
-			number2++;
-			if(number2 > 10){
-				cout << "isnt gonna happen" << endl;
-				counting = 1;
-			}
-		} while(counting > 90);
-	}
+	
 	
 	shared_ptr<Wall_Node> start_daughter_one = daughter_ends.at(0);
 	shared_ptr<Wall_Node> start_daughter_two = daughter_ends.at(2);

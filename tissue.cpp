@@ -231,9 +231,16 @@ void Tissue::update_Cell_Locations(int Ti) {
 	return;
 }
 
-void Tissue::locations_output(ofstream& ofs){
+void Tissue::locations_output_cyt(ofstream& ofs){
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_locations(ofs);
+		cells.at(i)->print_locations_cyt(ofs);
+	}
+
+return;
+}
+void Tissue::locations_output_no_cyt(ofstream& ofs){
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_locations_no_cyt(ofs);
 	}
 
 return;
