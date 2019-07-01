@@ -50,8 +50,8 @@ class Tissue{
 		void plot_direction_vec(ofstream& ofs);
 		void print_Data_Output(ofstream& ofs);
 		void locations_output(ofstream& ofs);
-		int update_VTK_Indices();
-		void print_VTK_File(ofstream& ofs);
+		int update_VTK_Indices(bool cytoplasm);
+		void print_VTK_File(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Direction_File(ofstream& ofs);	
 		//Destructor
 		~Tissue();

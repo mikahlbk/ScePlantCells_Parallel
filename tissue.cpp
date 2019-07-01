@@ -119,7 +119,7 @@ Coord Tissue::Compute_L1_AVG(){
 void Tissue::update_Signal(){
 	
 	Coord L1_AVG = this->Compute_L1_AVG();
-	for(int i =0; i < num_cells; i++){
+	for(int i = 0; i < num_cells; i++){
 		cells.at(i)->calc_WUS(L1_AVG);
 		cells.at(i)->calc_CK(L1_AVG);
 		cells.at(i)->set_growth_rate();
@@ -311,7 +311,7 @@ return;
 	return;
 }*/
 //***Functions for VTK output****//
-int Tissue::update_VTK_Indices() {
+int Tissue::update_VTK_Indices(bool cytoplasm) {
 
 	int id = 0;
 	int rel_cnt = 0;
@@ -319,7 +319,7 @@ int Tissue::update_VTK_Indices() {
 	//iterate through cells to reassign vtk id's - starting at 0
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//iterate through
-		rel_cnt += cells.at(i)->update_VTK_Indices(id);
+		rel_cnt += cells.at(i)->update_VTK_Indices(id, cytoplasm);
 	}
 
 	//cout << "final ID: " << id << endl;
@@ -327,6 +327,7 @@ int Tissue::update_VTK_Indices() {
 
 	return rel_cnt;
 }
+
 void Tissue::print_VTK_Direction_File(ofstream& ofs){
 	
 	ofs << "# vtk DataFile Version 3.0" << endl;
@@ -366,8 +367,9 @@ void Tissue::print_VTK_Direction_File(ofstream& ofs){
 	return;
 }
 
-void Tissue::print_VTK_File(ofstream& ofs) {
-	int rel_cnt = update_VTK_Indices();
+void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
+	//Argument of update_VTK_indices is cytoplasm, whether or not to index cyt nodes.
+	int rel_cnt = update_VTK_Indices(cytoplasm);
 	
 	ofs << "# vtk DataFile Version 3.0" << endl;
 	ofs << "Point representing Sub_cellular elem model" << endl;
@@ -378,7 +380,11 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	//Need total number of points for all cells
 	int num_Points = 0;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		num_Points += cells.at(i)->get_Node_Count();
+		if (cytoplasm) { 
+			num_Points += cells.at(i)->get_Node_Count();
+		} else { 
+			num_Points += cells.at(i)->get_wall_count();
+		}
 	}
 	
 	ofs << "POINTS " << num_Points << " float64" << endl;
@@ -388,7 +394,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	int count = 0;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		start_points.push_back(count);
-		cells.at(i)->print_VTK_Points(ofs,count);
+		cells.at(i)->print_VTK_Points(ofs,count,cytoplasm);
 		end_points.push_back(count - 1);
 	}
 
@@ -398,9 +404,14 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	//ofs << "CELLS " << cells.size()<< ' ' << (num_Points + start_points.size())  << endl;
 	
 	//to be used for visualizing adh springs
-	ofs << "CELLS " << cells.size()+rel_cnt<< ' ' << (num_Points + start_points.size())+(rel_cnt*3)  << endl;
+	ofs << "CELLS " << cells.size() + rel_cnt<< ' ' << 
+		(num_Points + start_points.size()) + (rel_cnt*3)  << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		ofs << cells.at(i)->get_Node_Count();
+		if (cytoplasm) { 
+			ofs << cells.at(i)->get_Node_Count();
+		} else { 
+			ofs << cells.at(i)->get_wall_count();
+		}
 
 		for (int k = start_points.at(i); k <= end_points.at(i); k++) {
 			ofs << ' ' << k;
@@ -437,7 +448,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << "SCALARS WUS float64 " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_WUS(ofs);
+		cells.at(i)->print_VTK_Scalars_WUS(ofs, cytoplasm);
 	}
 
 	ofs << endl;
@@ -445,7 +456,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << "SCALARS CK  float64 " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_CK(ofs);
+		cells.at(i)->print_VTK_Scalars_CK(ofs, cytoplasm);
 	}
 
 	ofs << endl;
@@ -458,32 +469,42 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << endl;
 	*/
 
-	ofs << "Scalars wall_pressure float64" << 1 <<endl;
+	ofs << "Scalars wall_pressure float64" << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_Node(ofs);
+		cells.at(i)->print_VTK_Scalars_Node(ofs, cytoplasm);
 	}
 
 	ofs << endl;
 	
-	ofs << "Scalars tensile_stress float64" << 1 <<endl;
+	ofs << "Scalars tensile_stress float64" << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Tensile_Stress(ofs);
+		cells.at(i)->print_VTK_Tensile_Stress(ofs, cytoplasm);
 	}
 
 	ofs << endl;
 
-	ofs << "Scalars shear_stress float64" << 1 <<endl;
+	ofs << "Scalars shear_stress float64" << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Shear_Stress(ofs);
+		cells.at(i)->print_VTK_Shear_Stress(ofs, cytoplasm);
+	}
+
+	ofs << endl;
+
+	//IN PROGRESS
+	/*
+	ofs << "Scalars Neighbors float64" << 1 << endl;
+	ofs << "LOOKUP_TABLE default" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Neighbors(ofs, cytoplasm);
 	}
 
 	ofs << endl;
 	return;
+	*/
 }
-
 
 //=========================
 //End of tissue.cpp

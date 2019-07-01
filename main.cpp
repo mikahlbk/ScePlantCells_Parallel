@@ -32,6 +32,9 @@ int main(int argc, char* argv[]) {
 	// stores vtk files, given in run.sh
 	//usually called Animate1
 	string anim_folder = argv[1];
+	//Reads in the name of folder that stores VTK files for
+	//visualization without cytoplasm nodes.
+	string no_cyt_folder = argv[4];
 	//reads in name of folder that 
 	//stores data output, given in run.sh
 	string nem_folder = argv[3];
@@ -67,6 +70,10 @@ int main(int argc, char* argv[]) {
 	ofstream ofs_anim;
 	int out = 0;
 
+	string noCyt_Filename;
+	ofstream ofs_noCyt;
+	string no_cyt_initial = "/Plant_Cell_NC_";
+
 	int digits2;
 	string Number2;
 	string initial2 = "/Direction_Vec_";
@@ -83,7 +90,7 @@ int main(int argc, char* argv[]) {
 	//loop for time steps
 	//which matlab file tells you how many
 	//seconds each time step reprsents (2.5?)
-	for(int Ti = 0; Ti*dt< numSteps; Ti++) {
+	for(int Ti = 0; Ti*dt < numSteps; Ti++) {
 
 
 		//keep track of simulation runs
@@ -173,11 +180,18 @@ int main(int argc, char* argv[]) {
 				Number = "0" + to_string(out);
 			}
 
-			Filename = anim_folder+ initial + Number + format;
+			Filename = anim_folder + initial + Number + format;
 
 			ofs_anim.open(Filename.c_str());
-			growing_Tissue.print_VTK_File(ofs_anim);
+			growing_Tissue.print_VTK_File(ofs_anim,true);
 			ofs_anim.close();	
+
+			noCyt_Filename = no_cyt_folder + no_cyt_initial + Number + format;
+
+			ofs_noCyt.open(noCyt_Filename.c_str());
+			growing_Tissue.print_VTK_File(ofs_noCyt,false);
+			ofs_noCyt.close();	
+
 			out++;
 		}
 		if(Ti%1000==0) {
