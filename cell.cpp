@@ -872,11 +872,37 @@ void Cell::update_Neighbor_Cells() {
 }
 
 //Updates a vector of cells that are connected to this via adhesion.
-//IN PROGRESS
-/*void Cell::update_Adh_Neighbors() { 
+void Cell::update_Adh_Neighbors() { 
 	vector<shared_ptr<Cell>> temp;
-	//IN PROGRESS
-}*/
+	shared_ptr<Wall_Node> curr = left_Corner;
+	shared_ptr<Wall_Node> next = NULL;
+	shared_ptr<Wall_Node> orig = curr;
+	shared_ptr<Wall_Node> partner = NULL;
+	shared_ptr<Cell> partnerCell = NULL; 
+	bool unlisted_neighbor;
+	do { 
+		next = curr->get_Left_Neighbor();
+		for (unsigned int i = 0; i < curr->get_adh_vec().size(); i++) { 
+			unlisted_neighbor = true;
+			partner = curr->get_adh_vec().at(i);
+			partnerCell = partner->get_My_Cell();
+			for (unsigned int j = 0; j < temp.size(); j++) { 
+				if (temp.at(j) == partnerCell) {
+					unlisted_neighbor = false;
+					break;
+				}
+			}
+			if (unlisted_neighbor) { 
+				temp.push_back(partnerCell);
+			}
+		}
+		curr = next;
+	} while(next != orig);
+	
+	adh_neighbors = temp;
+
+	return;
+}
 //each cell wall node holds a vector of adhesion 
 //connections and this function clears that for
 //all cell wall nodes in the cell
@@ -1723,11 +1749,36 @@ void Cell::print_VTK_Shear_Stress(ofstream& ofs, bool cytoplasm) {
 	}
 	return;
 }
-/*
-IN PROGRESS
+
 void Cell::print_VTK_Neighbors(ofstream& ofs, bool cytoplasm) {
 	shared_ptr<Wall_Node> currW = left_Corner;
-	double color = static_cast<double>(num_Neighbors());
+	update_Adh_Neighbors();	
+	unsigned int color;
+	int neigh = num_Neighbors();
+	//Switch statement sets color value for number of neighbors
+	//where values correspond to colors in discrete_colors lookup
+	//table, in print_VTK_File in tissue.cpp.
+	switch (neigh) {
+		case 4: 
+			color = 1;
+			break;
+		case 5: 
+			color = 2;
+			break;
+		case 6: 
+			color = 3;
+			break;
+		case 7: 
+			color = 4;
+			break;
+		default: 
+			if (neigh <= 3) { 
+				color = 0;
+			} else if (neigh >= 8) {
+				color = 5;
+			} 
+	}
+
 	do {
 		ofs << color << endl;
 		currW = currW->get_Left_Neighbor();
@@ -1739,7 +1790,39 @@ void Cell::print_VTK_Neighbors(ofstream& ofs, bool cytoplasm) {
 	}
 	return;
 }
-*/
+
+void Cell::print_VTK_Growth_Dir(ofstream& ofs, bool cytoplasm) {
+	shared_ptr<Wall_Node> currW = left_Corner;
+	Coord vert(0,1);
+	Coord horiz(1,0);
+	Coord iso(0,0);
+	int color;
+	//Color-number combinations are listed in tissue.cpp
+	//under print_VTK_File(...), discrete_colors lookup table
+	if (this->growth_direction == vert) {
+		//Vertical growth gives Red 
+		color = 3;
+	} else if (this->growth_direction == horiz) { 
+		//Horizontal growth gives Blue
+		color = 4;
+	} else if (this->growth_direction == iso) { 
+		//Isotropic growth gives Green
+		color = 2;
+	} else { 
+		//Error gives white
+		color = 5;
+	}
+	do {
+		ofs << color << endl;
+		currW = currW->get_Left_Neighbor();
+	} while(currW != left_Corner);
+	if (cytoplasm) {
+		for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+			ofs << color << endl;
+		}
+	}
+	return;
+}
 /*		   
 		   void Cell::print_VTK_Scalars_Total(ofstream& ofs, bool cytoplasm) {
 

@@ -128,7 +128,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//adhesion
 		void clear_adhesion_vectors();
 		void update_adhesion_springs();
-		// IN PROGRESS void update_Adh_Neighbors();
+		void update_Adh_Neighbors();
 
 		//Forces and Positionsing
 		void calc_New_Forces(int Ti);
@@ -157,7 +157,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//Output Functions
 		void print_Data_Output(ofstream& ofs);
 		int update_VTK_Indices(int& id,bool cytoplasm);
-		int num_Neighbors() {return neigh_cells.size();} 
+		int num_Neighbors() {return adh_neighbors.size();} 
 		void print_VTK_Adh(ofstream& ofs);
 		Coord average_coordinates();
 		void print_direction_vec(ofstream& ofs);
@@ -175,6 +175,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_VTK_Tensile_Stress(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Shear_Stress(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Neighbors(ofstream& ofs, bool cytoplasm); 
+		void print_VTK_Growth_Dir(ofstream& ofs, bool cytoplasm); 
 
 		//Division 
 		shared_ptr<Cell> division();

@@ -493,17 +493,33 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 
 	ofs << endl;
 
-	//IN PROGRESS
-	/*
 	ofs << "Scalars Neighbors float64" << 1 << endl;
-	ofs << "LOOKUP_TABLE default" << endl;
+	ofs << "LOOKUP_TABLE discrete_colors" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Neighbors(ofs, cytoplasm);
 	}
 
 	ofs << endl;
+
+	ofs << "Scalars Growth_Direction float64" << 1 << endl;
+	ofs << "LOOKUP_TABLE discrete_colors" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Growth_Dir(ofs, cytoplasm);
+	}
+	ofs << endl;
+
+	ofs << "LOOKUP_TABLE discrete_colors 6" << endl;
+	ofs << "255 255 0 1" << endl; // Yellow = 0
+	ofs << "165 45 42 1" << endl; // Brown = 1
+	ofs << "0 128 0 1" << endl; // Green = 2
+	ofs << "255 0 0 1" << endl; // Red = 3
+	ofs << "0 0 255 1" << endl; // Blue = 4
+	ofs << "255 255 255 1" << endl; // White = 5;
+
+
+	ofs << endl;
+	
 	return;
-	*/
 }
 
 //=========================
