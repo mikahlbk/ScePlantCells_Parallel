@@ -37,18 +37,18 @@ int main(int argc, char* argv[]) {
 	string no_cyt_folder = argv[4];
 	//reads in name of folder that 
 	//stores data output, given in run.sh
-	string nem_folder = argv[3];
+	string locations_cyt_folder = argv[3];
 	//this is a folder that holds node
 	//locations in the fashion that weitao 
 	//asked for to couple the models
-	string locations_folder = argv[2];
+	string locations_no_cyt_folder = argv[2];
 	//keep track of time
 	int start = clock();	
 
 	//.txt file that tells initial
 	//cell configuration 
 	//cout << "before cell file is read in" << endl;
-	string init_tissue = "cell_maker.txt";
+	string init_tissue = "one_cell.txt";
 	//cout << "Read in cell starter" << endl;	
 
 	//instantiate tissue
@@ -76,16 +76,16 @@ int main(int argc, char* argv[]) {
 
 	int digits2;
 	string Number2;
-	string initial2 = "/Direction_Vec_";
-	string nem_Filename;
-	ofstream ofs_nem;
+	string Locations_no_cyt;
+	ofstream ofs_loc_no_cyt;
 	int out2 = 0;
 
-
-	ofstream ofs_loc;
-	string locations_Filename;
+	int digits3;
+	string Number3;
+	string Locations_cyt;
+	ofstream ofs_loc_cyt;
 	string locations_initial = "/Locations_";
-	// UNUSED int Number3 = 0;
+	int out3 = 0;
 
 	//loop for time steps
 	//which matlab file tells you how many
@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
 
 			out++;
 		}
-		if(Ti%1000==0) {
+		/*if(Ti%1000==0) {
 			digits2 = ceil(log10(out2 + 1));
 			if (digits2 == 1 || digits2 == 0) {
 				Number2 = "0000" + to_string(out2);
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
 			growing_Tissue.print_VTK_Direction_File(ofs_nem);
 			ofs_nem.close();	
 			out2++;
-		}
+		}*/
 		//data output from simulations
 		//for cell center etc
 		/*if(Ti%5000 == 1){
@@ -231,7 +231,27 @@ int main(int argc, char* argv[]) {
 		  growing_Tissue.locations_output(ofs_loc);
 		  ofs_loc.close();
 		  Number3++;
-		  }*/
+		  }
+
+			nem_Filename = nematic_folder + nem_initial + to_string(Number2) + ".txt";
+			ofs_nem.open(nem_Filename.c_str());
+			growing_Tissue.nematic_output(ofs_nem);
+			ofs_nem.close();
+			Number2++;
+		}*/
+		//locations with cyt nodes
+		if(Ti%1000 == 1){
+			Locations_no_cyt = locations_no_cyt_folder + locations_initial + to_string(out2) + ".txt";
+			ofs_loc_no_cyt.open(Locations_no_cyt.c_str());
+			growing_Tissue.locations_output_no_cyt(ofs_loc_no_cyt);
+			ofs_loc_no_cyt.close();
+			out2++;
+			Locations_cyt = locations_cyt_folder + locations_initial + to_string(out3) + ".txt";
+			ofs_loc_cyt.open(Locations_cyt.c_str());
+			growing_Tissue.locations_output_cyt(ofs_loc_cyt);
+			ofs_loc_cyt.close();
+			out3++;
+		}
 
 	}
 	/*nem_Filename = nematic_folder + nem_initial + to_string(Number2) + ".txt";
