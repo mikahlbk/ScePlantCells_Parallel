@@ -151,6 +151,7 @@ class Cell: public enable_shared_from_this<Cell> {
 
 		//Functions for Division
 		void find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_Node>>& nodes, int search_amount);
+		void find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& nodes);
 		void move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_Node> second, vector<shared_ptr<Wall_Node>>& daughter_ends);
 		void move_cyt_nodes(Coord center_pt);
 		Coord produce_random_vec();	
@@ -162,9 +163,9 @@ class Cell: public enable_shared_from_this<Cell> {
 		Coord average_coordinates();
 		void print_direction_vec(ofstream& ofs);
 
-		/*void print_locations_cyt(ofstream& ofs);
+		void print_locations_cyt(ofstream& ofs);
 		void print_locations_no_cyt(ofstream& ofs);
-		void print_VTK_Points(ofstream& ofs, int& count);
+		/*void print_VTK_Points(ofstream& ofs, int& count);
 		void print_VTK_Scalars_Wall_Pressure(ofstream& ofs);
 		void print_VTK_Scalars_Average_Pressure(ofstream& ofs);
 		void print_VTK_Scalars_Average_Pressure_cell(ofstream& ofs);

@@ -80,7 +80,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//wall nodes initialized in tissue constructor which 
 	//calls the make nodes function on each new cell
 	num_wall_nodes = 0;
-	Cell_Progress = unifRandInt(0,10);
+	Cell_Progress = 13;//unifRandInt(0,10);
 	this->cell_center = center;
 	//this gets reupdated after singal is assigned
 	//in tissue constructor
@@ -90,7 +90,6 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	else if(this->stem == 1){
 		this->growth_direction = Coord(0,1);
 	}
-<<<<<<< HEAD
         else if((this->layer == 1)||(this->layer == 2)) {
                  this->growth_direction = Coord(1,0);
         }
@@ -104,13 +103,6 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 		else{
 			this->growth_direction = Coord(0,1);
 		}
-=======
-	else if((this->layer == 1)||(this->layer == 2)) {
-		this->growth_direction = Coord(1,0);
-	}
-	else{
-		this->growth_direction = Coord(0,1);
->>>>>>> d1da273d4c7e40f38862b89b353b0ba64694090f
 	}
 
 	//cout << "layer" << this->layer << endl;
@@ -504,7 +496,7 @@ void Cell::set_growth_rate() {
 	  this->growth_rate = unifRandInt(27000,30000);
 	  }*/
 	//if(this->cytokinin > 1200){
-	//	this->growth_rate = unifRandInt(2000,5000);
+		this->growth_rate = 2000;//unifRandInt(2000,5000);
 	//}
 
 	return;
