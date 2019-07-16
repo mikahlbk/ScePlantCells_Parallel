@@ -681,7 +681,7 @@ double Wall_Node::calc_Shear_Stress() {
 
 		if (center_to_node.dot(left_outward) <= 0) left_outward = Coord(0,0) - left_outward;
 		if (center_to_node.dot(right_outward) <= 0) right_outward = Coord(0,0) - right_outward;
-		cout << "CIRCLE FAILED" << endl;
+		//cout << "CIRCLE FAILED" << endl;
 	}
 	//D is the vector between this and the adhesion partner. 
 	shared_ptr<Wall_Node> me = shared_from_this(); 

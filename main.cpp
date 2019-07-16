@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
 	//.txt file that tells initial
 	//cell configuration 
 	//cout << "before cell file is read in" << endl;
-	string init_tissue = "one_cell.txt";
+	string init_tissue = "cell_maker.txt";
 	//cout << "Read in cell starter" << endl;	
 
 	//instantiate tissue
@@ -74,13 +74,13 @@ int main(int argc, char* argv[]) {
 	ofstream ofs_noCyt;
 	string no_cyt_initial = "/Plant_Cell_NC_";
 
-	int digits2;
+	//int digits2;
 	string Number2;
 	string Locations_no_cyt;
 	ofstream ofs_loc_no_cyt;
 	int out2 = 0;
 
-	int digits3;
+	//int digits3;
 	string Number3;
 	string Locations_cyt;
 	ofstream ofs_loc_cyt;
@@ -96,6 +96,7 @@ int main(int argc, char* argv[]) {
 		//keep track of simulation runs
 		if (Ti %1000 == 0) {
 			//	cout << "Simulation still running. Ti: " << Ti << endl;
+			cout << "Time = " << Ti << endl;
 		}
 
 		// Tissue Growth
