@@ -1518,16 +1518,18 @@ void Cell::print_direction_vec(ofstream& ofs){
 
 	return;
 }
-void Cell::print_locations_cyt(ofstream& ofs) {
+void Cell::print_locations(ofstream& ofs,bool cytoplasm) {
 	///ofs << this->get_Rank() << ' ' << this->get_Layer();
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
 	shared_ptr<Wall_Node> orig = curr_wall;
+	int num_neighbors = num_Neighbors();
 	//	cout << "knows left corner" << endl;
+
 	do {
 
 
 		Coord loc = curr_wall->get_Location();
-		ofs << this->get_Rank()<<' '<< loc.get_X() << ' ' << loc.get_Y() <<' '<< 1 << endl;
+		ofs << this->get_Rank()<<' '<< loc.get_X() << ' ' << loc.get_Y() << " 1 " << num_neighbors <<  endl;
 		//cout<< "maybe cant do left neighbor" << endl;
 		curr_wall = curr_wall->get_Left_Neighbor();
 
@@ -1536,29 +1538,12 @@ void Cell::print_locations_cyt(ofstream& ofs) {
 
 	//cout << "walls worked" << endl;
 
-	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
-	
-		Coord loc = cyt_nodes.at(i)->get_Location();
-		ofs << this->get_Rank()<<' '<< loc.get_X() << ' ' << loc.get_Y() << ' '<< 0 << endl;
+	if(cytoplasm) {
+		for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+			Coord loc = cyt_nodes.at(i)->get_Location();
+			ofs << this->get_Rank() << ' '<< loc.get_X() << ' ' << loc.get_Y() << " 0 " << num_neighbors << endl;
+		}
 	}
-	return;
-}
-void Cell::print_locations_no_cyt(ofstream& ofs) {
-	///ofs << this->get_Rank() << ' ' << this->get_Layer();
-	shared_ptr<Wall_Node> curr_wall = left_Corner;
-	shared_ptr<Wall_Node> orig = curr_wall;
-	//	cout << "knows left corner" << endl;
-	do {
-
-
-		Coord loc = curr_wall->get_Location();
-		ofs << this->get_Layer() <<' '<< this->get_Rank() <<' '<< loc.get_X() << ' ' << loc.get_Y() <<endl;
-		//cout<< "maybe cant do left neighbor" << endl;
-		curr_wall = curr_wall->get_Left_Neighbor();
-	
-	//cout << "did it  " << count << endl;
-	} while (curr_wall != orig);
-	
 	return;
 }
 void Cell::print_VTK_Points(ofstream& ofs, int& count, bool cytoplasm) {

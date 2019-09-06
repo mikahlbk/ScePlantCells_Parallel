@@ -236,18 +236,10 @@ void Tissue::update_Cell_Locations(int Ti) {
 	return;
 }
 
-void Tissue::locations_output_cyt(ofstream& ofs){
+void Tissue::locations_output(ofstream& ofs, bool cytoplasm){
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_locations_cyt(ofs);
+		cells.at(i)->print_locations(ofs,cytoplasm);
 	}
-
-return;
-}
-void Tissue::locations_output_no_cyt(ofstream& ofs){
-	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_locations_no_cyt(ofs);
-	}
-
 return;
 }
 /*void Tissue::nematic_output(ofstream& ofs){

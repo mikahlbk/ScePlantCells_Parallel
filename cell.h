@@ -163,8 +163,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		Coord average_coordinates();
 		void print_direction_vec(ofstream& ofs);
 
-		void print_locations_cyt(ofstream& ofs);
-		void print_locations_no_cyt(ofstream& ofs);
+		void print_locations(ofstream& ofs,bool cytoplasm);
 		/*void print_VTK_Points(ofstream& ofs, int& count);
 		void print_VTK_Scalars_Wall_Pressure(ofstream& ofs);
 		void print_VTK_Scalars_Average_Pressure(ofstream& ofs);

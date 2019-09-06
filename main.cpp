@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 		//growing_Tissue.BAD_CATCH(3,Ti);
 		//adds one new cell wall node per cell everytime it is called
 		//dont call it right away to give cell time to find initial configuration
-		if(Ti>= 10000){
+		if(Ti >= 10000){
 			if(Ti%1000 == 0){	
 				//cout << "add new cell wall nodes if needed" << endl;
 				growing_Tissue.add_Wall(Ti);
@@ -252,12 +252,12 @@ int main(int argc, char* argv[]) {
 		if(Ti%1000 == 1){
 			Locations_no_cyt = locations_no_cyt_folder + locations_initial + to_string(out2) + ".txt";
 			ofs_loc_no_cyt.open(Locations_no_cyt.c_str());
-			growing_Tissue.locations_output_no_cyt(ofs_loc_no_cyt);
+			growing_Tissue.locations_output(ofs_loc_no_cyt,false);
 			ofs_loc_no_cyt.close();
 			out2++;
 			Locations_cyt = locations_cyt_folder + locations_initial + to_string(out3) + ".txt";
 			ofs_loc_cyt.open(Locations_cyt.c_str());
-			growing_Tissue.locations_output_cyt(ofs_loc_cyt);
+			growing_Tissue.locations_output(ofs_loc_cyt,true);
 			ofs_loc_cyt.close();
 			out3++;
 		}
