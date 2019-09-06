@@ -33,7 +33,7 @@ class Node{
         	virtual Coord get_Location() {return my_loc;}
 		virtual Coord get_Force() {return new_force;}
 		virtual void set_Damping(double new_damping);
-		virtual void update_Location();
+		virtual void update_Location(int Ti);
        		virtual void update_VTK_Id(int id);
 		virtual int get_VTK_Id() {return vtk_id;}
 	//other functions might be executed differently based on
@@ -131,6 +131,8 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord calc_Bending();
 		Coord calc_Morse_DC(int Ti);
 		Coord neighbor_nodes(shared_ptr<Cell> neighbor,int Ti);
+		void getCircleVars(double& h, double& k);
+		Coord calc_Outward_Vector(); 
 		
 		// Mathematical Force Equations
 		Coord morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti);
@@ -145,7 +147,6 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		//Stress Calculations
 		double calc_Tensile_Stress();
 		double calc_Shear_Stress();
-		void getCircleVars(double& h, double& k);
 
 };
 //===========================

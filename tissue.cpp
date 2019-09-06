@@ -93,6 +93,11 @@ void Tissue::get_Cells(vector<shared_ptr<Cell>>& cells) {
 void Tissue::update_Num_Cells(shared_ptr<Cell>& new_Cell) {
 	num_cells++;
 	//cout << num_cells << endl;
+	if (isnan(new_Cell->get_Left_Corner()->get_Location().get_X())) { 
+		cout << "Passed a bad cell!" << endl;
+		cout << "Num_Cells:" << endl;
+		exit(1);
+	}
 	cells.push_back(new_Cell);
 	return;
 }
@@ -100,7 +105,7 @@ Coord Tissue::Compute_L1_AVG(){
 	Coord avg;
 	double avgx = 0;
 	double avgy = 0;
-	for(unsigned int i= 0; i< cells.size(); i++){
+	for(unsigned int i = 0; i< cells.size(); i++){
 		if(cells.at(i)->get_Layer() == 1){
 			avgx = avgx + cells.at(i)->get_Cell_Center().get_X();
 			avgy = avgy + cells.at(i)->get_Cell_Center().get_Y();
@@ -129,7 +134,7 @@ void Tissue::update_Signal(){
 }
 void Tissue::update_growth_direction(){
 	
-	for(int i =0; i < num_cells; i++){
+	for(int i = 0; i < num_cells; i++){
 		cells.at(i)->update_growth_direction();
 	}
 	return;
@@ -163,11 +168,11 @@ void Tissue::delete_Wall(int Ti) {
 //updates adhesion springs for each cell
 void Tissue::update_Adhesion() {
 	#pragma omp parallel for schedule(static,1)
-	for(unsigned int i=0;i<cells.size();i++) {
+	for(unsigned int i = 0;i<cells.size();i++) {
 		//cout << "Updating adhesion for cell" << i <<  endl;
 		cells.at(i)->clear_adhesion_vectors();
 	}
-	for(unsigned int i=0;i<cells.size();i++) {
+	for(unsigned int i = 0;i<cells.size();i++) {
 		cells.at(i)->update_adhesion_springs();
 	}
 	return;
@@ -175,7 +180,7 @@ void Tissue::update_Adhesion() {
 //this function is not in use
 void Tissue::update_Linear_Bending_Springs(){
 	#pragma omp parallel for schedule(static,1)
-	for(unsigned int i = 0;i<cells.size();i++){
+	for(unsigned int i = 0; i < cells.size(); i++){
 		cells.at(i)->update_Linear_Bending_Springs();
 	}
 	return;
@@ -221,7 +226,7 @@ void Tissue::calc_New_Forces(int Ti) {
 void Tissue::update_Cell_Locations(int Ti) {
 	#pragma omp parallel for schedule(static,1)	
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->update_Node_Locations();
+		cells.at(i)->update_Node_Locations(Ti);
 		//if(Ti%5000 == 0){
 		//vector<pair<shared_ptr<Wall_Node>,double>> nodes;
 		//cells.at(i)->find_Largest_Length(nodes);
@@ -253,56 +258,56 @@ return;
 		ofs << cells.at(i)->get_Rank() << endl;
 	}*/
 	//ofs << "average vec" << endl;
-	/*for(unsigned int i=0; i < cells.size(); i++) {
+	/*for(unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->nematic(average, angle);
 		ofs<< average.get_X() << endl;
 	}
 	//ofs << "average vec" << endl;
-	for(unsigned int i=0; i < cells.size(); i++) {
+	for(unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->nematic(average, angle);
 		ofs << average.get_Y() << endl;
 	}
 	//ofs << "angles" << endl;
-	for(unsigned int i=0; i < cells.size(); i++) {
+	for(unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->nematic(average, angle);
 		ofs<< angle << endl;
 	}
 	//ofs<< "centers2" << endl;
-	//for(unsigned int i=0; i< cells.size();i++) {
+	//for(unsigned int i = 0; i< cells.size();i++) {
 	//	if(cells.at(i)->get_Layer() ==2){
 	//		ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
 	//	}
 	//}
-	//for(unsigned int i=0; i< cells.size();i++) {
+	//for(unsigned int i = 0; i< cells.size();i++) {
 	//	if(cells.at(i)->get_Layer() ==2){
 	//		ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
 	//	}
 	//}
 	//ofs << "centers1" << endl;
-	//for(unsigned int i=0; i< cells.size();i++) {
+	//for(unsigned int i = 0; i< cells.size();i++) {
 	//	if(cells.at(i)->get_Layer() ==1){
 	//		ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
 	//	}
 	//}
 	//ofs << "centers1" << endl;
-	//for(unsigned int i=0; i< cells.size();i++) {
+	//for(unsigned int i = 0; i< cells.size();i++) {
 	//	if(cells.at(i)->get_Layer() ==1){
 	//		ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
 	//	}
 	//}
 	//ofs << "centers2" << endl;
-	for(unsigned int i=0; i< cells.size();i++) {
+	for(unsigned int i = 0; i< cells.size();i++) {
 	//	if(cells.at(i)->get_Layer() ==2){
 			ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
 	//	}
 	}
 	//ofs << "centers1" << endl;
-	for(unsigned int i=0; i< cells.size();i++) {
+	for(unsigned int i = 0; i< cells.size();i++) {
 	//	if(cells.at(i)->get_Layer() ==2){
 			ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
 	//	}
 	}
-	//for(unsigned int i=0; i< cells.size();i++) {
+	//for(unsigned int i = 0; i< cells.size();i++) {
 	//	ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
 	//	ofs <<cells.at(i)->get_Cell_Center().get_Y() << endl;
 	//}
@@ -515,19 +520,49 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 	}
 	ofs << endl;
 
-	ofs << "LOOKUP_TABLE discrete_colors 6" << endl;
-	ofs << "255 255 0 1" << endl; // Yellow = 0
-	ofs << "165 45 42 1" << endl; // Brown = 1
-	ofs << "0 128 0 1" << endl; // Green = 2
-	ofs << "255 0 0 1" << endl; // Red = 3
-	ofs << "0 0 255 1" << endl; // Blue = 4
-	ofs << "255 255 255 1" << endl; // White = 5;
-
-
+	ofs << "Scalars Curved_Walls float64" << 1 << endl;
+	ofs << "LOOKUP_TABLE discrete_colors" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Curved(ofs, cytoplasm);
+	}
 	ofs << endl;
+
 	
 	return;
 }
 
+void Tissue::NAN_CATCH(int Ti) {
+	#pragma omp parallel for schedule(static,1)	
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->NAN_CATCH(Ti);
+	}
+	return;
+}
+ 
+void Tissue::BAD_CATCH(int call, int Ti) { 
+	unsigned int ui_num_cells = num_cells;
+	if (cells.size() != ui_num_cells) { 
+		cout << "BAD_CATCH num_cells disparity triggered at location " << call << " at Time = " << Ti << endl;
+	}
+	if (num_cells < 0) { 
+		cout << "Negative num_cells at location " << call << " at Time = " << Ti << endl;
+	}
+	double x_curr, y_curr, x_neigh, y_neigh;
+	for (unsigned int i = 0; i < cells.size(); i++) { 
+		x_curr = cells.at(i)->get_Left_Corner()->get_Location().get_X();
+		y_curr = cells.at(i)->get_Left_Corner()->get_Location().get_Y();
+		x_neigh = cells.at(i)->get_Left_Corner()->get_Right_Neighbor()->get_Location().get_X();
+		y_neigh = cells.at(i)->get_Left_Corner()->get_Right_Neighbor()->get_Location().get_Y();
+
+		if (isnan(x_curr) || isnan(y_curr)) { 
+			cout << "Bad X-coord in left corner of cell " << cells.at(i)->get_Rank() << " call " << call << " Time = " << Ti;
+		}
+		if (x_curr == x_neigh && y_curr == y_neigh) { 
+			cout << "Overlapping nodes in cell " << cells.at(i)->get_Rank() << " call " << call << " Time = " << Ti;
+			cout << "x_curr = " << x_curr << endl << "; y_curr = " << y_curr << endl;
+		}
+	}
+	return;
+}
 //=========================
 //End of tissue.cpp

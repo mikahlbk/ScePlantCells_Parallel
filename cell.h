@@ -132,7 +132,7 @@ class Cell: public enable_shared_from_this<Cell> {
 
 		//Forces and Positionsing
 		void calc_New_Forces(int Ti);
-		void update_Node_Locations();
+		void update_Node_Locations(int Ti);
 
 		//Growth of a cell
 		void update_Cell_Progress(int& Ti);
@@ -191,10 +191,14 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_VTK_Tensile_Stress(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Shear_Stress(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Neighbors(ofstream& ofs, bool cytoplasm); 
+		void print_VTK_Curved(ofstream& ofs, bool cytoplasm); 
 		void print_VTK_Growth_Dir(ofstream& ofs, bool cytoplasm); 
+		vector<pair<double,shared_ptr<Wall_Node>>> get_Angle_Wall_Sorted();
 
 		//Division 
 		shared_ptr<Cell> division();
+		//Debugging
+		void NAN_CATCH(int Ti);
 };
 
 

@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 	ofs << "#SBATCH --mem-per-cpu=" << mem << "G\n";
 	ofs << "#SBATCH --time=0-" << hours << ":" << mins << ":00\n";
 	ofs << "#SBATCH --output=my"<< test << ".stdout\n";
-	ofs << "#SBATCH --job-name=\"test_" << test << "\"\n";
+	ofs << "#SBATCH --job-name=\"" << test << "\"\n";
 	ofs << "#SBATCH -p " << p << " \n";
 
 	ofs << "export OMP_NUM_THREADS " << cores << "\n";

@@ -97,6 +97,7 @@ int main(int argc, char* argv[]) {
 		if (Ti %1000 == 0) {
 			//	cout << "Simulation still running. Ti: " << Ti << endl;
 			cout << "Time = " << Ti << endl;
+			//growing_Tissue.NAN_CATCH(Ti);
 		}
 
 		// Tissue Growth
@@ -104,14 +105,17 @@ int main(int argc, char* argv[]) {
 		//fills vector of neighbor cells for each cell
 		//in tissue class this goes through each cell and calls
 		//updated neighbor on each cell
+		//growing_Tissue.BAD_CATCH(1,Ti);
 		if(Ti%5000==0) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}	
+		//growing_Tissue.BAD_CATCH(2,Ti);
 		if(Ti == 10000){
 			growing_Tissue.update_Signal();
 			growing_Tissue.update_growth_direction();
 		}
+		//growing_Tissue.BAD_CATCH(3,Ti);
 		//adds one new cell wall node per cell everytime it is called
 		//dont call it right away to give cell time to find initial configuration
 		if(Ti>= 10000){
@@ -120,6 +124,7 @@ int main(int argc, char* argv[]) {
 				growing_Tissue.add_Wall(Ti);
 			}
 		}
+		//growing_Tissue.BAD_CATCH(4,Ti);
 		//currently not in use
 		//was used previously to help stability of cells
 		//deletes a cell wall node if too close together
@@ -134,34 +139,36 @@ int main(int argc, char* argv[]) {
 				//cout << "adhesion early" << endl;
 				growing_Tissue.update_Adhesion();
 			}
-		}
-		else{	
+		} else {	
 			if(Ti%5000 == 0) {
 				//cout << "adhesion"<< endl;
 				growing_Tissue.update_Adhesion();
 			}
 		}
-
+		//growing_Tissue.BAD_CATCH(6,Ti);
 		//adds internal node according to 
 		//individual cell growth rate
 		if(Ti >= 10000){
 			//cout << "cell cycle" << endl;
 			growing_Tissue.update_Cell_Cycle(Ti);
 		}
-
+		//growing_Tissue.BAD_CATCH(7,Ti);
 		//will divide cell if time
 		//cout << "divide necessary cells" << endl;
 		if(Ti >= 10000){
 			growing_Tissue.division_check();
 		}
 
+		//growing_Tissue.BAD_CATCH(8,Ti);
 		//Calculate new forces on cells and nodes
 		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
+		//growing_Tissue.BAD_CATCH(9,Ti);
 
 		//Update node positions
 		//cout << "locations" << endl;
 		growing_Tissue.update_Cell_Locations(Ti);	
+		//growing_Tissue.BAD_CATCH(10,Ti);
 
 		//cout << "Finished" << endl;
 
@@ -195,6 +202,7 @@ int main(int argc, char* argv[]) {
 
 			out++;
 		}
+		//growing_Tissue.BAD_CATCH(11,Ti);
 		/*if(Ti%1000==0) {
 			digits2 = ceil(log10(out2 + 1));
 			if (digits2 == 1 || digits2 == 0) {
@@ -253,6 +261,7 @@ int main(int argc, char* argv[]) {
 			ofs_loc_cyt.close();
 			out3++;
 		}
+		//growing_Tissue.BAD_CATCH(12,Ti);
 
 	}
 	/*nem_Filename = nematic_folder + nem_initial + to_string(Number2) + ".txt";

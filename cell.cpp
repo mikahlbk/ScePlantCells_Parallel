@@ -496,20 +496,22 @@ void Cell::set_growth_rate() {
 	  this->growth_rate = unifRandInt(27000,30000);
 	  }*/
 	//if(this->cytokinin > 1200){
-		this->growth_rate = 2000;//unifRandInt(2000,5000);
+	//	this->growth_rate = 2000;//unifRandInt(2000,5000);
 	//}
 
 	return;
 }
 void Cell::update_growth_direction(){
 	//signaling stuff
-	if((this->layer == 1)||(this->layer ==2)){
+	if((this->layer == 1)||(this->layer ==2)) {
 		this->growth_direction = Coord(1,0);
-	}
-	else if(this->wuschel > this->cytokinin){
-		this->growth_direction = Coord(0,0);
-	}
-	else{
+	} else if(this->wuschel > this->cytokinin) {
+	//TEST
+		//s
+		//this->growth_direction = Coord(0,0);
+		//h
+		this->growth_direction = Coord(0,1);
+	} else {
 		this->growth_direction = Coord(0,1);
 	}
 
@@ -1002,7 +1004,7 @@ void Cell::calc_New_Forces(int Ti) {
 //calls update location
 //calls update cell center
 //calls update wall angles
-void Cell::update_Node_Locations() {
+void Cell::update_Node_Locations(int Ti) {
 	//update cyt nodes
 	vector<shared_ptr<Cyt_Node>> cyts;
 	this->get_Cyt_Nodes_Vec(cyts);
@@ -1010,7 +1012,7 @@ void Cell::update_Node_Locations() {
 	{
 #pragma omp for schedule(static,1)
 		for (unsigned int i = 0; i < cyts.size(); i++) {
-			cyts.at(i)->update_Location();
+			cyts.at(i)->update_Location(Ti);
 		}	
 	}
 
@@ -1022,7 +1024,7 @@ void Cell::update_Node_Locations() {
 #pragma omp for schedule(static,1)
 		for(unsigned int i=0; i< walls.size();i++) {
 			//cout << "update locaation" << endl;
-			walls.at(i)->update_Location();
+			walls.at(i)->update_Location(Ti);
 		}
 	}
 	//update cell_Center
@@ -1064,21 +1066,21 @@ void Cell::division_check(){
 		shared_ptr<Cell> new_Cell= this->division();
 		cout << "division success" << endl;
 		//cout << "Parent cell prog" << Cell_Progress<< endl;
-		//cout << "Sister cell prog" << new_Cell->get_Cell_Progress()<< endl;
+		cout << "Sister cell prog" << new_Cell->get_Cell_Progress()<< endl;
 		this->my_tissue->update_Num_Cells(new_Cell);
 		//setting info about new cell
 		//cout << "Num cells" << this->my_tissue->get_num_cells() << endl;
 		new_Cell->set_Rank(this->my_tissue->get_num_cells()-1);
 		//cout << "set rank" << endl;
 		cout << "Parent rank: " << this->rank << endl;
-		cout << "sister rank: " << new_Cell->get_Rank() << endl;
+		cout << "Sister rank: " << new_Cell->get_Rank() << endl;
 		cout << new_Cell->get_wall_count() << endl;
 		cout << new_Cell->get_cyt_count() << endl;
 		cout << this->get_wall_count() << endl;
 		cout << this->get_cyt_count() << endl;
-		cout << "parent" << this << endl;
+		cout << "Parent: " << this << endl;
 		cout << "Parent progress: " << this->get_Cell_Progress() << endl;
-		cout << "new cell" << new_Cell << endl;
+		cout << "New cell: " << new_Cell << endl;
 		cout << "New progress: " << new_Cell->get_Cell_Progress() << endl;
 
 		//layer in division function		
@@ -1747,8 +1749,6 @@ void Cell::print_VTK_Tensile_Stress(ofstream& ofs, bool cytoplasm) {
 	do {
 		color = currW->calc_Tensile_Stress();
 		ofs << color << endl;
-		cout << "Tensile" << color << endl;
-		cout << "Angle" << currW->get_Angle() << endl;
 		currW = currW->get_Left_Neighbor();
 	} while(currW != left_Corner);
 	if (cytoplasm) { 
@@ -1782,10 +1782,7 @@ void Cell::print_VTK_Neighbors(ofstream& ofs, bool cytoplasm) {
 	update_Adh_Neighbors();	
 	unsigned int color;
 	int neigh = num_Neighbors();
-	//Switch statement sets color value for number of neighbors
-	//where values correspond to colors in discrete_colors lookup
-	//table, in print_VTK_File in tissue.cpp.
-	switch (neigh) {
+	/*switch (neigh) {
 		case 4: 
 			color = 1;
 			break;
@@ -1804,7 +1801,10 @@ void Cell::print_VTK_Neighbors(ofstream& ofs, bool cytoplasm) {
 			} else if (neigh >= 8) {
 				color = 5;
 			} 
-	}
+	}*/
+	//Didn't do the whole lokoup table thing; so color is just the native
+	//number of neighbors.
+	color = neigh;
 
 	do {
 		ofs << color << endl;
@@ -1816,6 +1816,48 @@ void Cell::print_VTK_Neighbors(ofstream& ofs, bool cytoplasm) {
 		}
 	}
 	return;
+}
+
+void Cell::print_VTK_Curved(ofstream& ofs, bool cytoplasm) {
+	shared_ptr<Wall_Node> currW = left_Corner;
+	vector<pair<double,shared_ptr<Wall_Node>>> angle_wall_pairs = get_Angle_Wall_Sorted();
+	unsigned int truncate_index = static_cast<int>(angle_wall_pairs.size() * HIGH_ANGLE_DISCOUNT);
+	unsigned int color;
+	bool curved;
+	color = 0;
+	do {
+		curved = false;
+		for (unsigned int i = truncate_index; i < angle_wall_pairs.size(); i++) { 
+			if (currW == angle_wall_pairs.at(i).second) { 
+				curved = true;
+			}
+		}
+		color = (curved ? 2 : 1);
+		ofs << color << endl;
+		currW = currW->get_Left_Neighbor();
+	} while(currW != left_Corner);
+	if (cytoplasm) {
+		for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+			ofs << 0 << endl;
+		}
+	}
+	return;
+}
+
+vector<pair<double,shared_ptr<Wall_Node>>> Cell::get_Angle_Wall_Sorted() { 
+	vector<shared_ptr<Wall_Node>> mother_walls;
+	this->get_Wall_Nodes_Vec(mother_walls);
+	vector<pair<double,shared_ptr<Wall_Node>>> angle_node_pairs;
+	for (unsigned int i = 0; i < mother_walls.size(); i++) { 
+		angle_node_pairs.push_back(
+		make_pair(mother_walls.at(i)->get_Angle() , mother_walls.at(i))
+		);
+	}
+	//Note that sort defaults to sorting by the first element of pairs.
+	sort(angle_node_pairs.begin(),angle_node_pairs.end(), greater<>());
+
+	return angle_node_pairs; 
+
 }
 
 void Cell::print_VTK_Growth_Dir(ofstream& ofs, bool cytoplasm) {
@@ -1914,5 +1956,48 @@ return;
 
 
 
+//Debugging functions
+void Cell::NAN_CATCH(int Ti) { 
 
+	vector<shared_ptr<Cyt_Node>> cyts;
+	this->get_Cyt_Nodes_Vec(cyts);
+#pragma omp parallel 
+	{
+#pragma omp for schedule(static,1)
+		for (unsigned int i = 0; i < cyts.size(); i++) {
+			if (isnan(cyts.at(i)->get_Location().get_X())) {
+				cout << "Cyt node " << i << " in cell " << rank << " X NaN Ti=" << Ti << endl;
+			}
+			if (isnan(cyts.at(i)->get_Location().get_Y())) {
+				cout << "Cyt node " << i << " in cell " << rank << " Y NaN Ti=" << Ti << endl;
+			}
+		}	
+	}
+
+	//update wall nodes
+	vector<shared_ptr<Wall_Node>> walls;
+	this->get_Wall_Nodes_Vec(walls);
+#pragma omp parallel 
+	{	
+#pragma omp for schedule(static,1)
+		for (unsigned int i = 0; i < walls.size(); i++) {
+			if (isnan(walls.at(i)->get_Angle())) { 
+				cout << "Wall node " << i << " in cell " << rank << " angle NaN Ti=" << Ti << endl;
+			}
+			if (isnan(walls.at(i)->get_Location().get_X())) {
+				cout << "Wall node " << i << " in cell " << rank << " X NaN Ti=" << Ti << endl;
+			}
+			if (isnan(walls.at(i)->get_Location().get_Y())) {
+				cout << "Wall node " << i << " in cell " << rank << " Y NaN Ti=" << Ti << endl;
+			}
+		}	
+	}
+	//update cell_Center
+	update_Cell_Center();
+	//update wall_angles
+	if((this->life_length == 2000)) {
+		update_Wall_Equi_Angles();
+	}
+	return;
+}
 //////////////////////////////////

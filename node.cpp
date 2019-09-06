@@ -24,11 +24,18 @@ void Node::set_Damping(double new_damping){
 	this-> damping = new_damping;
 	return;
 }
-void Node::update_Location() {
+void Node::update_Location(int Ti) {
 	//cout << "New Force after" << new_force << endl;
 	//cout << "Location" << my_loc << endl;
 	//cout << "damping" << damping << endl;
 	//cout << "dt" << dt << endl;
+	if (isnan(new_force.get_X())|| isnan(new_force.get_Y())) { 
+		cout << "New force is NaN in update_Location() Ti=" << Ti << endl;
+	} else if (isnan(dt)) { 
+		cout << "dt is NaN in update_Location() Ti=" << Ti << endl;
+	} else if (isnan(damping)) { 
+		cout << "damping is NaN in update_Location() Ti=" << Ti << endl;
+	}
 	my_loc += new_force*dt*damping;
 	//cout << "updated" << my_loc << endl;
 	return;
@@ -227,7 +234,16 @@ void Wall_Node::update_Angle() {
 
 	double left_len = left_vect.length();
 	double right_len = right_vect.length();
+	
+	if (left_len * right_len == 0) { 
+		my_angle = 0;
+		cout << "Overlapping nodes in update_Angle()!" << endl;
+		return;
+	} else if (isnan(left_len * right_len) ) { 
+		cout << "NaN in update_Angle() Cell " << get_My_Cell()->get_Rank() << endl;
+		//exit(1);
 
+	}
 	double costheta = left_vect.dot(right_vect) / (left_len * right_len);
 	double theta = acos( min( max(costheta,-1.0), 1.0) );
 
@@ -604,6 +620,10 @@ Coord Wall_Node::linear_Equation(shared_ptr<Wall_Node> wall) {
 	Coord F_lin;
 	Coord diff_vect = wall->get_Location() - my_loc;
 	double diff_len = diff_vect.length();
+	if (diff_len == 0) { 
+		cout << "Overlapping walls in linear_Equation(), returning 0." << endl;
+		return Coord(0,0);
+	}
 
 	F_lin = (diff_vect/diff_len)*K_LINEAR*(diff_len - this->membr_equ_len);
 	//cout << "linear" << F_lin << endl;
@@ -624,6 +644,10 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 	Coord diff_vect = wall_loc - loc;
 	//	cout << "coord diff is : " << diff_vect << endl;
 	double diff_len = diff_vect.length();
+	if (diff_len == 0) { 
+		cout << "Overlapping walls in linear_Equation_ADH(), returning 0." << endl;
+		return Coord(0,0);
+	}
 	if(this->get_My_Cell()->get_Layer() == 1){
 		F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
 	}
@@ -648,11 +672,19 @@ double Wall_Node::calc_Tensile_Stress() {
 	TS_left = me->get_k_lin() * (Delta_R.length() - me->get_membr_len());
 	TS_right = me->get_k_lin() * (Delta_L.length() - me->get_membr_len());
 
+
 	//Naiive average of left and right tensile stress is TS.
 	TS = (TS_left + TS_right)/static_cast<double>(2);
+
+	//Include adhesion force in the direction tangent to the cell wall
+	
+	Coord outward = calc_Outward_Vector();
+	Coord tangent = outward.perpVector();
+	//calc_Morse_DC(int Ti) doesn't actually make use of Ti, just filling parameter.
+	Coord adh_force = calc_Morse_DC(1);
+	TS += abs(adh_force.dot(tangent));
 	return TS;
 }
-
 
 double Wall_Node::calc_Shear_Stress() { 
 	//Variable to store Shear stress is SS
@@ -699,7 +731,7 @@ double Wall_Node::calc_Shear_Stress() {
 }
 
 //This is a function that returns (h,k), the center of a circle that passes through this location,
-//and the location of my left and right neighbors.
+//and the location of my left and right neighbors. Could be more robust.
 void Wall_Node::getCircleVars(double& h, double& k) { 
 	Coord here = this->get_Location();
 	Coord right_loc = this->get_Right_Neighbor()->get_Location();
@@ -753,6 +785,35 @@ void Wall_Node::getCircleVars(double& h, double& k) {
 	k = -f; 
 
 	return;
+}
+
+//Gets outward normal vector by fitting a circle to this and its neighbors,
+//then computing the vector from that circle center to this node's location
+//and normalizing, and reversing orientation to face outward if necessary.
+Coord Wall_Node::calc_Outward_Vector() { 
+	Coord here = this->get_Location();
+	Coord right_loc = this->get_Right_Neighbor()->get_Location();
+	Coord left_loc = this->get_Left_Neighbor()->get_Location();
+	double h,k;
+	this->getCircleVars(h,k);
+	Coord local_center(h,k);
+	Coord outward = here-local_center;
+	outward = outward / outward.length();
+	//If circle fails, then default to old algorithm.
+	if ( isnan(outward.get_X()) || isnan(outward.get_Y()) || outward.length() == 0 ) {
+		right_loc = this->get_Right_Neighbor()->get_Location();
+		left_loc = this->get_Left_Neighbor()->get_Location();
+		Coord right_outward = (right_loc - here).perpVector();
+		Coord left_outward = (left_loc - here).perpVector();
+		Coord cell_center = this->get_My_Cell()->get_Cell_Center();
+		Coord center_to_node = here - cell_center;
+		if (center_to_node.dot(left_outward) <= 0) left_outward = Coord(0,0) - left_outward;
+		if (center_to_node.dot(right_outward) <= 0) right_outward = Coord(0,0) - right_outward;
+		cout << "CIRCLE FAILED" << endl;
+	} else if (outward.dot(here-get_My_Cell()->get_Cell_Center()) < 0) { 
+		outward = Coord((-1)*outward.get_X(), (-1)*outward.get_Y());
+	}
+	return outward;
 }
 
 //==========================================================

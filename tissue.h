@@ -61,6 +61,9 @@ class Tissue{
 		void print_VTK_Direction_File(ofstream& ofs);	
 		//Destructor
 		~Tissue();
+		//Debugging
+		void NAN_CATCH(int Ti);
+		void BAD_CATCH(int call, int Ti);
 };
 
 
