@@ -16,6 +16,7 @@
 #include "rand.h"
 #include "cell.h"
 #include "tissue.h"
+#include <boost/random.hpp>
 //===================
 
 // Cell Class Member functions
@@ -80,7 +81,13 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//wall nodes initialized in tissue constructor which 
 	//calls the make nodes function on each new cell
 	num_wall_nodes = 0;
-	Cell_Progress = 13;//unifRandInt(0,10);
+	if((this->layer == 1)||(this->layer == 2)){
+		Cell_Progress = unifRandInt(10,14);
+	}
+	else{
+		Cell_Progress = unifRandInt(5,10);
+	}
+	//Cell_Progress = unifRandInt(0,10);
 	this->cell_center = center;
 	//this gets reupdated after singal is assigned
 	//in tissue constructor
@@ -104,7 +111,6 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 			this->growth_direction = Coord(0,1);
 		}
 	}
-
 	//cout << "layer" << this->layer << endl;
 	//cout << "stem" << this->stem << endl;
 	//cout << "boundary" << this-> boundary << endl;
@@ -418,12 +424,51 @@ void Cell::calc_CK(Coord L1_AVG) {
 	return;
 }
 void Cell::set_growth_rate() {
+	//first quartile is 15-21 hours
+	//second quartile is 21-27 hours
+	//third qurtile is 27-39 hours
+	//fourth quartile is 39-93 hours
+	//.1 min per timestep
+	//first distribution mean/sigma 10800/1800
+	//second distribution mean/sigma 14400/1800
+	//third distribution mean/sigma 19800/3600
+	//fourth distribution mean/sigma 39600/16200
+	if(this->wuschel <55 ) {
+		//cout << "Count 1: " << my_tissue->return_counts(0) << endl;
+		this->growth_rate = this->my_tissue->get_next_random(1,this->my_tissue->return_counts(0));
+		this->my_tissue->set_counts(0);
+	}
+	else if(this->wuschel <65 ){
+		
+		//cout << "Count 2: " << my_tissue->return_counts(1) << endl;	
+		this->growth_rate = this->my_tissue->get_next_random(2,this->my_tissue->return_counts(1));
+		this->my_tissue->set_counts(1);
+	}
+	else if(this->wuschel <75 ){
+
+		//cout << "Count 3: " << my_tissue->return_counts(2) << endl;
+		this->growth_rate = this->my_tissue->get_next_random(3,this->my_tissue->return_counts(2));
+		this->my_tissue->set_counts(2);
+	}
+	else{
+	
+		//cout << "Count 4: " << my_tissue->return_counts(3) << endl;
+		this->growth_rate = this->my_tissue->get_next_random(4,this->my_tissue->return_counts(3));
+		this->my_tissue->set_counts(3);
+	}
+	
 	//this->growth_rate = unifRandInt(5000,30000);
-	if(this->wuschel < 46){
-		this->growth_rate = unifRandInt(2000,10000);
+	/*if(this->wuschel < 46){
+		mean = 6000;
+		this->growth_rate = GetRandomDoubleUsingNormalDistribution(mean,sigma);
+		//this->growth_rate = unifRandInt(2000,10000);
+		cout << "growht rate:" << growth_rate << endl;
 	}
 	else if((this->wuschel >= 46)&&(this->wuschel < 50)){
-		this->growth_rate = unifRandInt(10000,12510);
+		mean = 12000;
+		this->growth_rate = GetRandomDoubleUsingNormalDistribution(mean,sigma);
+		//this->growth_rate = unifRandInt(10000,12510);
+		cout << "growth rate" << growth_rate << endl;
 	}
 	else if((this->wuschel >=53.8) && (this->wuschel < 57)){
 		this->growth_rate = unifRandInt(12510,15012);
@@ -443,18 +488,19 @@ void Cell::set_growth_rate() {
 	else if((this->wuschel >=71) &&(this->wuschel <74.8)){
 		this->growth_rate = unifRandInt(25020,27522);
 	}
-	else if((this->wuschel >=74.8) &&(this->wuschel <78)){
+	else{//((this->wuschel >=74.8) &&(this->wuschel <78)){
 		this->growth_rate = unifRandInt(27522,30024);
-	}
-	else if((this->wuschel >=78) && (this->wuschel <81.8)){
-		this->growth_rate = unifRandInt(30024,35526);
-	}
-	else{
-		this->growth_rate = unifRandInt(37530,40032);
-	}
+		
+	}*/
+	//else if((this->wuschel >=78) && (this->wuschel <81.8)){
+	//	this->growth_rate = unifRandInt(30024,35526);
+	//}
+	//else{
+	//	this->growth_rate = unifRandInt(37530,40032);
+	//}
 	//if((this->cytokinin >= 80)){
 
-		this->growth_rate = growth_rate*.7;
+		//this->growth_rate = growth_rate*.7;
 	//}
 
 	//this->growth_rate = 5000;
@@ -495,9 +541,7 @@ void Cell::set_growth_rate() {
 	  else if(this->wuschel>= 132) {
 	  this->growth_rate = unifRandInt(27000,30000);
 	  }*/
-	//if(this->cytokinin > 1200){
-	//	this->growth_rate = 2000;//unifRandInt(2000,5000);
-	//}
+	
 
 	return;
 }
@@ -1244,7 +1288,7 @@ void Cell::delete_Wall_Node(int Ti) {
 
 	this->find_Smallest_Length(small);
 	if(small !=NULL) {
-		cout << "delete initiated" << endl;
+		//cout << "delete initiated" << endl;
 		left = small->get_Left_Neighbor();
 		right = small->get_Right_Neighbor();
 
@@ -1413,7 +1457,7 @@ Coord Cell::compute_direction_of_highest_tensile_stress(){
 		}
 
 		strain = (curr_length - Membr_Equi_Len_Long)/Membr_Equi_Len_Long; 
-		cout << "strain" << strain << endl;
+		//cout << "strain" << strain << endl;
 		x = x+ strain*delta_x;
 		y = y+ strain*delta_y;
 		counter++;
@@ -1734,6 +1778,8 @@ void Cell::print_VTK_Tensile_Stress(ofstream& ofs, bool cytoplasm) {
 	do {
 		color = currW->calc_Tensile_Stress();
 		ofs << color << endl;
+		//cout << "Tensile" << color << endl;
+		//cout << "Angle" << currW->get_Angle() << endl;s
 		currW = currW->get_Left_Neighbor();
 	} while(currW != left_Corner);
 	if (cytoplasm) { 

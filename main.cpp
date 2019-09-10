@@ -11,6 +11,9 @@
 #include <ctime>
 #include <stdio.h>
 #include <memory>
+#include <random>
+#include <functional>
+#include <chrono>
 #include "phys.h"
 #include "coord.h"
 #include "node.h"
@@ -34,30 +37,49 @@ int main(int argc, char* argv[]) {
 	string anim_folder = argv[1];
 	//Reads in the name of folder that stores VTK files for
 	//visualization without cytoplasm nodes.
-	string no_cyt_folder = argv[4];
+	string no_cyt_folder = argv[2];
 	//reads in name of folder that 
 	//stores data output, given in run.sh
 	string locations_cyt_folder = argv[3];
-	//this is a folder that holds node
-	//locations in the fashion that weitao 
-	//asked for to couple the models
-	string locations_no_cyt_folder = argv[2];
+	//this is a folder that holds data output
+	//without cytoplasm node info
+	string locations_no_cyt_folder = argv[4];
 	//keep track of time
 	int start = clock();	
-
+	mt19937::result_type seed = time(0);
+	
+	//distrubution for different cell cycle lengths
+	auto normal_rand1 = bind(normal_distribution<double> (10800,1800),mt19937(seed));
+	auto normal_rand2 = bind(normal_distribution<double> (14400,1800),mt19937(seed));
+	auto normal_rand3 = bind(normal_distribution<double> (19800,3600), mt19937(seed));
+	auto normal_rand4 = bind(normal_distribution<double> (39600,16200), mt19937(seed));
+	vector<int> dist1;
+	vector<int> dist2;
+	vector<int> dist3;
+	vector<int> dist4;
+	for (unsigned int i=0;i<600;i++){
+		dist1.push_back((int) normal_rand1());
+		dist2.push_back((int) normal_rand2());
+		dist3.push_back((int) normal_rand3());
+		dist4.push_back((int) normal_rand4());
+	}
 	//.txt file that tells initial
 	//cell configuration 
 	//cout << "before cell file is read in" << endl;
-	string init_tissue = "cell_maker.txt";
+	string init_tissue = "cell_staggered.txt";
 	//cout << "Read in cell starter" << endl;	
+
 
 	//instantiate tissue
 	//new cell and node objects
 	//are made in this call
 	Tissue growing_Tissue(init_tissue);
-	cout << "Finished creating Cells" << endl;
+	growing_Tissue.assign_dist_vecs(dist1, dist2, dist3, dist4);
+	//cout << "Finished creating Cells" << endl;
 	growing_Tissue.update_Signal();
-	growing_Tissue.update_growth_direction();
+	//cout << "Signal" << endl;
+	//growing_Tissue.update_growth_direction();
+	//cout << "growth direction" << endl;
 	//parameters for time step
 	double numSteps = 500;
 
@@ -95,9 +117,10 @@ int main(int argc, char* argv[]) {
 
 		//keep track of simulation runs
 		if (Ti %1000 == 0) {
-			//	cout << "Simulation still running. Ti: " << Ti << endl;
-			cout << "Time = " << Ti << endl;
+
+			//cout << "Simulation still running. Ti: " << Ti << endl;
 			//growing_Tissue.NAN_CATCH(Ti);
+
 		}
 
 		// Tissue Growth
@@ -110,12 +133,15 @@ int main(int argc, char* argv[]) {
 			//cout << "Find Neighbors" << endl;
 			growing_Tissue.update_Neighbor_Cells();
 		}	
-		//growing_Tissue.BAD_CATCH(2,Ti);
+
 		if(Ti == 10000){
 			growing_Tissue.update_Signal();
-			growing_Tissue.update_growth_direction();
 		}
-		//growing_Tissue.BAD_CATCH(3,Ti);
+		if(Ti % 30000 == 0){
+			//cout << "update signal" << endl;
+			growing_Tissue.update_Signal();
+			//growing_Tissue.update_growth_direction();
+		}
 		//adds one new cell wall node per cell everytime it is called
 		//dont call it right away to give cell time to find initial configuration
 		if(Ti >= 10000){
@@ -124,14 +150,14 @@ int main(int argc, char* argv[]) {
 				growing_Tissue.add_Wall(Ti);
 			}
 		}
-		//growing_Tissue.BAD_CATCH(4,Ti);
-		//currently not in use
 		//was used previously to help stability of cells
 		//deletes a cell wall node if too close together
-		//if(Ti%1000 == 0){	
-		//cout << "delete wall" << endl;
-		//growing_Tissue.delete_Wall(Ti);
-		//}
+		if(Ti > 10000){
+			if(Ti%5000 == 0){	
+				//cout << "delete wall" << endl;
+				growing_Tissue.delete_Wall(Ti);
+			}
+		}
 
 		//make adhesion pairs for each cell
 		if(Ti < 10000){
@@ -145,30 +171,25 @@ int main(int argc, char* argv[]) {
 				growing_Tissue.update_Adhesion();
 			}
 		}
-		//growing_Tissue.BAD_CATCH(6,Ti);
 		//adds internal node according to 
 		//individual cell growth rate
 		if(Ti >= 10000){
 			//cout << "cell cycle" << endl;
 			growing_Tissue.update_Cell_Cycle(Ti);
 		}
-		//growing_Tissue.BAD_CATCH(7,Ti);
 		//will divide cell if time
 		//cout << "divide necessary cells" << endl;
 		if(Ti >= 10000){
 			growing_Tissue.division_check();
 		}
 
-		//growing_Tissue.BAD_CATCH(8,Ti);
 		//Calculate new forces on cells and nodes
 		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
-		//growing_Tissue.BAD_CATCH(9,Ti);
 
 		//Update node positions
 		//cout << "locations" << endl;
 		growing_Tissue.update_Cell_Locations(Ti);	
-		//growing_Tissue.BAD_CATCH(10,Ti);
 
 		//cout << "Finished" << endl;
 
@@ -227,7 +248,7 @@ int main(int argc, char* argv[]) {
 		}*/
 		//data output from simulations
 		//for cell center etc
-		/*if(Ti%5000 == 1){
+		/*if(Ti%10000 == 1){
 		  nem_Filename = nematic_folder + nem_initial + to_string(Number2) + ".txt";
 		  ofs_nem.open(nem_Filename.c_str());
 		  growing_Tissue.nematic_output(ofs_nem);
@@ -249,7 +270,7 @@ int main(int argc, char* argv[]) {
 			Number2++;
 		}*/
 		//locations with cyt nodes
-		if(Ti%1000 == 1){
+		if(Ti%10000 == 0){
 			Locations_no_cyt = locations_no_cyt_folder + locations_initial + to_string(out2) + ".txt";
 			ofs_loc_no_cyt.open(Locations_no_cyt.c_str());
 			growing_Tissue.locations_output(ofs_loc_no_cyt,false);
@@ -274,6 +295,7 @@ int main(int argc, char* argv[]) {
 	cout << "Time: " << (stop - start) / double(CLOCKS_PER_SEC) * 1000 << endl;
 
 	return 0;
+
 }
 
 

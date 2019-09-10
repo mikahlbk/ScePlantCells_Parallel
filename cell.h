@@ -19,6 +19,7 @@ class Tissue;
 #include "phys.h"
 #include "coord.h"
 #include "node.h"
+#include <boost/random.hpp>
 //===================
 // Cell Class Declaration
 
@@ -99,8 +100,10 @@ class Cell: public enable_shared_from_this<Cell> {
 		double get_WUS_concentration() {return wuschel;}
 		void calc_CK(Coord L1_AVG);
 		double get_CYT_concentration() {return cytokinin;}
+		double getRandomDoubleUsingNormalDistribution(double mean, double sigma);
 		//set growth rate based on WUS
 		void set_growth_rate();
+		int get_growth_rate(){return growth_rate;}
 		//set/get growth direction
 		void update_growth_direction();
 		void update_node_parameters_for_growth_direction();
@@ -152,6 +155,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//Functions for Division
 		void find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_Node>>& nodes, int search_amount);
 		void find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& nodes);
+		void Errera_div(vector<shared_ptr<Wall_Node>>& nodes);
 		void move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_Node> second, vector<shared_ptr<Wall_Node>>& daughter_ends);
 		void move_cyt_nodes(Coord center_pt);
 		Coord produce_random_vec();	

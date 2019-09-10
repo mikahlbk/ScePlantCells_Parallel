@@ -27,6 +27,7 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 	//on the current cell where the line between them is
 	//closest representation to the orientation vector
 	//need to know all the cell wall nodes of curr cell
+	int counter = 0;
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
 	//this vector will hold the distance of each node
@@ -44,8 +45,8 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 	Coord q_to_curr_wall;
 	double q_to_r_cross_q_to_curr_wall;
 	double curr_distance=0;
-	shared_ptr<Wall_Node> first;
-	shared_ptr<Wall_Node> second;
+	shared_ptr<Wall_Node> first_node;
+	shared_ptr<Wall_Node> second_node;
 	for(unsigned int i = 0; i< walls.size(); i++) {
 	
 		q_to_curr_wall = Coord(walls.at(i)->get_Location().get_X() - q.get_X(), walls.at(i)->get_Location().get_Y()-q.get_Y());
@@ -54,8 +55,8 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 		pairs.push_back(make_pair(curr_distance,walls.at(i)));
 	} 
 	sort(pairs.begin(), pairs.end()); 
-	first = pairs[0].second;
-	shared_ptr<Wall_Node> curr = first;
+	first_node = pairs[0].second;
+	shared_ptr<Wall_Node> curr = NULL;
 	shared_ptr<Wall_Node> next = NULL;
 	shared_ptr<Wall_Node> orig = NULL;
 	Coord a_i;
@@ -65,12 +66,13 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 	double curr_area = 0;
 	double diff = 100;
 	double curr_diff;
-	//cout << "Second" << endl;
-	for(int i = 1; i < search_amount; i++){
+	counter = 1;
+	bool too_small = true;
+	do{
 		area_1 = 0;
 		area_2 = 0;
-		curr = first;
-		orig = pairs[i].second;
+		curr = first_node;
+		orig = pairs[counter].second;
 		do {
 			next = curr->get_Left_Neighbor();
 			a_i = curr->get_Location() - cell_center;
@@ -79,13 +81,13 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 			area_1 += curr_area;
 			curr = next;
 		} while(next != orig);
-		//cout << "area 1" << endl;
-		//cout << area_1 << endl;
+		
+		cout << "area 1" << endl;
+		cout << area_1 << endl;
+		
 		curr = orig;
-		orig = first;
+		orig = first_node;
 		do {
-		
-		
 			next = curr->get_Left_Neighbor();
 			a_i = curr->get_Location() - cell_center;
 			a_j = next->get_Location() - cell_center;
@@ -93,22 +95,23 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 			area_2 += curr_area;
 			curr = next;
 		} while(next != orig);
-		//cout << "area two" << endl;
-		//cout << area_2 << endl;
-		curr_diff = abs(area_1 - area_2);
+		
+		cout << "area two" << endl;
+		cout << area_2 << endl;
+		
+		//curr_diff = abs(area_1 - area_2);
 		//cout << "curr diff " << curr_diff << endl;
-		if(curr_diff < diff){
-			second = pairs[i].second;
-			diff = curr_diff;
+		if((area_1/area_2 > .7) && (area_1/area_2 < 1.5)){
+			second_node = pairs[counter].second;
+			too_small = false;
 		}
-
-	
-	}
+		counter++;
+	}while(too_small);
 	//cout << "diff" << diff << endl;
 	//cout << "end second" << endl;
 	//cout << "first" << first << endl;
 	//cout << "Second"  << second << endl;
-	if((first == NULL)||(second == NULL)){
+	if((first_node == NULL)||(second_node == NULL)){
 	
 		cout << "Did not pick up div plane nodes" << endl;
 		
@@ -117,11 +120,103 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 
 	}
 	nodes.clear();
-	nodes.push_back(first);
-	nodes.push_back(second);
-	cout << "div plane nodes size " << nodes.size() << endl;
+	nodes.push_back(first_node);
+	nodes.push_back(second_node);
+	//cout << "div plane nodes size " << nodes.size() << endl;
 	return;
 }
+void Cell::Errera_div(vector<shared_ptr<Wall_Node>>& nodes){
+	vector<shared_ptr<Wall_Node>> walls;
+	this->get_Wall_Nodes_Vec(walls);
+	double area_1 = 0;
+	double area_2 = 0;
+	double curr_area = 0;
+	vector<shared_ptr<Wall_Node>> first_nodes;
+	vector<shared_ptr<Wall_Node>> second_nodes;
+	Coord a_i;
+	Coord a_j;
+	shared_ptr<Wall_Node> curr;
+	shared_ptr<Wall_Node> curr_partner;
+	shared_ptr<Wall_Node> start_possible_partners;
+	shared_ptr<Wall_Node> end_possible_partners;
+	shared_ptr<Wall_Node> area_curr;
+	shared_ptr<Wall_Node> area_next;
+	int counter1;
+	int counter2;
+	for(unsigned int i = 0; i< walls.size(); i++){
+		curr = walls.at(i);
+		counter1 = 0;
+		counter2 = 0;
+		do{
+			start_possible_partners = curr->get_Left_Neighbor();
+			counter1++;
+		} while(counter1 < 35);
+		do {
+			end_possible_partners = curr->get_Right_Neighbor();
+			counter2++;
+		}while(counter2 < 35);
+		do{
+			curr_partner = start_possible_partners->get_Left_Neighbor();
+
+			area_1 = 0;
+			area_2 = 0;
+			//from curr to curr_partner area
+			area_curr = curr;
+			do {
+				area_next = area_curr->get_Left_Neighbor();
+				a_i = area_curr->get_Location() - cell_center;
+				a_j = area_next->get_Location() - cell_center;
+				curr_area = 0.5*sqrt(pow(a_i.cross(a_j),2));
+				area_1 += curr_area;
+				area_curr = area_next;
+			} while(area_next != curr_partner);
+		
+			cout << "area 1" << endl;
+			cout << area_1 << endl;
+			//from curr_partner back to curr area
+			area_curr = curr_partner;
+			do {
+				area_next = area_curr->get_Left_Neighbor();
+				a_i = area_curr->get_Location() - cell_center;
+				a_j = area_next->get_Location() - cell_center;
+				curr_area = 0.5*sqrt(pow(a_i.cross(a_j),2));
+				area_2 += curr_area;
+				area_curr = area_next;
+			} while(area_next != curr);
+		
+			cout << "area two" << endl;
+			cout << area_2 << endl;
+	
+			if((area_1/area_2 > .9) && (area_1/area_2 < 1.1)){
+				first_nodes.push_back(curr);
+				second_nodes.push_back(curr_partner);
+	
+			}
+			start_possible_partners = curr_partner;
+		}while(curr_partner != end_possible_partners);
+	}
+	//first nodes and second nodes hold pairs close to 1/2
+	//calculate distance between each and choose the smallest
+	double distance;
+	double max_distance = 100;
+	shared_ptr<Wall_Node> first;
+	shared_ptr<Wall_Node> second;
+	for(unsigned int i = 0; i< first_nodes.size(); i++){
+		distance = (first_nodes.at(i)->get_Location()-second_nodes.at(i)->get_Location()).length();
+		if(distance < max_distance){
+			max_distance = distance;
+			first = first_nodes.at(i);
+			second = second_nodes.at(i);
+		}
+	}
+
+	nodes.clear();
+	nodes.push_back(first);
+	nodes.push_back(second);
+	
+	return;
+}
+
 void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_Node> second,vector<shared_ptr<Wall_Node>>& daughter_ends){
 	daughter_ends.clear();
 	//to delete a node we nedd to
@@ -309,7 +404,6 @@ void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& no
 	
 	return;
 }*/
-
 
 /*void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& nodes){
 	vector<pair<double,shared_ptr<Wall_Node>>> pairs;
@@ -645,13 +739,13 @@ shared_ptr<Cell> Cell::division() {
 	//	and return it to the tissue
 	//cout << "New Cell" << endl;
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
-	cout << "Mother angles before: " << endl;
+	/*cout << "Mother angles before: " << endl;
 	do { 
 		cout << curr_wall->get_Angle() << ", ";
 		curr_wall = curr_wall->get_Left_Neighbor();
 	} while (curr_wall != left_Corner);
 	cout << endl;
-	
+	*/
 	shared_ptr<Cell> sister = make_shared<Cell> (this->my_tissue);
 	sister->set_Layer(this->layer);
 
@@ -659,7 +753,20 @@ shared_ptr<Cell> Cell::division() {
 	this->Cell_Progress = 0;		
 	sister->reset_Cell_Progress();
 	sister->reset_Life_Length();
-	
+	if((this->layer == 1)||(this->layer == 2)) {
+                 sister->set_growth_direction(Coord(1,0));
+        }
+        else if(rand()% 100 < 30){
+	 	sister->set_growth_direction(Coord(0,0));
+	}
+	else{
+		if(rand()% 100 < 36){
+			sister->set_growth_direction(Coord(1,0));
+		}
+		else{
+			sister->set_growth_direction(Coord(0,1));
+		}
+	}
 	//this is the vector for the desired division orientation
 	Coord orientation;
 	//for layer and chemical division decision a vector called orientation
@@ -670,40 +777,48 @@ shared_ptr<Cell> Cell::division() {
 	//should be built
 	//orientation by layer
 	//if((this->layer == 1) || (this->layer == 2)){
-		//orientation = Coord(0,1);
+	//	orientation = Coord(0,1);
 	//}
 	//else{
-		//orientation = Coord(1,0);
+	//	orientation = Coord(1,0);
 	//}
 	
 	//orientation by chemical concentration
-	/*if((this->get_CYT_concentration() > this->get_WUS_concentration())){
+	if((this->get_CYT_concentration() > this->get_WUS_concentration())){
 		orientation = Coord(1,0);
 	}
 	else{ 
 		orientation = Coord(0,1);
-	}*/
+	}
 	//orientation by mechanical stress- various algorithms
 	vector<shared_ptr<Wall_Node>> nodes;
 	cout << "Nodes before" << nodes.size() << endl;
 	
-	find_nodes_for_div_plane_mechanical(nodes); 
-	
-	for (unsigned int i = 0; i < nodes.size(); i++) {
-
-		cout << "Node " << i << " after: X= " << nodes.at(i)->get_Location().get_X() << 
-		" Y = " << nodes.at(i)->get_Location().get_Y() << endl;
-	
+	/*if((this->layer == 1)||(this->layer==2)){
+		orientation = Coord(0,1);
+		find_nodes_for_div_plane(orientation,nodes,11);
 	}
+	else{
+		find_nodes_for_div_plane_mechanical(nodes); 
+	}*/
+	
+	//for (unsigned int i = 0; i < nodes.size(); i++) {
+
+	//	cout << "Node " << i << " after: X= " << nodes.at(i)->get_Location().get_X() << 
+	//	" Y = " << nodes.at(i)->get_Location().get_Y() << endl;
+	
+	//}
 	//cout << "orientation" << orientation << endl;
 	//finds node on one side of cell
 	//vector<shared_ptr<Wall_Node>> nodes;
 	//cout << "Nodes before" << nodes.size() << endl;
-	//find_nodes_for_div_plane(orientation, nodes,11);
-	//cout << "Nodes after" << nodes.size() << endl;
+	find_nodes_for_div_plane(orientation, nodes,11);
+	//Errera_div(nodes);
+	cout << "Nodes after" << nodes.size() << endl;
 	shared_ptr<Wall_Node> first = nodes.at(0);
+	cout <<"check one" << endl;
 	shared_ptr<Wall_Node> second = nodes.at(1);
-	
+	cout << "check two" << endl;
 	
 	//shared_ptr<Wall_Node> first = first_node;
 	//shared_ptr<Wall_Node> second = second_node;
