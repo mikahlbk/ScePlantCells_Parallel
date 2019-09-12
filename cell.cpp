@@ -452,11 +452,14 @@ void Cell::set_growth_rate() {
 	else{
 		this->growth_rate = unifRandInt(37530,40032);
 	}
-	//if((this->cytokinin >= 80)){
 
-		this->growth_rate = growth_rate*.7;
-	//}
 
+	// TEST
+	//r
+	//this->growth_rate = growth_rate*.7; 
+	//h
+	this->growth_rate = growth_rate*0.35;
+	
 	//this->growth_rate = 5000;
 	//2018 paper	
 	/*if(this->wuschel < 11){
@@ -506,11 +509,7 @@ void Cell::update_growth_direction(){
 	if((this->layer == 1)||(this->layer ==2)) {
 		this->growth_direction = Coord(1,0);
 	} else if(this->wuschel > this->cytokinin) {
-	//TEST
-		//s
-		//this->growth_direction = Coord(0,0);
-		//h
-		this->growth_direction = Coord(0,1);
+		this->growth_direction = Coord(0,0);
 	} else {
 		this->growth_direction = Coord(0,1);
 	}

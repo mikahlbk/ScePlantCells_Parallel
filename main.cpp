@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
 	//.txt file that tells initial
 	//cell configuration 
 	//cout << "before cell file is read in" << endl;
-	string init_tissue = "cell_maker.txt";
+	string init_tissue = "cell_staggered.txt"; //TEST
 	//cout << "Read in cell starter" << endl;	
 
 	//instantiate tissue

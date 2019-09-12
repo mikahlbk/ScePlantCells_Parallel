@@ -47,7 +47,7 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 	shared_ptr<Wall_Node> first;
 	shared_ptr<Wall_Node> second;
 	for(unsigned int i = 0; i< walls.size(); i++) {
-	
+
 		q_to_curr_wall = Coord(walls.at(i)->get_Location().get_X() - q.get_X(), walls.at(i)->get_Location().get_Y()-q.get_Y());
 		q_to_r_cross_q_to_curr_wall = q_to_r.cross(q_to_curr_wall);
 		curr_distance = abs(q_to_r_cross_q_to_curr_wall)/q_to_r.length();
@@ -84,8 +84,8 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 		curr = orig;
 		orig = first;
 		do {
-		
-		
+
+
 			next = curr->get_Left_Neighbor();
 			a_i = curr->get_Location() - cell_center;
 			a_j = next->get_Location() - cell_center;
@@ -102,16 +102,16 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 			diff = curr_diff;
 		}
 
-	
+
 	}
 	//cout << "diff" << diff << endl;
 	//cout << "end second" << endl;
 	//cout << "first" << first << endl;
 	//cout << "Second"  << second << endl;
 	if((first == NULL)||(second == NULL)){
-	
+
 		cout << "Did not pick up div plane nodes" << endl;
-		
+
 		exit(1);
 
 
@@ -139,7 +139,7 @@ void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_No
 	//cout << "first clear adh" << endl;
 	second->clear_adhesion_vec();
 	//cout << "second clear adh" << endl;
-	
+
 	//move once
 	shared_ptr<Wall_Node> start_daughter_one = first->get_Left_Neighbor();
 	//cout << "new daughter one" << endl;
@@ -149,7 +149,7 @@ void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_No
 	//set the new starting point of daughter cell one
 	start_daughter_one = start_daughter_one->get_Left_Neighbor();
 	//cout << "daught one move over" << endl;
-	
+
 	//move once
 	shared_ptr<Wall_Node>end_daughter_one = second->get_Right_Neighbor();
 	//cout << "new daughter one" << endl;
@@ -177,7 +177,7 @@ void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_No
 	//set end point for daughter two
 	end_daughter_two = end_daughter_two ->get_Right_Neighbor();
 	//cout << "Made it through deletions" << endl;
-	
+
 	daughter_ends.push_back(start_daughter_one);
 	daughter_ends.push_back(end_daughter_one);
 	daughter_ends.push_back(start_daughter_two);
@@ -187,301 +187,16 @@ void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_No
 }
 Coord Cell::produce_random_vec(){
 	//for random orientation
-		double random = ((double) rand()) / (double) RAND_MAX;
-		double diff = 1 + 1;
-		double  r = random * diff;
-		double x = -1 + r;
-		random = ((double) rand()) / (double) RAND_MAX;
- 		r = random + diff;
-		double y = -1 + r;
-		Coord orientation = Coord(x,y);
+	double random = ((double) rand()) / (double) RAND_MAX;
+	double diff = 1 + 1;
+	double  r = random * diff;
+	double x = -1 + r;
+	random = ((double) rand()) / (double) RAND_MAX;
+	r = random + diff;
+	double y = -1 + r;
+	Coord orientation = Coord(x,y);
 	return orientation;
 }
-/*
-void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& nodes){
-	vector<pair<double,shared_ptr<Wall_Node>>> pairs;
-	vector<shared_ptr<Wall_Node>> mother_walls;
-	this->get_Wall_Nodes_Vec(mother_walls);
-
-	double theta = 0;
-	double costheta = 0;
-	double curr_len = 0;
-	double growth_len = 0;
-	Coord curr_vec;	
-	int counter = 0;
-	double curr_stress;
-	//double max_stress  =0;
-	//double second_max_stress = 0;
-	shared_ptr<Wall_Node> first_node;
-	shared_ptr<Wall_Node> second_node;
-	if(this->growth_direction != Coord(0,0)){
-		for(unsigned int i = 0; i < mother_walls.size();i++) {	
-			curr_vec = mother_walls.at(i)->get_Left_Neighbor()->get_Location() - mother_walls.at(i)->get_Location();
-			curr_len = curr_vec.length();	
-			growth_len = this->growth_direction.length();
-			costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
-			theta = acos( min( max(costheta,-1.0), 1.0) );
-			if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
-				curr_stress = mother_walls.at(i)-> calc_Tensile_Stress();
-				pairs.push_back(make_pair(curr_stress,mother_walls.at(i)));
-			} 
-		}
-	}
-	else{
-		for(unsigned int i = 0; i < mother_walls.size();i++) {	
-			curr_stress = mother_walls.at(i)-> calc_Tensile_Stress();
-			pairs.push_back(make_pair(curr_stress,mother_walls.at(i)));
-		}
-	}
-	
-	sort(pairs.begin(), pairs.end(), greater<>()); 
-	for(unsigned int i=0; i< pairs.size(); i++){
-		cout << pairs[i].first << endl;
-	}
-	first_node = pairs[0].second;
-	shared_ptr<Wall_Node> curr = NULL;
-	shared_ptr<Wall_Node> next = NULL;
-	shared_ptr<Wall_Node> orig = NULL;
-	Coord a_i;
-	Coord a_j;
-	double area_1 = 0;
-	double area_2 = 0;
-	double curr_area = 0;
-	//double diff = 100;
-	//double curr_diff;
-	counter = 1;
-	bool too_small = true;
-	do{
-		area_1 = 0;
-		area_2 = 0;
-		curr = first_node;
-		orig = pairs[counter].second;
-		do {
-			next = curr->get_Left_Neighbor();
-			a_i = curr->get_Location() - cell_center;
-			a_j = next->get_Location() - cell_center;
-			curr_area = 0.5*sqrt(pow(a_i.cross(a_j),2));
-			area_1 += curr_area;
-			curr = next;
-		} while(next != orig);
-		
-		cout << "area 1" << endl;
-		cout << area_1 << endl;
-		
-		curr = orig;
-		orig = first_node;
-		do {
-			next = curr->get_Left_Neighbor();
-			a_i = curr->get_Location() - cell_center;
-			a_j = next->get_Location() - cell_center;
-			curr_area = 0.5*sqrt(pow(a_i.cross(a_j),2));
-			area_2 += curr_area;
-			curr = next;
-		} while(next != orig);
-		
-		cout << "area two" << endl;
-		cout << area_2 << endl;
-		
-		//curr_diff = abs(area_1 - area_2);
-		//cout << "curr diff " << curr_diff << endl;
-		if((area_1/area_2 > .7) && (area_1/area_2 < 1.5)){
-			second_node = pairs[counter].second;
-			too_small = false;
-		}
-		counter++;
-	}while(too_small);
-	//cout << "diff" << diff << endl;
-	//cout << "end second" << endl;
-	//cout << "first" << first << endl;
-	//cout << "Second"  << second << endl;
-	if((first_node == NULL)||(second_node == NULL)){
-	
-		cout << "Did not pick up div plane nodes" << endl;
-		
-		exit(1);
-
-
-	}
-	nodes.clear();
-	nodes.push_back(first_node);
-	nodes.push_back(second_node);
-	//cout << "div plane nodes size " << nodes.size() << endl;
-	
-	return;
-}*/
-
-
-/*void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& nodes){
-	vector<pair<double,shared_ptr<Wall_Node>>> pairs;
-	vector<shared_ptr<Wall_Node>> mother_walls;
-	this->get_Wall_Nodes_Vec(mother_walls);
-
-
-	//cout << "Mech 1" << endl;
-	//contains a subset of mother_walls, hopefully without corners.
-	vector<shared_ptr<Wall_Node>> curved_walls;
-	vector<double> angles;
-	double truncate_angle = 0;
-	unsigned int truncate_index = static_cast<int>(mother_walls.size() * HIGH_ANGLE_DISCOUNT);
-	for (unsigned int i = 0; i < mother_walls.size(); i++) { 
-		//mother_walls.at(i)->update_Angle();
-		angles.push_back(mother_walls.at(i)->get_Angle());
-		cout << angles.at(i); 
-	}
-	//cout << endl;
-	//cout << "Mech 2" << endl;
-	sort(angles.begin(),angles.end());
-	//cout << "Mech 3" << endl;
-	truncate_angle = angles.at(truncate_index);
-	//cout << "Mech 5" << endl;
-	for (unsigned int i = 0; i < mother_walls.size(); i++) { 
-		if (mother_walls.at(i)->get_Angle() >= truncate_angle) { 
-			curved_walls.push_back(mother_walls.at(i));
-		}
-		if (curved_walls.size() > static_cast<float>(mother_walls.size())*(1.0-HIGH_ANGLE_DISCOUNT) + 1) { 
-			cout << "Too many walls with near maximal angle. Breaking search.\n";
-			cout << "This is expected for a circular cell.\n";
-			break;
-		}
-	}
-
-	//cout << "Mech 6"<< endl;
-	//now curved walls contains wall nodes who have the top 10% in terms of angle.
-	
-	double theta = 0;
-	double costheta = 0;
-	double curr_len = 0;
-	double growth_len = 0;
-	Coord curr_vec;	
-	int counter = 0;
-	double curr_stress;
-	//double max_stress  =0;
-	//double second_max_stress = 0;
-	shared_ptr<Wall_Node> first_node;
-	shared_ptr<Wall_Node> second_node;
-	if(this->growth_direction != Coord(0,0)) {
-		for(unsigned int i = 0; i < mother_walls.size();i++) {	
-			curr_vec = mother_walls.at(i)->get_Left_Neighbor()->get_Location() - mother_walls.at(i)->get_Location();
-			curr_len = curr_vec.length();	
-			growth_len = this->growth_direction.length();
-			costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
-			theta = acos( min( max(costheta,-1.0), 1.0) );
-			if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
-				curr_stress = mother_walls.at(i)-> calc_Tensile_Stress();
-				pairs.push_back(make_pair(curr_stress,mother_walls.at(i)));
-			} 
-		}
-	} else {
-		for(unsigned int i = 0; i < mother_walls.size();i++) {	
-			curr_stress = mother_walls.at(i)-> calc_Tensile_Stress();
-			pairs.push_back(make_pair(curr_stress,mother_walls.at(i)));
-		}
-	}
-	//cout << "Mech 7" << endl;
-	
-	sort(pairs.begin(), pairs.end(), greater<>()); 
-	// Prints values to terminal to check sorting.
-	//for(unsigned int i=0; i< pairs.size(); i++){
-	//	cout << pairs[i].first << endl;
-	//}
-	//cout << "Mech 8" << endl;
-	//first_node = pairs[0].second;
-	first_node = NULL;
-	int first_iterator = 0;
-	bool curved_first_node = false;
-	shared_ptr<Wall_Node> temp;
-	do { 
-		curved_first_node = false;
-		temp = pairs.at(first_iterator).second;
-		for (unsigned int i = 0; i < curved_walls.size(); i++) { 
-			if (temp == curved_walls.at(i)) {
-				curved_first_node = true;
-				break;
-			}
-		}
-		if(!curved_first_node) { 
-			first_node = temp;
-			break;
-		}
-		first_iterator++;
-	} while(!first_node);
-	//cout << "Mech 9" << endl;
-	if (!first_node) { 
-		cout << "WARNING: first node could not be assigned without being a corner. Defaulting";
-		cout << " to highest tensile stress." << endl;
-		first_node = pairs.at(0).second;
-	}
-	shared_ptr<Wall_Node> curr = NULL;
-	shared_ptr<Wall_Node> next = NULL;
-	shared_ptr<Wall_Node> orig = NULL;
-	Coord a_i;
-	Coord a_j;
-	double area_1 = 0;
-	double area_2 = 0;
-	double curr_area = 0;
-	//double diff = 100;
-	//double curr_diff;
-	counter = 1;
-	bool too_small = true;
-	do{
-		area_1 = 0;
-		area_2 = 0;
-		curr = first_node;
-		orig = pairs[counter].second;
-		do {
-			next = curr->get_Left_Neighbor();
-			a_i = curr->get_Location() - cell_center;
-			a_j = next->get_Location() - cell_center;
-			curr_area = 0.5*sqrt(pow(a_i.cross(a_j),2));
-			area_1 += curr_area;
-			curr = next;
-		} while(next != orig);
-		
-		cout << "\narea 1 " << area_1 << "; ";
-		
-		curr = orig;
-		orig = first_node;
-		do {
-			next = curr->get_Left_Neighbor();
-			a_i = curr->get_Location() - cell_center;
-			a_j = next->get_Location() - cell_center;
-			curr_area = 0.5*sqrt(pow(a_i.cross(a_j),2));
-			area_2 += curr_area;
-			curr = next;
-		} while(next != orig);
-		
-		cout << "; area 2 " << area_2 << endl;
-		
-		//curr_diff = abs(area_1 - area_2);
-		//cout << "curr diff " << curr_diff << endl;
-		if((area_1/area_2 > .7) && (area_1/area_2 < 1.5)){
-			second_node = pairs[counter].second;
-			too_small = false;
-		}
-		counter++;
-	}while(too_small);
-	//cout << "Mech 10" << endl;
-	//cout << "diff" << diff << endl;
-	//cout << "end second" << endl;
-	//cout << "first" << first << endl;
-	//cout << "Second"  << second << endl;
-	if((first_node == NULL)||(second_node == NULL)){
-	
-		cout << "Did not pick up div plane nodes" << endl;
-		
-		exit(1);
-
-
-	}
-	//cout << "Mech 11" << endl;
-
-	nodes.clear();
-	nodes.push_back(first_node);
-	nodes.push_back(second_node);
-	//cout << "div plane nodes size " << nodes.size() << endl;
-	
-	return;
-}*/
 
 void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& nodes){
 	vector<pair<double,shared_ptr<Wall_Node>>> pairs;
@@ -501,7 +216,7 @@ void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& no
 	//sort(angle_node_pairs.begin(),angle_node_pairs.end(), greater<>());
 
 	//now curved walls contains wall nodes who have the top 10% in terms of angle.
-	
+
 	//double theta = 0;
 	//double costheta = 0;
 	//double curr_len = 0;
@@ -591,9 +306,9 @@ void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& no
 			area_1 += curr_area;
 			curr = next;
 		} while(next != orig);
-		
+
 		cout << "\narea 1 " << area_1 << "; ";
-		
+
 		curr = orig;
 		//Orig is now first_node
 		orig = first_node;
@@ -605,9 +320,9 @@ void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& no
 			area_2 += curr_area;
 			curr = next;
 		} while(next != orig);
-		
+
 		cout << "; area 2 " << area_2 << endl;
-		
+
 		if((area_1/area_2 > 0.9) && (area_1/area_2 < 1.1111)){
 			second_node = pairs[counter].second;
 			too_small = false;
@@ -625,16 +340,16 @@ void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& no
 		}
 	} while(too_small || curved_second_node);
 	if((first_node == NULL)||(second_node == NULL)){
-	
+
 		cout << "Did not select second div plane node." << endl;
-		
+
 		exit(1);
 	}
 
 	nodes.clear();
 	nodes.push_back(first_node);
 	nodes.push_back(second_node);
-	
+
 	return;
 }
 
@@ -651,7 +366,7 @@ shared_ptr<Cell> Cell::division() {
 		curr_wall = curr_wall->get_Left_Neighbor();
 	} while (curr_wall != left_Corner);
 	cout << endl;
-	
+
 	shared_ptr<Cell> sister = make_shared<Cell> (this->my_tissue);
 	sister->set_Layer(this->layer);
 
@@ -659,7 +374,7 @@ shared_ptr<Cell> Cell::division() {
 	this->Cell_Progress = 0;		
 	sister->reset_Cell_Progress();
 	sister->reset_Life_Length();
-	
+
 	//this is the vector for the desired division orientation
 	Coord orientation;
 	//for layer and chemical division decision a vector called orientation
@@ -669,42 +384,47 @@ shared_ptr<Cell> Cell::division() {
 	//return a vector with two pointers to two wall nodes nodes indicating where the cell wall 
 	//should be built
 	//orientation by layer
-	//if((this->layer == 1) || (this->layer == 2)){
-		//orientation = Coord(0,1);
-	//}
+	if((this->layer == 1) || (this->layer == 2)){
+		orientation = Coord(0,1);
+	}
 	//else{
-		//orientation = Coord(1,0);
+	//orientation = Coord(1,0);
 	//}
-	
+
 	//orientation by chemical concentration
 	/*if((this->get_CYT_concentration() > this->get_WUS_concentration())){
-		orientation = Coord(1,0);
-	}
-	else{ 
-		orientation = Coord(0,1);
-	}*/
+	  orientation = Coord(1,0);
+	  }
+	  else{ 
+	  orientation = Coord(0,1);
+	  }*/
 	//orientation by mechanical stress- various algorithms
 	vector<shared_ptr<Wall_Node>> nodes;
 	cout << "Nodes before" << nodes.size() << endl;
-	
+
 	find_nodes_for_div_plane_mechanical(nodes); 
-	
+
 	for (unsigned int i = 0; i < nodes.size(); i++) {
 
 		cout << "Node " << i << " after: X= " << nodes.at(i)->get_Location().get_X() << 
-		" Y = " << nodes.at(i)->get_Location().get_Y() << endl;
-	
+			" Y = " << nodes.at(i)->get_Location().get_Y() << endl;
+
 	}
 	//cout << "orientation" << orientation << endl;
 	//finds node on one side of cell
 	//vector<shared_ptr<Wall_Node>> nodes;
 	//cout << "Nodes before" << nodes.size() << endl;
-	//find_nodes_for_div_plane(orientation, nodes,11);
+	if (L1_L2_FORCED_ANTICLINAL_DIV) { 
+		if (this->layer == 1 || this->layer == 2) { 
+			nodes.clear();
+			find_nodes_for_div_plane(orientation, nodes,11);
+		}
+	}
 	//cout << "Nodes after" << nodes.size() << endl;
 	shared_ptr<Wall_Node> first = nodes.at(0);
 	shared_ptr<Wall_Node> second = nodes.at(1);
-	
-	
+
+
 	//shared_ptr<Wall_Node> first = first_node;
 	//shared_ptr<Wall_Node> second = second_node;
 	vector<shared_ptr<Wall_Node>> daughter_ends;
@@ -712,8 +432,8 @@ shared_ptr<Cell> Cell::division() {
 	//move start end points returns daughter_ends as
 	//daughter_ends = {start_one, end_one, start_two, end_two}
 
-	
-	
+
+
 	shared_ptr<Wall_Node> start_daughter_one = daughter_ends.at(0);
 	shared_ptr<Wall_Node> start_daughter_two = daughter_ends.at(2);
 	shared_ptr<Wall_Node> end_daughter_one = daughter_ends.at(1);
@@ -732,18 +452,18 @@ shared_ptr<Cell> Cell::division() {
 	//this is how much change there is in the x direction of divison plane for each cell
 	double x_one = end_daughter_one->get_Location().get_X() - start_daughter_one->get_Location().get_X();
 	double x_two = end_daughter_two->get_Location().get_X() - start_daughter_two->get_Location().get_X();
-	
+
 	//this is how much change there is in the y direction of division plane for each cell
 	double y_one = end_daughter_one->get_Location().get_Y() - start_daughter_one->get_Location().get_Y();
 	double y_two = end_daughter_two->get_Location().get_Y() - start_daughter_two->get_Location().get_Y();
-	 
+
 	//this is how much x should increment by when
 	//making new cell wall nodes for 
 	//each cell
 	double delta_x_one = (double)x_one/(double)total_num_one;
 	double delta_x_two = (double)x_two/(double)total_num_two;
 
-	
+
 	//this is how much y should increment by when 
 	//making new cell wall nodes for 
 	//each cell
@@ -760,12 +480,12 @@ shared_ptr<Cell> Cell::division() {
 	//this counter was for debugging
 
 	int counter = 0;
-	
+
 	cout << "Make daughter one new cell wall nodes" << endl;
 	double total_num_one_minus_four = total_num_one -4;
 	for(unsigned int i = 0; i < total_num_one_minus_four; i++){
 		curr_X = 
-		curr_X + delta_x_one;
+			curr_X + delta_x_one;
 		curr_Y = curr_Y + delta_y_one;
 		location = Coord(curr_X,curr_Y);
 		//node made 
@@ -792,10 +512,10 @@ shared_ptr<Cell> Cell::division() {
 	curr_Y = location.get_Y()+2*delta_y_two;
 	double total_num_two_minus_four = total_num_two - 4;
 	for(unsigned int i = 0; i< total_num_two_minus_four; i++){
-	
+
 		curr_X = curr_X + delta_x_two;
 		curr_Y =
-		curr_Y + delta_y_two;
+			curr_Y + delta_y_two;
 		location = Coord(curr_X,curr_Y);
 		//node made
 		//cout << "make new node here" << endl;
@@ -854,7 +574,7 @@ shared_ptr<Cell> Cell::division() {
 	//cout << "Done counting cell two" << endl;
 	sister->set_Wall_Count(number_nodes_B);
 	//cout << "Sister: " << number_nodes_B << endl;
-	
+
 	this->wall_nodes.clear();
 
 	curr = this->left_Corner;
@@ -862,7 +582,7 @@ shared_ptr<Cell> Cell::division() {
 	int number_nodes_A = 0;
 	cout << "Cell one counting" << endl;
 	do {
-		
+
 		number_nodes_A++;
 		curr->update_Cell(this_cell);
 		curr->set_Damping(new_damping);
@@ -883,7 +603,7 @@ shared_ptr<Cell> Cell::division() {
 		}
 		//cout << curr->get_Location() << endl;
 		if(curr == NULL) {
-	
+
 			cout << "notlinked" << endl;
 			exit(1);
 		}
@@ -891,7 +611,7 @@ shared_ptr<Cell> Cell::division() {
 	//cout << "Done counting cell one" << endl;	
 	this->set_Wall_Count(number_nodes_A);
 	//cout << "Parent nodes: " << number_nodes_A << endl;	
-	
+
 	//update cell level variables
 	this->update_Wall_Equi_Angles();
 	sister->update_Wall_Equi_Angles();;
@@ -900,12 +620,12 @@ shared_ptr<Cell> Cell::division() {
 	this->update_Cell_Center();
 	sister->update_Cell_Center();
 	Coord L1_AVG = this->get_Tissue()->Compute_L1_AVG();
-	
+
 	this->calc_WUS(L1_AVG);
 	sister->calc_WUS(L1_AVG);
 	this->calc_CK(L1_AVG);
 	sister->calc_CK(L1_AVG);
-	
+
 
 	this->set_growth_rate();
 	sister->set_growth_rate();
@@ -916,7 +636,7 @@ shared_ptr<Cell> Cell::division() {
 	this->get_Cyt_Nodes_Vec(temp_cyts);
 	this->cyt_nodes.clear();
 	this->num_cyt_nodes = 0;
-	
+
 	//this is the center of the new cell wall for each cell
 
 	Coord vector_from_center;
@@ -930,22 +650,22 @@ shared_ptr<Cell> Cell::division() {
 	for(unsigned int i = 0; i < temp_cyts.size(); i++) {
 		length_1 = (temp_cyts.at(i)->get_Location() - this->get_Cell_Center()).length();
 		length_2 = (temp_cyts.at(i)->get_Location() - sister->get_Cell_Center()).length();
-	if(length_1 < length_2) {
+		if(length_1 < length_2) {
 			temp_cyts.at(i)->update_Cell(this_cell);
 			this->update_cyt_node_vec(temp_cyts.at(i));
 			//cout << temp_cyts.at(i)->get_Location() << endl;
 			this->Cell_Progress++;
 			//cout << "this" << endl;
 			//cout << "my cell: " << temp_cyts.at(i)->get_My_Cell() << endl;
-	}
-	else{
+		}
+		else{
 			temp_cyts.at(i)->update_Cell(sister);
 			sister->update_cyt_node_vec(temp_cyts.at(i));
 			//cout << temp_cyts.at(i)->get_Location() << endl;
 			sister->update_Cell_Progress();
 			//cout << "sister" << endl;
 			//cout << "My cell" << temp_cyts.at(i)->get_My_Cell() << endl;
-	}
+		}
 
 		//counter++;
 		//cout << "counter" <<  counter << endl;
@@ -959,9 +679,9 @@ shared_ptr<Cell> Cell::division() {
 	//Coord center_2 = Coord(0,0);
 	this->move_cyt_nodes(center_1);
 	sister->move_cyt_nodes(center_2);
-	
+
 	cout << "Finished deleting old cyt nodes" << endl;
-	
+
 	curr_wall = left_Corner;
 	cout << "Mother angles after: " << endl;
 	do { 
@@ -979,7 +699,7 @@ shared_ptr<Cell> Cell::division() {
 	} while (curr_wall != sis_left_Corner);
 	cout << endl;
 
-return sister;
+	return sister;
 }
 void Cell::move_cyt_nodes(Coord center_point){
 	Coord vector_from_center;
@@ -989,14 +709,311 @@ void Cell::move_cyt_nodes(Coord center_point){
 		// UNUSED length_from_center_pt = (cyt_nodes.at(i)->get_Location()-center_point).length();
 		vector_from_center = cyt_nodes.at(i)->get_Location() - this->cell_center;
 
-	//	if(length_from_center_pt< 4) {
-	
-			location = cell_center + vector_from_center*.5;
-			cyt_nodes.at(i)->new_location(location);
-			//cout << cyt_nodes.at(i)->get_Location() << endl;
-	//	}
+		//	if(length_from_center_pt< 4) {
+
+		location = cell_center + vector_from_center*.5;
+		cyt_nodes.at(i)->new_location(location);
+		//cout << cyt_nodes.at(i)->get_Location() << endl;
+		//	}
 	}
 	return;
 }
 //////=======================================================================================================
 //end of cell_div.cpp
+
+
+
+
+
+
+
+
+
+
+//DEPRECATED CODE
+
+//Mechanical division V1
+/*void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& nodes){
+	vector<pair<double,shared_ptr<Wall_Node>>> pairs;
+	vector<shared_ptr<Wall_Node>> mother_walls;
+	this->get_Wall_Nodes_Vec(mother_walls);
+
+	double theta = 0;
+	double costheta = 0;
+	double curr_len = 0;
+	double growth_len = 0;
+	Coord curr_vec;	
+	int counter = 0;
+	double curr_stress;
+	//double max_stress  =0;
+	//double second_max_stress = 0;
+	shared_ptr<Wall_Node> first_node;
+	shared_ptr<Wall_Node> second_node;
+	if(this->growth_direction != Coord(0,0)){
+		for(unsigned int i = 0; i < mother_walls.size();i++) {	
+			curr_vec = mother_walls.at(i)->get_Left_Neighbor()->get_Location() - mother_walls.at(i)->get_Location();
+			curr_len = curr_vec.length();	
+			growth_len = this->growth_direction.length();
+			costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+			theta = acos( min( max(costheta,-1.0), 1.0) );
+			if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
+				curr_stress = mother_walls.at(i)-> calc_Tensile_Stress();
+				pairs.push_back(make_pair(curr_stress,mother_walls.at(i)));
+			} 
+		}
+	}
+	else{
+		for(unsigned int i = 0; i < mother_walls.size();i++) {	
+			curr_stress = mother_walls.at(i)-> calc_Tensile_Stress();
+			pairs.push_back(make_pair(curr_stress,mother_walls.at(i)));
+		}
+	}
+
+	sort(pairs.begin(), pairs.end(), greater<>()); 
+	for(unsigned int i=0; i< pairs.size(); i++){
+		cout << pairs[i].first << endl;
+	}
+	first_node = pairs[0].second;
+	shared_ptr<Wall_Node> curr = NULL;
+	shared_ptr<Wall_Node> next = NULL;
+	shared_ptr<Wall_Node> orig = NULL;
+	Coord a_i;
+	Coord a_j;
+	double area_1 = 0;
+	double area_2 = 0;
+	double curr_area = 0;
+	//double diff = 100;
+	//double curr_diff;
+	counter = 1;
+	bool too_small = true;
+	do{
+		area_1 = 0;
+		area_2 = 0;
+		curr = first_node;
+		orig = pairs[counter].second;
+		do {
+			next = curr->get_Left_Neighbor();
+			a_i = curr->get_Location() - cell_center;
+			a_j = next->get_Location() - cell_center;
+			curr_area = 0.5*sqrt(pow(a_i.cross(a_j),2));
+			area_1 += curr_area;
+			curr = next;
+		} while(next != orig);
+
+		cout << "area 1" << endl;
+		cout << area_1 << endl;
+
+		curr = orig;
+		orig = first_node;
+		do {
+			next = curr->get_Left_Neighbor();
+			a_i = curr->get_Location() - cell_center;
+			a_j = next->get_Location() - cell_center;
+			curr_area = 0.5*sqrt(pow(a_i.cross(a_j),2));
+			area_2 += curr_area;
+			curr = next;
+		} while(next != orig);
+
+		cout << "area two" << endl;
+		cout << area_2 << endl;
+
+		//curr_diff = abs(area_1 - area_2);
+		//cout << "curr diff " << curr_diff << endl;
+		if((area_1/area_2 > .7) && (area_1/area_2 < 1.5)){
+			second_node = pairs[counter].second;
+			too_small = false;
+		}
+		counter++;
+	}while(too_small);
+	//cout << "diff" << diff << endl;
+	//cout << "end second" << endl;
+	//cout << "first" << first << endl;
+	//cout << "Second"  << second << endl;
+	if((first_node == NULL)||(second_node == NULL)){
+
+		cout << "Did not pick up div plane nodes" << endl;
+
+		exit(1);
+
+
+	}
+	nodes.clear();
+	nodes.push_back(first_node);
+	nodes.push_back(second_node);
+	//cout << "div plane nodes size " << nodes.size() << endl;
+
+	return;
+}*/
+
+//Mechanical division V2
+/*void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& nodes){
+  vector<pair<double,shared_ptr<Wall_Node>>> pairs;
+  vector<shared_ptr<Wall_Node>> mother_walls;
+  this->get_Wall_Nodes_Vec(mother_walls);
+
+
+//cout << "Mech 1" << endl;
+//contains a subset of mother_walls, hopefully without corners.
+vector<shared_ptr<Wall_Node>> curved_walls;
+vector<double> angles;
+double truncate_angle = 0;
+unsigned int truncate_index = static_cast<int>(mother_walls.size() * HIGH_ANGLE_DISCOUNT);
+for (unsigned int i = 0; i < mother_walls.size(); i++) { 
+//mother_walls.at(i)->update_Angle();
+angles.push_back(mother_walls.at(i)->get_Angle());
+cout << angles.at(i); 
+}
+//cout << endl;
+//cout << "Mech 2" << endl;
+sort(angles.begin(),angles.end());
+//cout << "Mech 3" << endl;
+truncate_angle = angles.at(truncate_index);
+//cout << "Mech 5" << endl;
+for (unsigned int i = 0; i < mother_walls.size(); i++) { 
+if (mother_walls.at(i)->get_Angle() >= truncate_angle) { 
+curved_walls.push_back(mother_walls.at(i));
+}
+if (curved_walls.size() > static_cast<float>(mother_walls.size())*(1.0-HIGH_ANGLE_DISCOUNT) + 1) { 
+cout << "Too many walls with near maximal angle. Breaking search.\n";
+cout << "This is expected for a circular cell.\n";
+break;
+}
+}
+
+//cout << "Mech 6"<< endl;
+//now curved walls contains wall nodes who have the top 10% in terms of angle.
+
+double theta = 0;
+double costheta = 0;
+double curr_len = 0;
+double growth_len = 0;
+Coord curr_vec;	
+int counter = 0;
+double curr_stress;
+//double max_stress  =0;
+//double second_max_stress = 0;
+shared_ptr<Wall_Node> first_node;
+shared_ptr<Wall_Node> second_node;
+if(this->growth_direction != Coord(0,0)) {
+for(unsigned int i = 0; i < mother_walls.size();i++) {	
+curr_vec = mother_walls.at(i)->get_Left_Neighbor()->get_Location() - mother_walls.at(i)->get_Location();
+curr_len = curr_vec.length();	
+growth_len = this->growth_direction.length();
+costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+theta = acos( min( max(costheta,-1.0), 1.0) );
+if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
+curr_stress = mother_walls.at(i)-> calc_Tensile_Stress();
+pairs.push_back(make_pair(curr_stress,mother_walls.at(i)));
+} 
+}
+} else {
+for(unsigned int i = 0; i < mother_walls.size();i++) {	
+curr_stress = mother_walls.at(i)-> calc_Tensile_Stress();
+pairs.push_back(make_pair(curr_stress,mother_walls.at(i)));
+}
+}
+//cout << "Mech 7" << endl;
+
+sort(pairs.begin(), pairs.end(), greater<>()); 
+// Prints values to terminal to check sorting.
+//for(unsigned int i=0; i< pairs.size(); i++){
+//	cout << pairs[i].first << endl;
+//}
+//cout << "Mech 8" << endl;
+//first_node = pairs[0].second;
+first_node = NULL;
+int first_iterator = 0;
+bool curved_first_node = false;
+shared_ptr<Wall_Node> temp;
+do { 
+	curved_first_node = false;
+	temp = pairs.at(first_iterator).second;
+	for (unsigned int i = 0; i < curved_walls.size(); i++) { 
+		if (temp == curved_walls.at(i)) {
+			curved_first_node = true;
+			break;
+		}
+	}
+	if(!curved_first_node) { 
+		first_node = temp;
+		break;
+	}
+	first_iterator++;
+} while(!first_node);
+//cout << "Mech 9" << endl;
+if (!first_node) { 
+	cout << "WARNING: first node could not be assigned without being a corner. Defaulting";
+	cout << " to highest tensile stress." << endl;
+	first_node = pairs.at(0).second;
+}
+shared_ptr<Wall_Node> curr = NULL;
+shared_ptr<Wall_Node> next = NULL;
+shared_ptr<Wall_Node> orig = NULL;
+Coord a_i;
+Coord a_j;
+double area_1 = 0;
+double area_2 = 0;
+double curr_area = 0;
+//double diff = 100;
+//double curr_diff;
+counter = 1;
+bool too_small = true;
+do{
+	area_1 = 0;
+	area_2 = 0;
+	curr = first_node;
+	orig = pairs[counter].second;
+	do {
+		next = curr->get_Left_Neighbor();
+		a_i = curr->get_Location() - cell_center;
+		a_j = next->get_Location() - cell_center;
+		curr_area = 0.5*sqrt(pow(a_i.cross(a_j),2));
+		area_1 += curr_area;
+		curr = next;
+	} while(next != orig);
+
+	cout << "\narea 1 " << area_1 << "; ";
+
+	curr = orig;
+	orig = first_node;
+	do {
+		next = curr->get_Left_Neighbor();
+		a_i = curr->get_Location() - cell_center;
+		a_j = next->get_Location() - cell_center;
+		curr_area = 0.5*sqrt(pow(a_i.cross(a_j),2));
+		area_2 += curr_area;
+		curr = next;
+	} while(next != orig);
+
+	cout << "; area 2 " << area_2 << endl;
+
+	//curr_diff = abs(area_1 - area_2);
+	//cout << "curr diff " << curr_diff << endl;
+	if((area_1/area_2 > .7) && (area_1/area_2 < 1.5)){
+		second_node = pairs[counter].second;
+		too_small = false;
+	}
+	counter++;
+}while(too_small);
+//cout << "Mech 10" << endl;
+//cout << "diff" << diff << endl;
+//cout << "end second" << endl;
+//cout << "first" << first << endl;
+//cout << "Second"  << second << endl;
+if((first_node == NULL)||(second_node == NULL)){
+
+	cout << "Did not pick up div plane nodes" << endl;
+
+	exit(1);
+
+
+}
+//cout << "Mech 11" << endl;
+
+nodes.clear();
+nodes.push_back(first_node);
+nodes.push_back(second_node);
+//cout << "div plane nodes size " << nodes.size() << endl;
+
+return;
+}*/
