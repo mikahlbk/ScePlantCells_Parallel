@@ -648,6 +648,10 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 		cout << "Overlapping walls in linear_Equation_ADH(), returning 0." << endl;
 		return Coord(0,0);
 	}
+	if(this->get_My_Cell()->get_recent_div()){
+		F_lin = (diff_vect/diff_len)*(K_ADH_DIV*(diff_len - MembrEquLen_ADH));
+	}
+	else{
 	if(this->get_My_Cell()->get_Layer() == 1){
 		F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
 	}
@@ -656,6 +660,7 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 	}
 	else{
 		F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
+	}
 	}
 	return F_lin;
 }

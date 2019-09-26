@@ -35,6 +35,7 @@ Cell::Cell(Tissue* tissue) {
 	//damping assigned in div function
 	//just divided so reset life length
 	life_length = 0;
+	recent_div = true;
 	//cyt nodes reassigned in division function
 	//start at zero
 	num_cyt_nodes = 0;
@@ -58,6 +59,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	this->my_tissue = tiss;
 	this->rank = rank;
 	this->layer = layer;
+	recent_div = false;
 	//if boundary is equal to one 
 	//then the cell will have higher damping
 	//which is assigned below
@@ -82,10 +84,10 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//calls the make nodes function on each new cell
 	num_wall_nodes = 0;
 	if((this->layer == 1)||(this->layer == 2)){
-		Cell_Progress = unifRandInt(10,14);
+		Cell_Progress = unifRandInt(5,10);
 	}
 	else{
-		Cell_Progress = unifRandInt(5,10);
+		Cell_Progress = unifRandInt(10,14);
 	}
 	//Cell_Progress = unifRandInt(0,10);
 	this->cell_center = center;
@@ -124,6 +126,61 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 //calls compute bending spring constant for each node
 //calls update wall equi angles for each node
 //calls update wall angles to get initial angle of each node
+/*void Cell::make_nodes_experimental(string filename){
+	ifstream ifs(filename.c_str());
+	if(!ifs){
+		cout << filename << "is not available" << endl;
+		return;
+	}
+	
+	stringstream ss;
+	string line;
+	string temp;
+	char trash;
+	int rank;
+	double x, y;
+	while (getline(ifs,line)) {
+		ss.str(line);
+
+		getline(ss,temp,',');
+
+		if (temp == "CellRank") {
+			ss >> rank;
+		}
+		else if (temp == "Center") {
+			ss >> x >> trash >> y;
+			Coord loc(x,y);
+			center = loc;
+		}
+		else if (temp == "Radius") {
+			ss >> radius;
+		}
+		else if (temp == "Layer") {
+			ss >> layer;
+		}
+		else if (temp == "Boundary"){
+			ss >> boundary;
+		}
+		else if(temp == "Stem"){
+			ss >> stem;
+		}
+		else if (temp == "End_Cell") {
+			//create new cell with collected data 
+			//and push onto vector that holds all cells in tissue 
+			//cout<< "making a cell" << endl;
+			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
+			//give that cell wall nodes and internal nodes
+			//curr->make_nodes(radius);
+			curr->make_nodes_experimental("experimental_nodes.txt");
+			//cout<< "make nodes" << endl;
+			num_cells++;
+			cells.push_back(curr);
+		}
+		ss.clear();
+	}
+	ifs.close();
+}*/
+
 void Cell::make_nodes(double radius){
 
 	//assemble the membrane
@@ -923,9 +980,20 @@ void Cell::update_Neighbor_Cells() {
 	//cout << "Cell: " << rank << " -- neighbors: " << neigh_cells.size() << endl;
 
 	return;
+
+}
+void Cell::update_Neighbor_Cells(vector<shared_ptr<Cell>>& cell_vec, shared_ptr<Cell> sister_cell){
+	neigh_cells.clear();
+	this->neigh_cells = cell_vec;
+	neigh_cells.push_back(sister_cell);
+	return;
 }
 
 //Updates a vector of cells that are connected to this via adhesion.
+void Cell::get_ADH_Neighbors_Vec(vector<shared_ptr<Cell>>& adh_vec){
+	adh_vec = this->adh_neighbors;
+	return;
+}
 void Cell::update_Adh_Neighbors() { 
 	vector<shared_ptr<Cell>> temp;
 	shared_ptr<Wall_Node> curr = left_Corner;
@@ -1090,7 +1158,11 @@ void Cell::update_Node_Locations(int Ti) {
 void Cell::update_Cell_Progress(int& Ti) {
 	//update life length of the current cell
 	this->update_Life_Length();
+	if(life_length > 5000){
+		this->recent_div = false;
+	}
 	//stem and boundary?	
+
 	if((Ti%growth_rate == (growth_rate -1))){
 		//cout << "cyt node added "<< endl;
 		this->add_Cyt_Node();
@@ -1099,9 +1171,11 @@ void Cell::update_Cell_Progress(int& Ti) {
 	return;
 }
 void Cell::division_check(){
-	vector<shared_ptr<Cell>> neighbor_cells;
+	vector<shared_ptr<Cell>> adh_cells;
+	vector<shared_ptr<Cell>> neighbor_curr_adhesions;
+	shared_ptr<Cell> this_cell = shared_from_this();
 	//cout <<"Before div progress" << Cell_Progress << endl;	
-	if(this->Cell_Progress >= 30){
+	if((this->Cell_Progress >= 30)&&(this-> calc_Area()>60)){
 
 
 		cout << "dividing cell" << this->rank <<  endl;
@@ -1142,13 +1216,14 @@ void Cell::division_check(){
 		//growth direction inherited in div function
 		//left corner in divison function  
 		//cout << "adhesion division" << endl;
-		new_Cell->update_Neighbor_Cells();
+		new_Cell->update_Neighbor_Cells(this->adh_neighbors,this_cell);
 		new_Cell->update_adhesion_springs();
-		new_Cell->get_Neighbor_Cells(neighbor_cells);
-		for(unsigned int i =0; i < neighbor_cells.size(); i++) {
-			neighbor_cells.at(i)->update_Neighbor_Cells();
-			neighbor_cells.at(i)->clear_adhesion_vectors();
-			neighbor_cells.at(i)->update_adhesion_springs();
+		this->get_ADH_Neighbors_Vec(adh_cells);
+		for(unsigned int i =0; i < adh_cells.size(); i++) {
+			adh_cells.at(i)->get_ADH_Neighbors_Vec(neighbor_curr_adhesions);
+			adh_cells.at(i)->update_Neighbor_Cells(neighbor_curr_adhesions,new_Cell);
+			adh_cells.at(i)->clear_adhesion_vectors();
+			adh_cells.at(i)->update_adhesion_springs();
 
 		}
 	}
@@ -1262,6 +1337,7 @@ void Cell::add_Wall_Node(int Ti) {
 		//adhesion for the new node
 		vector<shared_ptr<Cell>> neighbors;
 		this->get_Neighbor_Cells(neighbors);
+		//this->get_ADH_Neighbors_Vec(neighbors);
 		//cout << "adh added node find closest" << endl;
 		vector<shared_ptr<Wall_Node>> nghbr_walls_total;
 		vector<shared_ptr<Wall_Node>> nghbr_walls_current;

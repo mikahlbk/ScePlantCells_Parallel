@@ -244,7 +244,9 @@ void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_No
 	//set the new starting point of daughter cell one
 	start_daughter_one = start_daughter_one->get_Left_Neighbor();
 	//cout << "daught one move over" << endl;
-	
+	//start_daughter_one->clear_adhesion_vec();
+	//start_daughter_one = start_daughter_one->get_Left_Neighbor();
+
 	//move once
 	shared_ptr<Wall_Node>end_daughter_one = second->get_Right_Neighbor();
 	//cout << "new daughter one" << endl;
@@ -253,6 +255,8 @@ void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_No
 	//move twice
 	//set ending point for daughter cell one
 	end_daughter_one = end_daughter_one ->get_Right_Neighbor();
+	//end_daughter_one->clear_adhesion_vec();
+	//end_daughter_one = end_daughter_one->get_Right_Neighbor();
 
 	//move once
 	shared_ptr<Wall_Node>start_daughter_two = second->get_Left_Neighbor();
@@ -262,6 +266,8 @@ void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_No
 	//move twice
 	//set start point for daughter two
 	start_daughter_two = start_daughter_two->get_Left_Neighbor();
+	//start_daughter_two->clear_adhesion_vec();
+	//start_daughter_two = start_daughter_two->get_Left_Neighbor();
 
 	//move once
 	shared_ptr<Wall_Node>end_daughter_two = first->get_Right_Neighbor();
@@ -272,7 +278,9 @@ void Cell::move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_No
 	//set end point for daughter two
 	end_daughter_two = end_daughter_two ->get_Right_Neighbor();
 	//cout << "Made it through deletions" << endl;
-	
+	//end_daughter_two->clear_adhesion_vec();
+	//end_daughter_two = end_daughter_two->get_Right_Neighbor();
+
 	daughter_ends.push_back(start_daughter_one);
 	daughter_ends.push_back(end_daughter_one);
 	daughter_ends.push_back(start_daughter_two);
@@ -840,8 +848,8 @@ shared_ptr<Cell> Cell::division() {
 	//cout << "d two lenght" << daughter_two_length << endl;
 
 	//this is how many new nodes will be made for each cell
-	int total_num_one = static_cast<int>(daughter_one_length/(Membr_Equi_Len_Short*4));
-	int total_num_two = static_cast<int>(daughter_two_length/(Membr_Equi_Len_Short*4));
+	int total_num_one = static_cast<int>(daughter_one_length/(Membr_Equi_Len_Short*3));
+	int total_num_two = static_cast<int>(daughter_two_length/(Membr_Equi_Len_Short*3));
 	//cout << "Total num one" << total_num_one << endl;
 	//cout << "Total num two" << total_num_two << endl;
 	//this is how much change there is in the x direction of divison plane for each cell
@@ -1052,6 +1060,10 @@ shared_ptr<Cell> Cell::division() {
 			this->Cell_Progress++;
 			//cout << "this" << endl;
 			//cout << "my cell: " << temp_cyts.at(i)->get_My_Cell() << endl;
+			if(length_1 < 4){
+				temp_cyts.at(i)->new_location(this->get_Cell_Center() + (cyt_nodes.at(i)->get_Location() - this->get_Cell_Center())*.7);
+			}
+				
 	}
 	else{
 			temp_cyts.at(i)->update_Cell(sister);
@@ -1060,6 +1072,10 @@ shared_ptr<Cell> Cell::division() {
 			sister->update_Cell_Progress();
 			//cout << "sister" << endl;
 			//cout << "My cell" << temp_cyts.at(i)->get_My_Cell() << endl;
+			if(length_2 < 4){
+				temp_cyts.at(i)->new_location(sister->get_Cell_Center() + (cyt_nodes.at(i)->get_Location() - sister->get_Cell_Center())*.7);
+			}
+
 	}
 
 		//counter++;
@@ -1072,8 +1088,8 @@ shared_ptr<Cell> Cell::division() {
 	cout << "Move cyts here" << endl;
 	//Coord center_1 = Coord(0,0);
 	//Coord center_2 = Coord(0,0);
-	this->move_cyt_nodes(center_1);
-	sister->move_cyt_nodes(center_2);
+	//this->move_cyt_nodes(center_1);
+	//sister->move_cyt_nodes(center_2);
 	
 	cout << "Finished deleting old cyt nodes" << endl;
 	
@@ -1106,7 +1122,7 @@ void Cell::move_cyt_nodes(Coord center_point){
 
 	//	if(length_from_center_pt< 4) {
 	
-			location = cell_center + vector_from_center*.5;
+			location = cell_center + vector_from_center*.7;
 			cyt_nodes.at(i)->new_location(location);
 			//cout << cyt_nodes.at(i)->get_Location() << endl;
 	//	}
