@@ -180,13 +180,13 @@ int main(int argc, char* argv[]) {
 			growing_Tissue.update_Cell_Cycle(Ti);
 		}
 		//will divide cell if time
-		//cout << "divide necessary cells" << endl;
+		cout << "divide necessary cells" << endl;
 		if(Ti >= 10000){
 			growing_Tissue.division_check();
 		}
 
 		//Calculate new forces on cells and nodes
-		//cout << "forces" << endl;
+		cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
 
 		//Update node positions

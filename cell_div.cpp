@@ -1060,9 +1060,9 @@ shared_ptr<Cell> Cell::division() {
 			this->Cell_Progress++;
 			//cout << "this" << endl;
 			//cout << "my cell: " << temp_cyts.at(i)->get_My_Cell() << endl;
-			if(length_1 < 4){
-				temp_cyts.at(i)->new_location(this->get_Cell_Center() + (cyt_nodes.at(i)->get_Location() - this->get_Cell_Center())*.7);
-			}
+			//if(length_1 < 4){
+			//	temp_cyts.at(i)->new_location(this->get_Cell_Center() + (cyt_nodes.at(i)->get_Location() - this->get_Cell_Center())*.7);
+			//}
 				
 	}
 	else{
@@ -1072,9 +1072,9 @@ shared_ptr<Cell> Cell::division() {
 			sister->update_Cell_Progress();
 			//cout << "sister" << endl;
 			//cout << "My cell" << temp_cyts.at(i)->get_My_Cell() << endl;
-			if(length_2 < 4){
-				temp_cyts.at(i)->new_location(sister->get_Cell_Center() + (cyt_nodes.at(i)->get_Location() - sister->get_Cell_Center())*.7);
-			}
+			//if(length_2 < 4){
+			//	temp_cyts.at(i)->new_location(sister->get_Cell_Center() + (cyt_nodes.at(i)->get_Location() - sister->get_Cell_Center())*.7);
+			//}
 
 	}
 
@@ -1088,8 +1088,8 @@ shared_ptr<Cell> Cell::division() {
 	cout << "Move cyts here" << endl;
 	//Coord center_1 = Coord(0,0);
 	//Coord center_2 = Coord(0,0);
-	//this->move_cyt_nodes(center_1);
-	//sister->move_cyt_nodes(center_2);
+	this->move_cyt_nodes(center_1);
+	sister->move_cyt_nodes(center_2);
 	
 	cout << "Finished deleting old cyt nodes" << endl;
 	
@@ -1114,18 +1114,18 @@ return sister;
 }
 void Cell::move_cyt_nodes(Coord center_point){
 	Coord vector_from_center;
-	// double length_from_center_pt;
+	double length_from_center_pt;
 	Coord location;
 	for(unsigned int i=0; i<cyt_nodes.size(); i++){
-		// UNUSED length_from_center_pt = (cyt_nodes.at(i)->get_Location()-center_point).length();
+		length_from_center_pt = (cyt_nodes.at(i)->get_Location()-center_point).length();
 		vector_from_center = cyt_nodes.at(i)->get_Location() - this->cell_center;
 
-	//	if(length_from_center_pt< 4) {
+		if(length_from_center_pt< 4) {
 	
 			location = cell_center + vector_from_center*.7;
 			cyt_nodes.at(i)->new_location(location);
 			//cout << cyt_nodes.at(i)->get_Location() << endl;
-	//	}
+		}
 	}
 	return;
 }
