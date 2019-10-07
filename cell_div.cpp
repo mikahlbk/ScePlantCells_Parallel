@@ -1120,12 +1120,12 @@ void Cell::move_cyt_nodes(Coord center_point){
 		length_from_center_pt = (cyt_nodes.at(i)->get_Location()-center_point).length();
 		vector_from_center = cyt_nodes.at(i)->get_Location() - this->cell_center;
 
-		if(length_from_center_pt< 4) {
+		//if(length_from_center_pt< 4) {
 	
-			location = cell_center + vector_from_center*.7;
+			location = cell_center + vector_from_center*.5;
 			cyt_nodes.at(i)->new_location(location);
 			//cout << cyt_nodes.at(i)->get_Location() << endl;
-		}
+		//}
 	}
 	return;
 }

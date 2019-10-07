@@ -26,7 +26,7 @@ const double ANGLE_SECOND_QUAD_Div = 2.7;
 const double HIGH_ANGLE_DISCOUNT = 0.95;
 const double ADD_WALL_NODE_ANGLE_FIRST_QUAD =.436;
 const double ADD_WALL_NODE_ANGLE_SECOND_QUAD = 2.0;
-const double BOUNDARY_DAMP = 1;//.3; //was used before for boundary
+const double BOUNDARY_DAMP = .8; //was used before for boundary
 const double STEM_DAMP = .1;
 const double REG_DAMP = 1;
 ////// Cell wall mechanical parameters
