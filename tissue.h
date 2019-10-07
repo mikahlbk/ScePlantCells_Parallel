@@ -12,10 +12,13 @@
 #include <vector>
 #include <fstream>
 #include <memory>
+#include <random>
 #include "phys.h"
 #include "coord.h"
 #include "node.h"
 #include "cell.h"
+#include <boost/random.hpp>
+#include <boost/random/normal_distribution.hpp>
 //=========================
 // Tissue Class Declaration
 
@@ -25,6 +28,11 @@ class Tissue{
 		// We'll need a better data structure for later
 		vector<shared_ptr<Cell>> cells;
 		int num_cells;
+		vector<int> dist1;
+		vector<int> dist2;
+		vector<int> dist3;
+		vector<int> dist4;
+		vector<int> counts;	
 	public:
 		Tissue(string filename);
 		void get_Cells(vector<shared_ptr<Cell>>& cells);
@@ -32,6 +40,11 @@ class Tissue{
 		void update_Num_Cells(shared_ptr<Cell>& new_Cell);
 		int  get_num_cells() {return num_cells;}
 		Coord Compute_L1_AVG();
+		int return_counts(int index);
+		void set_up_counts();
+		void set_counts(int index);
+		void assign_dist_vecs(vector<int> dist1, vector<int>dist2, vector<int> dist3, vector<int> dist4);
+		int get_next_random(int dist, int count);
 		void update_Signal();
 		void update_growth_direction();
 		void update_Neighbor_Cells();

@@ -660,7 +660,8 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 	return F_lin;
 }
 
-double Wall_Node::calc_Tensile_Stress() { 
+//OLD tensile stress
+/*double Wall_Node::calc_Tensile_Stress() { 
 	//Variable to store tensile stress is TS
 	double TS, TS_left, TS_right;
 	shared_ptr<Wall_Node> me = shared_from_this();
@@ -680,6 +681,33 @@ double Wall_Node::calc_Tensile_Stress() {
 	
 	Coord outward = calc_Outward_Vector();
 	Coord tangent = outward.perpVector();
+	//calc_Morse_DC(int Ti) doesn't actually make use of Ti, just filling parameter.
+	Coord adh_force = calc_Morse_DC(1);
+	TS += abs(adh_force.dot(tangent));
+	return TS;
+}*/
+
+//NEW tensile stress
+double Wall_Node::calc_Tensile_Stress() { 
+	//Variable to store tensile stress is TS
+	Coord outward = calc_Outward_Vector();
+	Coord tangent = outward.perpVector();
+	double TS, TS_left, TS_right;
+	shared_ptr<Wall_Node> me = shared_from_this();
+	shared_ptr<Wall_Node> RNeighbor = me->get_Right_Neighbor();
+	shared_ptr<Wall_Node> LNeighbor = me->get_Left_Neighbor();
+	//Displacements of left and right node form this node)
+	Coord Delta_R = RNeighbor->get_Location() - me->get_Location();
+	Coord Delta_L = LNeighbor->get_Location() - me->get_Location();
+	TS_left = me->get_k_lin() * (Delta_R.projectOnto(tangent).length() - me->get_membr_len());
+	TS_right = me->get_k_lin() * (Delta_L.projectOnto(tangent).length() - me->get_membr_len());
+
+
+	//Naiive average of left and right tensile stress is TS.
+	TS = (TS_left + TS_right)/static_cast<double>(2);
+
+	//Include adhesion force in the direction tangent to the cell wall
+	
 	//calc_Morse_DC(int Ti) doesn't actually make use of Ti, just filling parameter.
 	Coord adh_force = calc_Morse_DC(1);
 	TS += abs(adh_force.dot(tangent));

@@ -19,6 +19,7 @@ class Tissue;
 #include "phys.h"
 #include "coord.h"
 #include "node.h"
+#include <boost/random.hpp>
 //===================
 // Cell Class Declaration
 
@@ -42,6 +43,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		double wuschel;
 		int growth_rate;
 		double perimeter;
+		bool growing_this_cycle;
 		Coord growth_direction;
 		vector<shared_ptr<Cell>> neigh_cells;
 		vector<shared_ptr<Cell>> adh_neighbors;
@@ -76,12 +78,12 @@ class Cell: public enable_shared_from_this<Cell> {
 		double get_perimeter(){return perimeter;}
 		double get_curr_perimeter();
 		//get counts of individual nodes
-		int get_wall_count() {return num_wall_nodes;}
+		int get_Wall_count() {return num_wall_nodes;}
 		int get_cyt_count() {return num_cyt_nodes;}
 		//get wall nodes
 		void get_Wall_Nodes_Vec(vector<shared_ptr<Wall_Node>>& walls);
 		//add new wall node
-		void add_wall_node_vec(shared_ptr<Wall_Node> curr);
+		void add_Wall_Node_Vec(shared_ptr<Wall_Node> curr);
 		//get cyt nodes
 		void get_Cyt_Nodes_Vec(vector<shared_ptr<Cyt_Node>>& cyts);
 		//add new cyt node
@@ -99,8 +101,10 @@ class Cell: public enable_shared_from_this<Cell> {
 		double get_WUS_concentration() {return wuschel;}
 		void calc_CK(Coord L1_AVG);
 		double get_CYT_concentration() {return cytokinin;}
+		double getRandomDoubleUsingNormalDistribution(double mean, double sigma);
 		//set growth rate based on WUS
 		void set_growth_rate();
+		int get_growth_rate(){return growth_rate;}
 		//set/get growth direction
 		void update_growth_direction();
 		void update_node_parameters_for_growth_direction();
@@ -108,6 +112,9 @@ class Cell: public enable_shared_from_this<Cell> {
 		Coord get_growth_direction(){return growth_direction;}
 		//get current neighbor cells		
 		void get_Neighbor_Cells(vector<shared_ptr<Cell>>& cells);
+		//set/get growing_this_round
+		void set_Growing_This_Cycle(bool gtc);
+		bool is_Growing_This_Cycle(){return growing_this_cycle;}
 		//set/get left corner
 		void set_Left_Corner(shared_ptr<Wall_Node> new_left_corner);
 		shared_ptr<Wall_Node> get_Left_Corner() {return left_Corner;}			      //is this necessary?
@@ -138,8 +145,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		void update_Cell_Progress(int& Ti);
 		void division_check();
 		double calc_Area();
-		void add_wall_Node_Check(int Ti);
-		void delete_wall_Node_Check(int Ti);
+		void add_Wall_Node_Check(int Ti);
+		void delete_Wall_Node_Check(int Ti);
 		void add_Wall_Node(int Ti);
 		void delete_Wall_Node(int Ti);
 
@@ -152,6 +159,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//Functions for Division
 		void find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_Node>>& nodes, int search_amount);
 		void find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& nodes);
+		void Errera_div(vector<shared_ptr<Wall_Node>>& nodes);
 		void move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_Node> second, vector<shared_ptr<Wall_Node>>& daughter_ends);
 		void move_cyt_nodes(Coord center_pt);
 		Coord produce_random_vec();	
@@ -165,17 +173,17 @@ class Cell: public enable_shared_from_this<Cell> {
 
 		void print_locations(ofstream& ofs,bool cytoplasm);
 		/*void print_VTK_Points(ofstream& ofs, int& count);
-		void print_VTK_Scalars_Wall_Pressure(ofstream& ofs);
-		void print_VTK_Scalars_Average_Pressure(ofstream& ofs);
-		void print_VTK_Scalars_Average_Pressure_cell(ofstream& ofs);
-		void print_VTK_Scalars_WUS(ofstream& ofs);
-		void print_VTK_Scalars_WUS_cell(ofstream& ofs);
-		void print_VTK_Scalars_CK(ofstream& ofs);
-		void print_VTK_Scalars_Total(ofstream& ofs);
-		void print_VTK_Vectors(ofstream& ofs);
-		void print_VTK_Scalars_Node(ofstream& ofs);	
-		void print_VTK_Tensile_Stress(ofstream& ofs);
-		void print_VTK_Shear_Stress(ofstream& ofs);*/
+		  void print_VTK_Scalars_Wall_Pressure(ofstream& ofs);
+		  void print_VTK_Scalars_Average_Pressure(ofstream& ofs);
+		  void print_VTK_Scalars_Average_Pressure_cell(ofstream& ofs);
+		  void print_VTK_Scalars_WUS(ofstream& ofs);
+		  void print_VTK_Scalars_WUS_cell(ofstream& ofs);
+		  void print_VTK_Scalars_CK(ofstream& ofs);
+		  void print_VTK_Scalars_Total(ofstream& ofs);
+		  void print_VTK_Vectors(ofstream& ofs);
+		  void print_VTK_Scalars_Node(ofstream& ofs);	
+		  void print_VTK_Tensile_Stress(ofstream& ofs);
+		  void print_VTK_Shear_Stress(ofstream& ofs);*/
 		void print_locations(ofstream& ofs);
 		void print_VTK_Points(ofstream& ofs, int& count, bool cytoplasm);
 		void print_VTK_Scalars_Wall_Pressure(ofstream& ofs, bool cytoplasm);
@@ -191,8 +199,10 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_VTK_Shear_Stress(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Neighbors(ofstream& ofs, bool cytoplasm); 
 		void print_VTK_Curved(ofstream& ofs, bool cytoplasm); 
+		void print_VTK_Corners(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Growth_Dir(ofstream& ofs, bool cytoplasm); 
 		vector<pair<double,shared_ptr<Wall_Node>>> get_Angle_Wall_Sorted();
+		vector<shared_ptr<Wall_Node>> get_Corner_Nodes();
 
 		//Division 
 		shared_ptr<Cell> division();

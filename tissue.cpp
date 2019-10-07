@@ -9,6 +9,7 @@
 #include <string>
 #include <iomanip>
 #include <memory>
+#include <random>
 #include "phys.h"
 #include "coord.h"
 #include "cell.h"
@@ -19,6 +20,7 @@
 //.txt file that is read in
 Tissue::Tissue(string filename) {
 	num_cells = 0;
+	set_up_counts();
 	ifstream ifs(filename.c_str());
 
 	if(!ifs) {
@@ -105,14 +107,22 @@ Coord Tissue::Compute_L1_AVG(){
 	Coord avg;
 	double avgx = 0;
 	double avgy = 0;
-	for(unsigned int i = 0; i< cells.size(); i++){
+
+	//int counter = 1;
+	for(unsigned int i= 0; i< cells.size(); i++){
 		if(cells.at(i)->get_Layer() == 1){
+			//cout << "counter: " << counter <<  endl;
+			//cout << cells.at(i)->get_Cell_Center().get_X()<< endl;
 			avgx = avgx + cells.at(i)->get_Cell_Center().get_X();
+			//cout << cells.at(i)->get_Cell_Center().get_Y() << endl;
 			avgy = avgy + cells.at(i)->get_Cell_Center().get_Y();
+			//cout << avgx << "avg x" << endl;
+			//cout << avgy << "avg y" << endl;
+			//counter++;
 		}
 	}
-	cout << avgx << endl;
-	cout << avgy << endl;
+	//cout << "really?? " << avgx << endl;
+	//cout << "really?? " << avgy << endl;
 	avgx = avgx/cells.size();
 	avgy = avgy/cells.size();
 	avg = Coord(avgx,avgy);
@@ -121,13 +131,51 @@ Coord Tissue::Compute_L1_AVG(){
 }
 //**********functions for tissue to perform on cells********//
 //updates current neighbors of each cell
+void Tissue::assign_dist_vecs(vector<int> dist1, vector<int> dist2, vector<int> dist3, vector<int> dist4){
+	this->dist1 = dist1;
+	this->dist2 = dist2;
+	this->dist3 = dist3;
+	this->dist4 = dist4;
+	for(unsigned int i = 0; i<4; i++){
+		counts.push_back(0);
+	}
+}
+void Tissue::set_up_counts(){
+	for(unsigned int i = 0; i < 4; i++){
+		counts.push_back(0);
+	}
+}
+int Tissue::return_counts(int index){
+	return counts.at(index);
+}
+void Tissue::set_counts(int index){
+	counts.at(index) = counts.at(index) + 1;
+}
+int Tissue::get_next_random(int dist, int count){
+	if(dist == 1){
+		return this->dist1.at(count);
+	}
+	else if (dist == 2){
+		return this->dist2.at(count);
+	}
+	else if (dist == 3){
+		return this->dist3.at(count);
+	}
+	else{
+		return this->dist4.at(count);
+	}
+}
 void Tissue::update_Signal(){
 	
 	Coord L1_AVG = this->Compute_L1_AVG();
 	for(int i = 0; i < num_cells; i++){
+		//cout<< "WUS" << endl;
 		cells.at(i)->calc_WUS(L1_AVG);
+		//cout << "CK" << endl;
 		cells.at(i)->calc_CK(L1_AVG);
+		//cout << "GROWTH RATE" << endl;
 		cells.at(i)->set_growth_rate();
+		//cout<< "growth rate: " << i << " " << cells.at(i)->get_growth_rate() << endl;
 	}
 	return;
 
@@ -151,7 +199,7 @@ void Tissue::update_Neighbor_Cells() {
 void Tissue::add_Wall(int Ti) {
 	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->add_wall_Node_Check(Ti);
+		cells.at(i)->add_Wall_Node_Check(Ti);
 	}
 	//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
 	return;
@@ -387,7 +435,7 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 		if (cytoplasm) { 
 			num_Points += cells.at(i)->get_Node_Count();
 		} else { 
-			num_Points += cells.at(i)->get_wall_count();
+			num_Points += cells.at(i)->get_Wall_count();
 		}
 	}
 	
@@ -414,7 +462,7 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 		if (cytoplasm) { 
 			ofs << cells.at(i)->get_Node_Count();
 		} else { 
-			ofs << cells.at(i)->get_wall_count();
+			ofs << cells.at(i)->get_Wall_count();
 		}
 
 		for (int k = start_points.at(i); k <= end_points.at(i); k++) {
@@ -516,6 +564,13 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 	ofs << "LOOKUP_TABLE discrete_colors" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Curved(ofs, cytoplasm);
+	}
+	ofs << endl;
+
+	ofs << "Scalars Corners float64" << 1 << endl;
+	ofs << "LOOKUP_TABLE discrete_colors" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Corners(ofs, cytoplasm);
 	}
 	ofs << endl;
 
