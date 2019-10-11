@@ -48,6 +48,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		vector<shared_ptr<Cell>> neigh_cells;
 		vector<shared_ptr<Cell>> adh_neighbors;
 		shared_ptr<Wall_Node> left_Corner;
+		bool recent_div;
 	public:
 
 		Cell(Tissue* tissue);
@@ -62,6 +63,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//set/get rank
 		void set_Rank(const int id);
 		int get_Rank() {return rank;}
+		bool get_recent_div() {return recent_div;}
 		//set/get layer
 		void set_Layer(int layer);
 		int get_Layer() {return layer;}
@@ -115,6 +117,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//set/get growing_this_round
 		void set_Growing_This_Cycle(bool gtc);
 		bool is_Growing_This_Cycle(){return growing_this_cycle;}
+		void get_ADH_Neighbors_Vec(vector<shared_ptr<Cell>>& adh_neighbs);
 		//set/get left corner
 		void set_Left_Corner(shared_ptr<Wall_Node> new_left_corner);
 		shared_ptr<Wall_Node> get_Left_Corner() {return left_Corner;}			      //is this necessary?
@@ -131,6 +134,7 @@ class Cell: public enable_shared_from_this<Cell> {
 
 		//Keep track of neighbor cells
 		void update_Neighbor_Cells();
+		void update_Neighbor_Cells(vector<shared_ptr<Cell>>& cell_vec, shared_ptr<Cell>);
 
 		//adhesion
 		void clear_adhesion_vectors();

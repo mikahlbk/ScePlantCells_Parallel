@@ -11,7 +11,7 @@
 #include <ctime>
 #include <stdio.h>
 #include <memory>
-#include <random>
+//#include <random>
 #include <functional>
 #include <chrono>
 #include "phys.h"
@@ -46,10 +46,10 @@ int main(int argc, char* argv[]) {
 	mt19937::result_type seed = time(0);
 	
 	//distrubution for different cell cycle lengths
-	auto normal_rand1 = bind(normal_distribution<double> (10800,1800),mt19937(seed));
-	auto normal_rand2 = bind(normal_distribution<double> (14400,1800),mt19937(seed));
-	auto normal_rand3 = bind(normal_distribution<double> (19800,3600), mt19937(seed));
-	auto normal_rand4 = bind(normal_distribution<double> (39600,16200), mt19937(seed));
+	auto normal_rand1 = bind(normal_distribution<double> (15800,2300),mt19937(seed));
+	auto normal_rand2 = bind(normal_distribution<double> (19400,1800),mt19937(seed));
+	auto normal_rand3 = bind(normal_distribution<double> (24800,3600), mt19937(seed));
+	auto normal_rand4 = bind(normal_distribution<double> (44600,18200), mt19937(seed));
 	vector<int> dist1;
 	vector<int> dist2;
 	vector<int> dist3;
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
 	//.txt file that tells initial
 	//cell configuration 
 	//cout << "before cell file is read in" << endl;
-	string init_tissue = "cell_staggered.txt"; 
+	string init_tissue = "staggered_generated.txt";
 	//cout << "Read in cell starter" << endl;	
 
 
@@ -71,6 +71,7 @@ int main(int argc, char* argv[]) {
 	//new cell and node objects
 	//are made in this call
 	Tissue growing_Tissue(init_tissue);
+	//TIssue growing_Tissue_experiment(init_tissue);
 	growing_Tissue.assign_dist_vecs(dist1, dist2, dist3, dist4);
 	//cout << "Finished creating Cells" << endl;
 	growing_Tissue.update_Signal();
@@ -150,7 +151,7 @@ int main(int argc, char* argv[]) {
 		//was used previously to help stability of cells
 		//deletes a cell wall node if too close together
 		if(Ti > 10000){
-			if(Ti%5000 == 0){	
+			if(Ti%2000 == 0){	
 				//cout << "delete wall" << endl;
 				growing_Tissue.delete_Wall(Ti);
 			}
@@ -163,7 +164,7 @@ int main(int argc, char* argv[]) {
 				growing_Tissue.update_Adhesion();
 			}
 		} else {	
-			if(Ti%5000 == 0) {
+			if(Ti%50000 == 0) {
 				//cout << "adhesion"<< endl;
 				growing_Tissue.update_Adhesion();
 			}
@@ -175,13 +176,13 @@ int main(int argc, char* argv[]) {
 			growing_Tissue.update_Cell_Cycle(Ti);
 		}
 		//will divide cell if time
-		//cout << "divide necessary cells" << endl;
+		cout << "divide necessary cells" << endl;
 		if(Ti >= 10000){
 			growing_Tissue.division_check();
 		}
 
 		//Calculate new forces on cells and nodes
-		//cout << "forces" << endl;
+		cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
 
 		//Update node positions
@@ -191,7 +192,7 @@ int main(int argc, char* argv[]) {
 		//cout << "Finished" << endl;
 
 		// print to dataOutput and vtk files
-		if(Ti%1000==0) {
+		if(Ti%500==0) {
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
 				Number = "0000" + to_string(out);

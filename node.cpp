@@ -1,4 +1,5 @@
 //node.cpp
+//
 //=========================
 #include <iostream>
 #include <vector>
@@ -301,8 +302,7 @@ void Wall_Node::make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls) {
 			if(this_ptr_adh_vec.size() < NUMBER_ADH_CONNECTIONS){
 				this_ptr->adh_push_back(neighbor_walls.at(i));
 				this_ptr_adh_vec = this_ptr->get_adh_vec();
-			}
-			else{
+			} else {
 				//sort in descending order
 				reverse(this_ptr_adh_vec.begin(),this_ptr_adh_vec.end());
 				biggest_dist = (this_ptr_loc - this_ptr_adh_vec.at(0)->get_Location()).length();
@@ -506,7 +506,7 @@ Coord Wall_Node::morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti) {
 	//cout << Fmi << endl;
 	return Fmi;
 }
-
+//REAL FUNCTION
 Coord Wall_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 	if (wall == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
@@ -648,6 +648,10 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 		cout << "Overlapping walls in linear_Equation_ADH(), returning 0." << endl;
 		return Coord(0,0);
 	}
+	if(this->get_My_Cell()->get_recent_div()){
+		F_lin = (diff_vect/diff_len)*(K_ADH_DIV*(diff_len - MembrEquLen_ADH));
+	}
+	else{
 	if(this->get_My_Cell()->get_Layer() == 1){
 		F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
 	}
@@ -656,6 +660,7 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 	}
 	else{
 		F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
+	}
 	}
 	return F_lin;
 }
@@ -713,6 +718,7 @@ double Wall_Node::calc_Tensile_Stress() {
 	TS += abs(adh_force.dot(tangent));
 	return TS;
 }
+
 
 double Wall_Node::calc_Shear_Stress() { 
 	//Variable to store Shear stress is SS

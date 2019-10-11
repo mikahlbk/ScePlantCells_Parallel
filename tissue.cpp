@@ -72,6 +72,7 @@ Tissue::Tissue(string filename) {
 			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
 			//give that cell wall nodes and internal nodes
 			curr->make_nodes(radius);
+			//curr->make_nodes_experimental("experimental_nodes.txt");
 			//cout<< "make nodes" << endl;
 			num_cells++;
 			cells.push_back(curr);
@@ -222,6 +223,7 @@ void Tissue::update_Adhesion() {
 	}
 	for(unsigned int i = 0;i<cells.size();i++) {
 		cells.at(i)->update_adhesion_springs();
+		cells.at(i)->update_Adh_Neighbors();
 	}
 	return;
 }

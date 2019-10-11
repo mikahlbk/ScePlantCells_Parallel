@@ -29,7 +29,7 @@ const double HIGH_ANGLE_DISCOUNT = 0.95;
 const int CORNER_RADIUS= 4;
 const double ADD_WALL_NODE_ANGLE_FIRST_QUAD =.436;
 const double ADD_WALL_NODE_ANGLE_SECOND_QUAD = 2.0;
-const double BOUNDARY_DAMP = .3;
+const double BOUNDARY_DAMP = .8; //was used before for boundary
 const double STEM_DAMP = .1;
 const double REG_DAMP = 1;
 ////// Cell wall mechanical parameters
@@ -43,10 +43,11 @@ const double K_LINEAR_STIFF = 0;
 const double K_LINEAR_LOOSE =280.1636;//54.2730;
 //157.7281;//674.3111;//511.3433;//746.0824;//461.8290;//230.2545;//134.8271;//336.2897;//581.4058;//551.7969;//84.7288;//280.1636;//688.4090;//396.0437;//612.7239;//320.9386;//381.9915;//204.3934;//477.1815;//
 ////Adhesion spring mechanical params
-const double K_ADH = 20;//12;
+const double K_ADH = 12;
 const double K_ADH_L1 = 12;
 const double K_ADH_L2 = 12;
-const double MembrEquLen_ADH = 1.2;
+const double K_ADH_DIV = 12;
+const double MembrEquLen_ADH = .9;
 const double ADHThresh = 2;
 const double NUMBER_ADH_CONNECTIONS = 2;
 //equilibrium length of linear springs
@@ -57,10 +58,10 @@ const double Membr_Equi_Len_Long = .07;
 const double Membr_Equi_Len_Short = .07;
 //
 /////// Subcellular element parameters for membrane - membrane interactions
-const double U_MM = 5;//3.9;
-const double W_MM =  0;
-const double xsi_MM = 0.5;
-const double gamma_MM = 1.5625;	
+const double U_MM = 53;
+const double W_MM =  0.2; //0 TEST 4
+const double xsi_MM = 0.1;
+const double gamma_MM = 1.1;	
 //
 /////// Subcellular element parameters for membrane  - internal interactions
 const double U_MI = 45;
@@ -81,10 +82,10 @@ const double xsi_II_div = .4;
 //If the following is set to true, other division plane orientation
 //rules will be overwritten to impose L1 and L2 anticlinal division.
 //False will have it follow whatever rules deeper layers follow.
-const bool L1_L2_FORCED_ANTICLINAL_DIV = false;
+const bool L1_L2_FORCED_ANTICLINAL_DIV = true;
 
 //If the following is set to true, then some of the L1 cells will "wait" for a growth phase to account for some cells growing out of the plane. 
-const bool OUT_OF_PLANE_GROWTH = true;
+const bool OUT_OF_PLANE_GROWTH = false;
 
 /////// VTK parameters
 //Tensile stress cytoplasm color (Calibrated from circle value)
