@@ -1,4 +1,5 @@
 //node.cpp
+//
 //=========================
 #include <iostream>
 #include <vector>
@@ -301,8 +302,7 @@ void Wall_Node::make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls) {
 			if(this_ptr_adh_vec.size() < NUMBER_ADH_CONNECTIONS){
 				this_ptr->adh_push_back(neighbor_walls.at(i));
 				this_ptr_adh_vec = this_ptr->get_adh_vec();
-			}
-			else{
+			} else {
 				//sort in descending order
 				reverse(this_ptr_adh_vec.begin(),this_ptr_adh_vec.end());
 				biggest_dist = (this_ptr_loc - this_ptr_adh_vec.at(0)->get_Location()).length();
@@ -356,10 +356,11 @@ void Wall_Node::update_adh_vec(shared_ptr<Wall_Node> node) {
 void Wall_Node::remove_from_adh_vecs(){
 	shared_ptr<Wall_Node> me = shared_from_this();
 	vector<shared_ptr<Wall_Node>> neighbor_connections;
-	for(unsigned int i = 0; i < adhesion_vector.size(); i++){
+	for (unsigned int i = 0; i < adhesion_vector.size(); i++){
+		neighbor_connections.clear();
 		neighbor_connections = adhesion_vector.at(i)->get_adh_vec();
 		adhesion_vector.at(i)->clear_adhesion_vec();
-		for(unsigned int j = 0; j<neighbor_connections.size();j++){
+		for (unsigned int j = 0; j < neighbor_connections.size(); j++) {
 			if(neighbor_connections.at(j) != me){
 				adhesion_vector.at(i)->adh_push_back(neighbor_connections.at(j));
 			}
@@ -506,7 +507,7 @@ Coord Wall_Node::morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti) {
 	//cout << Fmi << endl;
 	return Fmi;
 }
-
+//REAL FUNCTION
 Coord Wall_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 	if (wall == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
@@ -517,23 +518,37 @@ Coord Wall_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 	Coord Fmmd;
 	Coord diff_vect = wall->get_Location() - my_loc;
 	double diff_len = diff_vect.length();
+
 	double attract;
 	double repel;
-	if(this->get_My_Cell()->get_recent_div()){
+	/*if(this->get_My_Cell()->get_recent_div()){
 		attract = (U_MM_DIV/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
 		repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
 	}
-	else{
+	else{*/
 		attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
 		
 		repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
 
-	}
+	//}
 	Fmmd = diff_vect*((-attract + repel)/diff_len);
+	//Do we need this?
+/*	if(diff_len < MembrEquLen_ADH) {
+		double attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
+		double repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
+		Fmmd = diff_vect*((-attract + repel)/diff_len);
+	} else { 
+		Fmmd = Coord(0,0);
+	}
 
+
+*/
 	//cout << Fmmd << endl;
 	return Fmmd;
 }
+
+
+
 Coord Wall_Node::bending_Equation_Center() {
 	Coord F_center;
 	double self_Constant; 
@@ -674,7 +689,8 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 	return F_lin;
 }
 
-double Wall_Node::calc_Tensile_Stress() { 
+//OLD tensile stress
+/*double Wall_Node::calc_Tensile_Stress() { 
 	//Variable to store tensile stress is TS
 	double TS, TS_left, TS_right;
 	shared_ptr<Wall_Node> me = shared_from_this();
@@ -698,7 +714,35 @@ double Wall_Node::calc_Tensile_Stress() {
 	Coord adh_force = calc_Morse_DC(1);
 	TS += abs(adh_force.dot(tangent));
 	return TS;
+}*/
+
+//NEW tensile stress
+double Wall_Node::calc_Tensile_Stress() { 
+	//Variable to store tensile stress is TS
+	Coord outward = calc_Outward_Vector();
+	Coord tangent = outward.perpVector();
+	double TS, TS_left, TS_right;
+	shared_ptr<Wall_Node> me = shared_from_this();
+	shared_ptr<Wall_Node> RNeighbor = me->get_Right_Neighbor();
+	shared_ptr<Wall_Node> LNeighbor = me->get_Left_Neighbor();
+	//Displacements of left and right node form this node)
+	Coord Delta_R = RNeighbor->get_Location() - me->get_Location();
+	Coord Delta_L = LNeighbor->get_Location() - me->get_Location();
+	TS_left = me->get_k_lin() * (Delta_R.projectOnto(tangent).length() - me->get_membr_len());
+	TS_right = me->get_k_lin() * (Delta_L.projectOnto(tangent).length() - me->get_membr_len());
+
+
+	//Naiive average of left and right tensile stress is TS.
+	TS = (TS_left + TS_right)/static_cast<double>(2);
+
+	//Include adhesion force in the direction tangent to the cell wall
+	
+	//calc_Morse_DC(int Ti) doesn't actually make use of Ti, just filling parameter.
+	Coord adh_force = calc_Morse_DC(1);
+	TS += abs(adh_force.dot(tangent));
+	return TS;
 }
+
 
 double Wall_Node::calc_Shear_Stress() { 
 	//Variable to store Shear stress is SS

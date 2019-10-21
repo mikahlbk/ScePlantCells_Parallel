@@ -52,6 +52,10 @@ Cell::Cell(Tissue* tissue) {
 	//growth direction assigned in division
 	//neighbors assigned in div function
 	//left corner assigned in division
+	//recent_div_MD = 0 means that no cells are recently divided
+	//same with recent_div = false
+	recent_div = false;
+	recent_div_MD = 0;
 }
 //this constructor is used to initialize first set of cells
 //calls set_growth_rate which detemrines growth rate based on WUS CONC
@@ -65,15 +69,13 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//which is assigned below
 	//boundary conditions are read in from initial text file
 	this->boundary = boundary;
-	this-> stem = stem;
+	this->stem = stem;
 	//set damping for cells that act as anchor points
 	if(this->stem == 1) {
 		this->damping = STEM_DAMP;
-	}
-	else if((this->boundary == 1)){
+	} else if((this->boundary == 1)) {
 		this->damping =  BOUNDARY_DAMP;
-	}
-	else{
+	} else {
 		this->damping = REG_DAMP;
 	}
 	life_length = 0;
@@ -85,11 +87,16 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	num_wall_nodes = 0;
 	if((this->layer == 1)||(this->layer == 2)){
 		Cell_Progress = unifRandInt(5,10);
+
+//oldway
+/*
 	}
 	if((this->stem == 1)||(this->boundary == 1)){
 		Cell_Progress = 30;
 	}
-	else{
+	else{*/
+	} else {
+
 		Cell_Progress = unifRandInt(10,14);
 	}
 	//Cell_Progress = unifRandInt(0,10);
@@ -98,27 +105,33 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//in tissue constructor
 	if(this->boundary == 1){
 		this->growth_direction = Coord(0,0);
-	}
-	else if(this->stem == 1){
+	} else if(this->stem == 1) {
 		this->growth_direction = Coord(0,1);
-	}
-        else if((this->layer == 1)||(this->layer == 2)) {
-                 this->growth_direction = Coord(1,0);
-        }
-	else{
-		this->growth_direction = Coord(0,1);
-	}
-        /*else if(rand()% 100 < 30){
-	 	this->growth_direction = Coord(0,0);
-	}
-	else{
+
+	} else if((this->layer == 1)||(this->layer == 2)) {
+		this->growth_direction = Coord(1,0);
+	} else if(rand()% 100 < 30) {
+		this->growth_direction = Coord(0,0);
+	} else {
+
 		if(rand()% 100 < 36){
 			this->growth_direction = Coord(1,0);
 		}
 		else{
 			this->growth_direction = Coord(0,1);
 		}
-	}*/
+
+	}
+
+	if (unifRand()  < 0.5) { 
+		set_Growing_This_Cycle(false);
+	} else { 
+		set_Growing_This_Cycle(true);
+	}
+	recent_div = false;
+	recent_div_MD = 0;
+
+
 	//cout << "layer" << this->layer << endl;
 	//cout << "stem" << this->stem << endl;
 	//cout << "boundary" << this-> boundary << endl;
@@ -133,58 +146,58 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 //calls update wall equi angles for each node
 //calls update wall angles to get initial angle of each node
 /*void Cell::make_nodes_experimental(string filename){
-	ifstream ifs(filename.c_str());
-	if(!ifs){
-		cout << filename << "is not available" << endl;
-		return;
-	}
-	
-	stringstream ss;
-	string line;
-	string temp;
-	char trash;
-	int rank;
-	double x, y;
-	while (getline(ifs,line)) {
-		ss.str(line);
+  ifstream ifs(filename.c_str());
+  if(!ifs){
+  cout << filename << "is not available" << endl;
+  return;
+  }
 
-		getline(ss,temp,',');
+  stringstream ss;
+  string line;
+  string temp;
+  char trash;
+  int rank;
+  double x, y;
+  while (getline(ifs,line)) {
+  ss.str(line);
 
-		if (temp == "CellRank") {
-			ss >> rank;
-		}
-		else if (temp == "Center") {
-			ss >> x >> trash >> y;
-			Coord loc(x,y);
-			center = loc;
-		}
-		else if (temp == "Radius") {
-			ss >> radius;
-		}
-		else if (temp == "Layer") {
-			ss >> layer;
-		}
-		else if (temp == "Boundary"){
-			ss >> boundary;
-		}
-		else if(temp == "Stem"){
-			ss >> stem;
-		}
-		else if (temp == "End_Cell") {
-			//create new cell with collected data 
-			//and push onto vector that holds all cells in tissue 
-			//cout<< "making a cell" << endl;
-			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
-			//give that cell wall nodes and internal nodes
-			//curr->make_nodes(radius);
-			curr->make_nodes_experimental("experimental_nodes.txt");
-			//cout<< "make nodes" << endl;
-			num_cells++;
-			cells.push_back(curr);
-		}
-		ss.clear();
-	}
-	ifs.close();
+  getline(ss,temp,',');
+
+  if (temp == "CellRank") {
+  ss >> rank;
+  }
+  else if (temp == "Center") {
+  ss >> x >> trash >> y;
+  Coord loc(x,y);
+  center = loc;
+  }
+  else if (temp == "Radius") {
+  ss >> radius;
+  }
+  else if (temp == "Layer") {
+  ss >> layer;
+  }
+  else if (temp == "Boundary"){
+  ss >> boundary;
+  }
+  else if(temp == "Stem"){
+  ss >> stem;
+  }
+  else if (temp == "End_Cell") {
+//create new cell with collected data 
+//and push onto vector that holds all cells in tissue 
+//cout<< "making a cell" << endl;
+shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
+//give that cell wall nodes and internal nodes
+//curr->make_nodes(radius);
+curr->make_nodes_experimental("experimental_nodes.txt");
+//cout<< "make nodes" << endl;
+num_cells++;
+cells.push_back(curr);
+}
+ss.clear();
+}
+ifs.close();
 }*/
 
 void Cell::make_nodes(double radius){
@@ -314,7 +327,7 @@ void Cell::get_Wall_Nodes_Vec(vector<shared_ptr<Wall_Node>>& walls) {
 	walls = this->wall_nodes;
 	return;
 }
-void Cell::add_wall_node_vec(shared_ptr<Wall_Node> curr) {
+void Cell::add_Wall_Node_Vec(shared_ptr<Wall_Node> curr) {
 	this->wall_nodes.push_back(curr);
 	this->num_wall_nodes++;
 	return;
@@ -341,148 +354,25 @@ void Cell::calc_WUS(Coord L1_AVG) {
 	//new data from eric
 	//CZ ~5 cells wide
 	//layer 1
-	/*if(this->rank == 0){
-	  this->wuschel = 11;
-	  }
-	  else if(this->rank == 1){
-	  this->wuschel = 17; 
-	  }
-	  else if(this->rank == 2){
-	  this->wuschel = 16; 
-	  }
-	  else if(this->rank == 5){
-	  this->wuschel = 12; 
-	  }
-	  else if(this->rank == 6){
-	  this->wuschel = 14;; 
-	  }
-	//layer 2
-	else if(this->rank == 9){
-	this->wuschel = 9;
-	}
-	else if(this->rank == 10){
-	this->wuschel = 18;
-	}
-	else if(this->rank == 11){
-	this->wuschel = 15; 
-	}
-	else if(this->rank == 14){
-	this->wuschel = 20;
-	}
-	else if(this->rank == 15){
-	this->wuschel = 13; 
-	}
-	//layer 3
-	else if(this->rank == 18){
-	this->wuschel = 44; 
-	}
-	else if(this->rank == 19){
-	this->wuschel = 23; 
-	}
-	else if(this->rank == 20){
-	this->wuschel = 19; 
-	}
-	else if(this->rank == 22){
-	this->wuschel = 18; 
-	}
-	else if(this->rank == 23){
-	this->wuschel = 23; 
-	}
-	//layer 4
-	else if(this->rank == 25){
-	this->wuschel = 43;
-	}
-	else if(this->rank == 26){
-	this->wuschel = 21; 
-	}
-	else if(this->rank == 27){
-	this->wuschel = 50; 
-	}
-	else if(this->rank == 29){
-	this->wuschel = 14; 
-	}
-	else if(this->rank == 30){
-	this->wuschel = 11;
-	}
-	//layer 5
-	else if(this->rank == 32){
-	this->wuschel = 44;
-	}
-	else if(this->rank == 33){
-	this->wuschel = 21;
-	}
-	else if(this->rank == 35){
-	this->wuschel = 27;
-}
-//layer 6
-else if(this->rank == 37){
-	this->wuschel = 36;
-}
-else if(this->rank == 38){
-	this->wuschel = 35;
-}
-else if(this->rank == 40){
-	this->wuschel = 23;
-}
-//layer 7
-else if(this->rank == 42){
-	this->wuschel = 23;
-}
-else if(this->rank == 43){
-	this->wuschel = 27;
-}
-else if(this->rank == 45){
-	this->wuschel = 22;
-}
-else{
-	//pz the rest of the cells
-	//function for pz cells is:
-	this->wuschel = 0;
-	//this->wuschel = -0.01624*5*pow((cell_center-Coord(0,-24)).length(),2) + 1.519*5*(cell_center-Coord(0,-24)).length() + 9.253; 
-}*/
-//from 2018 paper
-double distance = (cell_center-(L1_AVG-Coord(0,21))).length();
-//if(distance < 140*.15){
-this->wuschel = 84.6*exp(-0.01573*(distance));
-//}
-//else {
-//	this->wuschel = 9.36*exp(0.01573*(-distance/.15+280));
-//}
-return;
+	//from 2018 paper
+	double distance = (cell_center-(L1_AVG-Coord(0,21))).length();
+	//if(distance < 140*.15){
+	this->wuschel = 84.6*exp(-0.01573*(distance));
+	//}
+	//else {
+	//	this->wuschel = 9.36*exp(0.01573*(-distance/.15+280));
+	//}
+	return;
 }
 void Cell::calc_CK(Coord L1_AVG) {
 	double distance = (cell_center-(L1_AVG-Coord(0,21))).length();
-	if((this->get_Layer() == 1)||(this->get_Layer() ==2)){
+	if((this->get_Layer() == 1)||(this->get_Layer() == 2)) {
 		this->cytokinin = 0;
 	} else {
-		// if((this->get_Layer() >2) && (this->get_Layer() < 6)){
+		// if((this->get_Layer() >2) && (this->get_Layer() < 6))
 		this->cytokinin = 110*exp(-0.01637*distance);
 	}
-	//else {
-	//	this->cytokinin = 70;
-	//}
 
-	/*if(this->layer==1){
-	this->cytokinin = 10;
-	}
-	else if(this->layer==2){
-	this->cytokinin = 10;
-	}
-	else if(this->layer==3){
-	this->cytokinin = 40;
-	}
-	else if(this->layer==4){
-	this->cytokinin = 50;
-	}
-	else if(this->layer==5){
-	this->cytokinin = 40;
-	}
-	else if(this->layer==6){
-	this->cytokinin = 20;
-	}
-	else{
-	this->layer = 10;
-	}*/
 
 	return;
 }
@@ -500,60 +390,57 @@ void Cell::set_growth_rate() {
 		//cout << "Count 1: " << my_tissue->return_counts(0) << endl;
 		this->growth_rate = this->my_tissue->get_next_random(1,this->my_tissue->return_counts(0));
 		this->my_tissue->set_counts(0);
-	}
-	else if(this->wuschel <65 ){
-		
+	} else if(this->wuschel <65 ) {
+
 		//cout << "Count 2: " << my_tissue->return_counts(1) << endl;	
 		this->growth_rate = this->my_tissue->get_next_random(2,this->my_tissue->return_counts(1));
 		this->my_tissue->set_counts(1);
-	}
-	else if(this->wuschel <75 ){
+	} else if(this->wuschel <75 ) {
 
 		//cout << "Count 3: " << my_tissue->return_counts(2) << endl;
 		this->growth_rate = this->my_tissue->get_next_random(3,this->my_tissue->return_counts(2));
 		this->my_tissue->set_counts(2);
-	}
-	else{
-	
+	} else {
+
 		//cout << "Count 4: " << my_tissue->return_counts(3) << endl;
 		this->growth_rate = this->my_tissue->get_next_random(4,this->my_tissue->return_counts(3));
 		this->my_tissue->set_counts(3);
 	}
-	
+
 	//this->growth_rate = unifRandInt(5000,30000);
 	/*if(this->wuschel < 46){
-		mean = 6000;
-		this->growth_rate = GetRandomDoubleUsingNormalDistribution(mean,sigma);
-		//this->growth_rate = unifRandInt(2000,10000);
-		cout << "growht rate:" << growth_rate << endl;
+	  mean = 6000;
+	  this->growth_rate = GetRandomDoubleUsingNormalDistribution(mean,sigma);
+	//this->growth_rate = unifRandInt(2000,10000);
+	cout << "growht rate:" << growth_rate << endl;
 	}
 	else if((this->wuschel >= 46)&&(this->wuschel < 50)){
-		mean = 12000;
-		this->growth_rate = GetRandomDoubleUsingNormalDistribution(mean,sigma);
-		//this->growth_rate = unifRandInt(10000,12510);
-		cout << "growth rate" << growth_rate << endl;
+	mean = 12000;
+	this->growth_rate = GetRandomDoubleUsingNormalDistribution(mean,sigma);
+	//this->growth_rate = unifRandInt(10000,12510);
+	cout << "growth rate" << growth_rate << endl;
 	}
 	else if((this->wuschel >=53.8) && (this->wuschel < 57)){
-		this->growth_rate = unifRandInt(12510,15012);
+	this->growth_rate = unifRandInt(12510,15012);
 	}
 	else if((this->wuschel >= 57)&&(this->wuschel <60.8)){
-		this->growth_rate = unifRandInt(15012,17514);
+	this->growth_rate = unifRandInt(15012,17514);
 	}
 	else if((this->wuschel >=60.8) &&(this->wuschel <64)){
-		this->growth_rate = unifRandInt(17514,20016);
+	this->growth_rate = unifRandInt(17514,20016);
 	}
 	else if((this->wuschel >=64) &&(this->wuschel <67.8)){
-		this->growth_rate = unifRandInt(20016,22518);
+	this->growth_rate = unifRandInt(20016,22518);
 	}
 	else if((this->wuschel >=67.8) &&(this->wuschel <71)){
-		this->growth_rate = unifRandInt(22518,25020);
+	this->growth_rate = unifRandInt(22518,25020);
 	}
 	else if((this->wuschel >=71) &&(this->wuschel <74.8)){
-		this->growth_rate = unifRandInt(25020,27522);
+	this->growth_rate = unifRandInt(25020,27522);
 	}
 	else{//((this->wuschel >=74.8) &&(this->wuschel <78)){
-		this->growth_rate = unifRandInt(27522,30024);
-		
+	this->growth_rate = unifRandInt(27522,30024);
+
 	}*/
 	//else if((this->wuschel >=78) && (this->wuschel <81.8)){
 	//	this->growth_rate = unifRandInt(30024,35526);
@@ -563,8 +450,14 @@ void Cell::set_growth_rate() {
 	//}
 	//if((this->cytokinin >= 80)){
 
-		//this->growth_rate = growth_rate*.7;
+	//this->growth_rate = growth_rate*.7;
 	//}
+
+	// TEST
+	//r
+	//this->growth_rate = growth_rate*.7; 
+	//h
+	this->growth_rate = growth_rate*0.35;
 
 	//this->growth_rate = 5000;
 	//2018 paper	
@@ -604,7 +497,7 @@ void Cell::set_growth_rate() {
 	  else if(this->wuschel>= 132) {
 	  this->growth_rate = unifRandInt(27000,30000);
 	  }*/
-	
+
 
 	return;
 }
@@ -613,11 +506,7 @@ void Cell::update_growth_direction(){
 	if((this->layer == 1)||(this->layer ==2)) {
 		this->growth_direction = Coord(1,0);
 	} else if(this->wuschel > this->cytokinin) {
-	//TEST
-		//s
-		//this->growth_direction = Coord(0,0);
-		//h
-		this->growth_direction = Coord(0,1);
+		this->growth_direction = Coord(0,0);
 	} else {
 		this->growth_direction = Coord(0,1);
 	}
@@ -712,8 +601,7 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	//low bending coefficient
 	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))||(growth_direction == Coord(0,0))) {
 		//fine
-	}
-	else{
+	} else {
 		cout << "No growth direction assigned" << endl;
 		exit(1);
 	}
@@ -733,12 +621,10 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 		//cout << "Theta: " << theta << endl;
 		if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
 			k_bend = K_BEND_STIFF;
-		}
-		else { 
+		} else { 
 			k_bend = K_BEND_LOOSE;
 		}
-	}
-	else{
+	} else {
 		//cout << "elsesssseses" << endl;
 		k_bend = K_BEND_UNIFORM;
 	}
@@ -758,8 +644,7 @@ double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
 	//cout << "k bend div" << endl;
 	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0)) || (growth_direction == Coord(0,0))) {
 		//fine
-	}
-	else{
+	} else {
 		cout << "No growth direction assigned" << endl;
 		exit(1);
 	}
@@ -778,12 +663,10 @@ double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
 		//cout << "Theta: " << theta << endl;
 		if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
 			k_bend = K_BEND_STIFF;
-		}
-		else { 
+		} else { 
 			k_bend = K_BEND_LOOSE;
 		}
-	}
-	else{
+	} else {
 		k_bend = K_BEND_UNIFORM;
 	}
 	//cout << "K bend: " << k_bend << endl;
@@ -827,14 +710,12 @@ void Cell::update_Wall_Equi_Angles() {
 				theta = acos( min( max(costheta,-1.0), 1.0) );
 				if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
 					new_equi_angle = pi;
-				}
-				else{
+				} else {
 					counter++;
 					new_equi_angle = circle_angle;
 
 				}
-			}
-			else{
+			} else {
 				//cout << "elseeeeee" << endl;
 				new_equi_angle = circle_angle;
 			}
@@ -878,13 +759,11 @@ void Cell::update_Wall_Equi_Angles_Div() {
 				theta = acos( min( max(costheta,-1.0), 1.0) );
 				if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
 					new_equi_angle = circle_angle;
-				}
-				else{
+				} else {
 					//counter++;
 					new_equi_angle = circle_angle;
 				}
-			}
-			else {
+			} else {
 				new_equi_angle = circle_angle;
 			}
 			//this was an idea to make the round part of the cell
@@ -1026,7 +905,7 @@ void Cell::update_Adh_Neighbors() {
 		}
 		curr = next;
 	} while(next != orig);
-	
+
 	adh_neighbors = temp;
 
 	return;
@@ -1085,7 +964,6 @@ void Cell::update_adhesion_springs() {
 	//is in that nodes adh vector
 	for(unsigned int i = 0; i < current_cell_walls.size(); i++) {
 		current_cell_walls.at(i)->one_to_one_check();
-
 	}
 	return;
 }
@@ -1166,28 +1044,73 @@ void Cell::update_Cell_Progress(int& Ti) {
 	this->update_Life_Length();
 	if(life_length > 5000){
 		this->recent_div = false;
+		this->set_MD(0);
 	}
 	//stem and boundary?	
-	if(this->Cell_Progress == 30){
+//old way
+	/*if(this->Cell_Progress == 30){
 		//do nothing
 	}
 	else if((Ti%growth_rate == (growth_rate -1))){
+*/
+
+	double fraction = static_cast<double>((Ti%growth_rate)) 
+		/ static_cast<double>(growth_rate);
+	if (fraction == 0) {
+		Cell_Progress++;
+	}
+
+	double current_cp = Cell_Progress + fraction;
+	double maturity = calc_Cell_Maturity(current_cp);
+
+	bool cross_section_check = 
+		this->growing_this_cycle || !OUT_OF_PLANE_GROWTH;
+
+	if(maturity >= num_cyt_nodes + 1 && maturity < 31) {
+
 		//cout << "cyt node added "<< endl;
-		this->add_Cyt_Node();
-		this->Cell_Progress++;
+		if (cross_section_check) this->add_Cyt_Node();
 	}
 	return;
 }
-void Cell::division_check(){
+
+double Cell::calc_Cell_Maturity(double current_cp) { 
+	double maturity;
+	if (NONLINEAR_GROWTH) { 
+		double start = this->get_Init_Cell_Progress();
+		start = (start < 15) ? start : 15;
+		double finish = (Cell_Progress < 30) ? 30 : Cell_Progress;
+		double ccp_normalized = (current_cp-start)/(finish-start);
+		double maturity_normalized = pow(ccp_normalized, 2.0/3.0);
+		maturity = maturity_normalized *(finish-start) + start;
+	} else { 
+		maturity = current_cp;
+	}
+
+	return maturity;
+}
+
+void Cell::division_check() {
 	vector<shared_ptr<Cell>> adh_cells;
 	vector<shared_ptr<Cell>> neighbor_curr_adhesions;
 	shared_ptr<Cell> this_cell = shared_from_this();
 	//cout <<"Before div progress" << Cell_Progress << endl;	
-	if((this->boundary == 1)||(this->stem == 1)){
+//old way
+	/*if((this->boundary == 1)||(this->stem == 1)){
 		//do nothing
 	}
 	else if((this->Cell_Progress >= 30)){//&&(this-> calc_Area()>60)){
+*/
+	bool cross_section_check = 
+		this->growing_this_cycle || !OUT_OF_PLANE_GROWTH;
 
+
+	bool boundary_check = 
+		(this->boundary == 0 && this->stem == 0) || BOUNDARY_DIVISION;
+
+	bool cell_cycle_check = (this->Cell_Progress >= 30); 
+
+	if (cross_section_check && boundary_check && cell_cycle_check) { 
 
 		cout << "dividing cell" << this->rank <<  endl;
 		//orientation of division should be 
@@ -1203,14 +1126,15 @@ void Cell::division_check(){
 		//cout << "set rank" << endl;
 		cout << "Parent rank: " << this->rank << endl;
 		cout << "Sister rank: " << new_Cell->get_Rank() << endl;
-		cout << new_Cell->get_wall_count() << endl;
+		cout << new_Cell->get_Wall_count() << endl;
 		cout << new_Cell->get_cyt_count() << endl;
-		cout << this->get_wall_count() << endl;
+		cout << this->get_Wall_count() << endl;
 		cout << this->get_cyt_count() << endl;
 		cout << "Parent: " << this << endl;
 		cout << "Parent progress: " << this->get_Cell_Progress() << endl;
 		cout << "New cell: " << new_Cell << endl;
 		cout << "New progress: " << new_Cell->get_Cell_Progress() << endl;
+		this->recent_div = true;
 
 		//layer in division function		
 		//damping in division function
@@ -1228,19 +1152,30 @@ void Cell::division_check(){
 		//left corner in divison function  
 		//cout << "adhesion division" << endl;
 		new_Cell->update_Neighbor_Cells(this->adh_neighbors,this_cell);
+
 		//new_Cell->clear_adhesion_vectors();
 		//new_Cell->update_adhesion_springs();
+
 		this->get_ADH_Neighbors_Vec(adh_cells);
-		for(unsigned int i =0; i < adh_cells.size(); i++) {
+		for (unsigned int i = 0; i < adh_cells.size(); i++) {
 			adh_cells.at(i)->get_ADH_Neighbors_Vec(neighbor_curr_adhesions);
 			adh_cells.at(i)->update_Neighbor_Cells(neighbor_curr_adhesions,new_Cell);
 			//adh_cells.at(i)->clear_adhesion_vectors();
 			//adh_cells.at(i)->update_adhesion_springs();
 
+
 		}
 		this->update_Neighbor_Cells(this->adh_neighbors,new_Cell);
 		//this->clear_adhesion_vectors();
 		//this->update_adhesion_springs();
+
+		} else if (!cross_section_check && cell_cycle_check) { 
+		this->reset_Cell_Progress();
+		if (unifRand() < 0.5) { 
+			set_Growing_This_Cycle(false);
+		} else { 
+			set_Growing_This_Cycle(true);
+		}
 
 	}
 	return;
@@ -1291,13 +1226,24 @@ void Cell::set_perimeter(double new_perimeter){
 	this->perimeter = new_perimeter;
 	return;
 }
-void Cell::add_wall_Node_Check(int Ti) {
+void Cell::set_Growing_This_Cycle(bool gtc) {
+	this->growing_this_cycle = gtc;
+	return;
+}
+void Cell::set_Init_Cell_Progress(double icp) { 
+	this->init_Cell_Progress = icp;
+	return;
+}
+void Cell::add_Wall_Node_Check(int Ti) {
 	//cout << "adding a wall node" << endl;
 	//#pragma omp for schedule(static,1)
 	if(this->life_length < 1000){
 		//do nothing
-	}
-	else {
+	} else {
+		shared_ptr<Wall_Node> lc;
+		shared_ptr<Wall_Node> curr;
+		shared_ptr<Wall_Node> temp;
+
 		double curr_perim = this->get_curr_perimeter();
 		double increase = curr_perim - this->get_perimeter();
 		//cout << "curr perim " << curr_perim << endl;
@@ -1310,8 +1256,30 @@ void Cell::add_wall_Node_Check(int Ti) {
 	}
 	return;
 }
-void Cell::delete_wall_Node_Check(int Ti){
-	delete_Wall_Node(Ti);
+void Cell::delete_Wall_Node_Check(int Ti){
+	bool repeat;
+	double currAngle;
+	shared_ptr<Wall_Node> currW;
+	do {
+		repeat = false;
+		vector<pair<double,shared_ptr<Wall_Node>>> angle_wall_pairs = get_Angle_Wall_Sorted();
+		for (unsigned int i = 0; i < angle_wall_pairs.size(); i++) { 
+			currAngle = angle_wall_pairs.at(i).first;
+			currW = angle_wall_pairs.at(i).second;
+			if (currAngle < pi / 2 || currAngle > 3*pi / 2) {  
+				delete_Specific_Wall_Node(Ti, currW);
+				repeat = true;
+				this->get_Tissue()->inc_Num_Deleted();
+			} else if ( currW->calc_Tensile_Stress() < 0) { 
+				//This accidentally worked nicely for 0.3.
+				delete_Specific_Wall_Node(Ti, currW);
+				repeat = true;
+				this->get_Tissue()->inc_Num_Deleted();
+			}
+
+			if (repeat) break;
+		}
+	} while (repeat);
 	return;
 }
 void Cell::add_Wall_Node(int Ti) {
@@ -1337,7 +1305,7 @@ void Cell::add_Wall_Node(int Ti) {
 		left = right->get_Left_Neighbor();
 		location  = (right->get_Location() + left->get_Location())*0.5;
 		shared_ptr<Wall_Node> added_node = make_shared<Wall_Node>(location, this_cell, left, right);
-		this->add_wall_node_vec(added_node);
+		this->add_Wall_Node_Vec(added_node);
 		double new_damping = this->get_Damping();
 		right->set_Left_Neighbor(added_node);
 		left->set_Right_Neighbor(added_node);
@@ -1389,10 +1357,55 @@ void Cell::delete_Wall_Node(int Ti) {
 			//cout << " set left corner" << endl;
 			this->set_Left_Corner(left);
 		}
+		//need to make sure all nodes connected to wall
+		//via adhesion are erased
+		small->remove_from_adh_vecs();
+		small->clear_adhesion_vec();
+
+		//set new neighbors so nothing points at  wall
+		left->set_Right_Neighbor(right);
+		right->set_Left_Neighbor(left);
+		//reindex
+		this->wall_nodes.clear();
+		this->num_wall_nodes = 0;
+
+		shared_ptr<Wall_Node> curr = this->left_Corner;
+		shared_ptr<Wall_Node> next = NULL;
+		shared_ptr<Wall_Node> orig = curr;
+
+		do {
+			this->wall_nodes.push_back(curr);
+			next = curr->get_Left_Neighbor();
+			num_wall_nodes++;
+			curr = next;
+		} while (next != orig);
+		//cout << "update equi angles" << endl;
+
+		update_Wall_Equi_Angles();
+
+		//cout << "update angles" << endl;
+		update_Wall_Angles();
+	}
+	return;
+}
+void Cell::delete_Specific_Wall_Node(int Ti, shared_ptr<Wall_Node> wall) {
+	shared_ptr<Wall_Node> left = NULL;
+	shared_ptr<Wall_Node> right = NULL;
+	//vector<Cell*>neighbors;
+	if(wall !=NULL) {
+		//cout << "delete initiated" << endl;
+		left = wall->get_Left_Neighbor();
+		right = wall->get_Right_Neighbor();
+
+		//if small is the left corner cell reassign
+		if(this->left_Corner == wall) {
+			//cout << " set left corner" << endl;
+			this->set_Left_Corner(left);
+		}
 		//need to make sure all nodes connected to small
 		//via adhesion are erased
-		//small->remove_from_adh_vecs();
-		//small->clear_adh_vec();
+		wall->remove_from_adh_vecs();
+		wall->clear_adhesion_vec();
 
 		//set new neighbors so nothing points at small
 		left->set_Right_Neighbor(right);
@@ -1421,6 +1434,7 @@ void Cell::delete_Wall_Node(int Ti) {
 	return;
 }
 //finds right neighbor node of smallest length on membrane
+//double Cell::find_Smallest_Length(shared_ptr<Wall_Node>& right) {}
 void Cell::find_Smallest_Length(shared_ptr<Wall_Node>& right) {
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
@@ -1694,7 +1708,7 @@ void Cell::print_VTK_Points(ofstream& ofs, int& count, bool cytoplasm) {
 		count++;
 		//cout << "did it  " << count << endl;
 	} while (curr_wall != orig);
-	
+
 	if (cytoplasm) { 
 		//cout << "walls worked" << endl;
 		for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
@@ -1710,19 +1724,19 @@ void Cell::print_VTK_Points(ofstream& ofs, int& count, bool cytoplasm) {
 
 /*void Cell::print_VTK_Points_noCyt(ofstream& ofs, int& count) {
 
-	shared_ptr<Wall_Node> curr_wall = left_Corner;
-	shared_ptr<Wall_Node> orig = curr_wall;
-	//	cout << "knows left corner" << endl;
-	do {
-		Coord loc = curr_wall->get_Location();
-		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 << endl;
-		//cout << "maybe cant do left neighbor" << endl;
-		curr_wall = curr_wall->get_Left_Neighbor();
-		count++;
-		//cout << "did it  " << count << endl;
-	} while (curr_wall != orig);
+  shared_ptr<Wall_Node> curr_wall = left_Corner;
+  shared_ptr<Wall_Node> orig = curr_wall;
+//	cout << "knows left corner" << endl;
+do {
+Coord loc = curr_wall->get_Location();
+ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 << endl;
+//cout << "maybe cant do left neighbor" << endl;
+curr_wall = curr_wall->get_Left_Neighbor();
+count++;
+//cout << "did it  " << count << endl;
+} while (curr_wall != orig);
 
-	return;
+return;
 }*/
 
 /*void Cell::print_VTK_Scalars_Wall_Pressure(ofstream& ofs, bool cytoplasm){
@@ -1906,25 +1920,25 @@ void Cell::print_VTK_Neighbors(ofstream& ofs, bool cytoplasm) {
 	unsigned int color;
 	int neigh = num_Neighbors();
 	/*switch (neigh) {
-		case 4: 
-			color = 1;
-			break;
-		case 5: 
-			color = 2;
-			break;
-		case 6: 
-			color = 3;
-			break;
-		case 7: 
-			color = 4;
-			break;
-		default: 
-			if (neigh <= 3) { 
-				color = 0;
-			} else if (neigh >= 8) {
-				color = 5;
-			} 
-	}*/
+	  case 4: 
+	  color = 1;
+	  break;
+	  case 5: 
+	  color = 2;
+	  break;
+	  case 6: 
+	  color = 3;
+	  break;
+	  case 7: 
+	  color = 4;
+	  break;
+	  default: 
+	  if (neigh <= 3) { 
+	  color = 0;
+	  } else if (neigh >= 8) {
+	  color = 5;
+	  } 
+	  }*/
 	//Didn't do the whole lokoup table thing; so color is just the native
 	//number of neighbors.
 	color = neigh;
@@ -1967,20 +1981,184 @@ void Cell::print_VTK_Curved(ofstream& ofs, bool cytoplasm) {
 	return;
 }
 
+void Cell::print_VTK_Corners(ofstream& ofs, bool cytoplasm) {
+	shared_ptr<Wall_Node> currW = left_Corner;
+	//cout << "Corner Print - Mark 1" << endl;
+	vector<shared_ptr<Wall_Node>> corners = get_Corner_Nodes();
+	//cout << "Corner Print - Mark 2" << endl;
+	unsigned int color;
+	bool is_corner;
+	color = 0;
+	do {
+		is_corner = false;
+		for (unsigned int i = 0; i < corners.size(); i++) { 
+			if (currW == corners.at(i)) 
+				is_corner = true;
+		}
+		color = (is_corner ? 2 : 1);
+		ofs << color << endl;
+		currW = currW->get_Left_Neighbor();
+	} while(currW != left_Corner);
+	if (cytoplasm) {
+		for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+			ofs << 0 << endl;
+		}
+	}
+	//cout << "Corner Print - Mark 3" << endl;
+	return;
+}
+
+void Cell::print_VTK_MD(ofstream& ofs, bool cytoplasm) {
+	shared_ptr<Wall_Node> currW = left_Corner;
+	unsigned int color = this->recent_div_MD;
+	do {
+		ofs << color << endl;
+		currW = currW->get_Left_Neighbor();
+	} while(currW != left_Corner);
+	if (cytoplasm) {
+		for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+			ofs << color << endl;
+		}
+	}
+	return;
+}
+
 vector<pair<double,shared_ptr<Wall_Node>>> Cell::get_Angle_Wall_Sorted() { 
 	vector<shared_ptr<Wall_Node>> mother_walls;
 	this->get_Wall_Nodes_Vec(mother_walls);
 	vector<pair<double,shared_ptr<Wall_Node>>> angle_node_pairs;
 	for (unsigned int i = 0; i < mother_walls.size(); i++) { 
 		angle_node_pairs.push_back(
-		make_pair(mother_walls.at(i)->get_Angle() , mother_walls.at(i))
-		);
+				make_pair(mother_walls.at(i)->get_Angle() , mother_walls.at(i))
+				);
 	}
 	//Note that sort defaults to sorting by the first element of pairs.
 	sort(angle_node_pairs.begin(),angle_node_pairs.end(), greater<>());
 
 	return angle_node_pairs; 
 
+}
+
+//this function loops through every node by neighbors, and determines 
+//whether or not the neighboring nodes are adhered to the same cells.
+//Nodes that don't match their neighbors in terms of cells adhered to
+//are returned as "corner" nodes, as well as a few nodes to their left and
+//right.
+vector<shared_ptr<Wall_Node>> Cell::get_Corner_Nodes() { 
+	//cout << "Corner Calc - Mark 1" << endl;
+	vector<shared_ptr<Wall_Node>> pre_corners;
+	vector<shared_ptr<Wall_Node>> corners;
+	shared_ptr<Wall_Node> head = get_Left_Corner();
+	shared_ptr<Wall_Node> curr = head;
+	shared_ptr<Wall_Node> next = NULL;
+	vector<shared_ptr<Cell>> curr_adh_cells;
+	vector<shared_ptr<Cell>> next_adh_cells;
+	shared_ptr<Cell> curr_cell;
+	bool is_new_cell;
+	bool is_corner;
+	//cout << "Corner Calc - Mark 2" << endl;
+	//The loop must be initialized with the vector of cells that next is adhering to.
+	for (unsigned int i = 0; i < curr->get_adh_vec().size(); i++) { 
+		is_new_cell = true;
+		curr_cell = curr->get_adh_vec().at(i)->get_My_Cell();
+		for (unsigned int j = 0; j < curr_adh_cells.size(); j++) { 
+			if (curr_cell == curr_adh_cells.at(j)) {
+				is_new_cell = false;
+				break;
+			}
+		}
+		if (is_new_cell) {
+			curr_adh_cells.push_back(curr_cell);
+		}
+	}
+
+	//cout << "Corner Calc - Mark 3" << endl;
+	//This loop compares the list of next's cell adhesion partners with that of current's
+	//and determines which nodes are "corners".
+	curr = head;
+	do { 
+		next_adh_cells.clear();
+		next = curr->get_Left_Neighbor();
+		//cout << "Corner Calc - Mark 3.1" << endl;
+		for (unsigned int i = 0; i < next->get_adh_vec().size(); i++) { 
+			is_new_cell = true;
+			curr_cell = next->get_adh_vec().at(i)->get_My_Cell();
+			for (unsigned int j = 0; j < next_adh_cells.size(); j++) { 
+				if (curr_cell == next_adh_cells.at(j)) {
+					is_new_cell = false;
+					break;
+				}
+			}
+			if (is_new_cell) {
+				next_adh_cells.push_back(curr_cell);
+			}
+		}
+		//Compare the cells curr and next are adhering to. If the vectors aren't the same,
+		//then the node is a (pre) corner.
+
+		//cout << "Corner Calc - Mark 3.2" << endl;
+		if (curr_adh_cells.size() != next_adh_cells.size()) { 
+			is_corner = true;
+		} else { 
+			is_corner = false;
+			for (unsigned int i = 0; i < curr_adh_cells.size(); i++) { 
+				if (!is_corner) { 
+					for (unsigned int j = 0; j < curr_adh_cells.size(); j++) { 
+						if (curr_adh_cells.at(i) == next_adh_cells.at(j)) { 
+							is_corner = false;
+							break;
+						}
+						is_corner = true;
+					}
+				} else { 
+					break;
+				}
+			}
+		}
+		//cout << "Corner Calc - Mark 3.3" << endl;
+		if (is_corner) pre_corners.push_back(curr);
+		curr_adh_cells.clear();
+		curr_adh_cells = next_adh_cells;
+		curr = next;
+	} while (next != head); 
+	//cout << "Corner Calc - Mark 4" << endl;
+
+	//The actual corners are not only the nodes where cell_neighbors change, 
+	//but also CORNER_RADIUS around them.
+	bool already_corner;
+	for (unsigned int i = 0; i < pre_corners.size(); i++) { 
+		curr = pre_corners.at(i);
+		//Check nodes left of current (+1 since the immediate left
+		//neighbor ought to be a pre_corner by symmetry)
+		for (unsigned int j = 0; j < CORNER_RADIUS + 1; j++) {
+			already_corner = false;
+			for (unsigned int k = 0; k < corners.size(); k++) { 
+				if (corners.at(k) == curr) { 
+					already_corner = true;
+				}
+			}
+			if (!already_corner) { 
+				corners.push_back(curr);
+			}
+			curr = curr->get_Left_Neighbor();
+		}
+		//Check nodes right of current
+		curr = pre_corners.at(i);
+		for (unsigned int j = 0; j < CORNER_RADIUS; j++) {
+			already_corner = false;
+			for (unsigned int k = 0; k < corners.size(); k++) { 
+				if (corners.at(k) == curr) { 
+					already_corner = true;
+				}
+			}
+			if (!already_corner) { 
+				corners.push_back(curr);
+			}
+			curr = curr->get_Right_Neighbor();
+		}
+	}
+	//cout << "Corner Calc - Mark 5" << endl;
+	return corners;
 }
 
 void Cell::print_VTK_Growth_Dir(ofstream& ofs, bool cytoplasm) {

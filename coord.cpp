@@ -111,6 +111,7 @@ ostream& operator<<(ostream& os, const Coord& c) {
 	return os;
 }
 
+//Returns the projection of this onto c.
 Coord Coord::projectOnto(const Coord& c) const { 
 	Coord proj;
 	if ( c.length() == 0 ) { 

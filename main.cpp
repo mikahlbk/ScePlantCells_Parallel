@@ -28,22 +28,19 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 
-	if (argc != 3) {
-
-	}
 	// reads in name of folder that 
 	// stores vtk files, given in run.sh
 	//usually called Animate1
 	string anim_folder = argv[1];
 	//Reads in the name of folder that stores VTK files for
 	//visualization without cytoplasm nodes.
-	string no_cyt_folder = argv[2];
+	string no_cyt_folder = argv[4];
 	//reads in name of folder that 
 	//stores data output, given in run.sh
 	string locations_cyt_folder = argv[3];
 	//this is a folder that holds data output
 	//without cytoplasm node info
-	string locations_no_cyt_folder = argv[4];
+	string locations_no_cyt_folder = argv[2];
 	//keep track of time
 	int start = clock();	
 	mt19937::result_type seed = time(0);
@@ -67,7 +64,7 @@ int main(int argc, char* argv[]) {
 	//cell configuration 
 	//cout << "before cell file is read in" << endl;
 	//string init_tissue = "cell_staggered.txt";
-	string init_tissue = "one_cell.txt";//cell_staggered.txt";
+	string init_tissue = "some_cells.txt";//cell_staggered.txt";
 	//string init_tissue = "staggered_generated.txt";
 	//cout << "Read in cell starter" << endl;	
 
@@ -157,9 +154,11 @@ int main(int argc, char* argv[]) {
 		//was used previously to help stability of cells
 		//deletes a cell wall node if too close together
 		if(Ti > 10000){
-			if(Ti%2000 == 0){	
+			//if(Ti%1000 == 500){}
+			if (Ti % 1000 == 500) { 
 				//cout << "delete wall" << endl;
 				growing_Tissue.delete_Wall(Ti);
+				//growing_Tissue.delete_Wall_Node_Check(Ti);
 			}
 		}
 
@@ -216,12 +215,14 @@ int main(int argc, char* argv[]) {
 			Filename = anim_folder + initial + Number + format;
 
 			ofs_anim.open(Filename.c_str());
+			//true is in reference to printing cytoplasm
 			growing_Tissue.print_VTK_File(ofs_anim,true);
 			ofs_anim.close();	
 
 			noCyt_Filename = no_cyt_folder + no_cyt_initial + Number + format;
 
 			ofs_noCyt.open(noCyt_Filename.c_str());
+			//false is in reference to printing cytoplasm
 			growing_Tissue.print_VTK_File(ofs_noCyt,false);
 			ofs_noCyt.close();	
 

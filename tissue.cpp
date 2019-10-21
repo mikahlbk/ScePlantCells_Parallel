@@ -18,8 +18,11 @@
 // Public Member Functions for Tissue.cpp
 //tissue constructor makes new tissue from 
 //.txt file that is read in
+//TEMPLATE CONSTRUCTOR
+
 Tissue::Tissue(string filename) {
 	num_cells = 0;
+	num_deleted = 0;
 	set_up_counts();
 	ifstream ifs(filename.c_str());
 
@@ -69,6 +72,11 @@ Tissue::Tissue(string filename) {
 			//create new cell with collected data 
 			//and push onto vector that holds all cells in tissue 
 			//cout<< "making a cell" << endl;
+			if (layer >= STEM_LAYER) { 
+				stem = 1;
+			} else { 
+				stem = 0;
+			}
 			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
 			//give that cell wall nodes and internal nodes
 			curr->make_nodes(radius);
@@ -81,6 +89,99 @@ Tissue::Tissue(string filename) {
 	}
 	ifs.close();
 }
+///EXPERIMENTAL CONSTRUCTOR
+/*
+Tissue::Tissue(string filename) {
+	num_cells = 0;
+	set_up_counts();
+	ifstream ifs(filename.c_str());
+
+	if(!ifs) {
+		cout << filename << " is not available" << endl;
+		return;
+	}
+	shared_ptr<Wall_Node> lc;
+	shared_ptr<Wall_Node> curr;
+	shared_ptr<Wall_Node> temp;
+	Coord loc;
+
+	stringstream ss;
+	string line;
+	string temp;
+	char trash;
+	int rank;
+	int this_rank = -1;
+	int layer;
+	int boundary;
+	int stem;
+	double radius;
+	Coord center;
+	double x, y;
+	Tissue* my_tissue = this;
+
+	do { 
+		ss.str(line);
+		if (ss.eof()) { 
+			//Do stuff because we're done
+			break;
+		}
+		ss << x << y << rank;
+		if (rank != this_rank) { 
+			//x,y belong to new cell. Finish
+			//up old cell (if it exists), 
+			//and continue.
+			if (this_rank == -1) { 
+				//do nothing
+			} else { 
+				//Finish up old cell. 
+			}
+		}
+
+
+
+	} while();
+	
+	while (getline(ifs,line)) {
+		ss.str(line);
+
+		getline(ss,temp,':');
+
+		if (temp == "CellRank") {
+			ss >> rank;
+		}
+		else if (temp == "Center") {
+			ss >> x >> trash >> y;
+			Coord loc(x,y);
+			center = loc;
+		}
+		else if (temp == "Radius") {
+			ss >> radius;
+		}
+		else if (temp == "Layer") {
+			ss >> layer;
+		}
+		else if (temp == "Boundary"){
+			ss >> boundary;
+		}
+		else if(temp == "Stem"){
+			ss >> stem;
+		}
+		else if (temp == "End_Cell") {
+			//create new cell with collected data 
+			//and push onto vector that holds all cells in tissue 
+			//cout<< "making a cell" << endl;
+			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
+			//give that cell wall nodes and internal nodes
+			curr->make_nodes(radius);
+			//curr->make_nodes_experimental("experimental_nodes.txt");
+			//cout<< "make nodes" << endl;
+			num_cells++;
+			cells.push_back(curr);
+		}
+		ss.clear();
+	}
+	ifs.close();
+}*/
 
 Tissue::~Tissue() {
 	//not necessary because 
@@ -200,20 +301,27 @@ void Tissue::update_Neighbor_Cells() {
 void Tissue::add_Wall(int Ti) {
 	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->add_wall_Node_Check(Ti);
+		cells.at(i)->add_Wall_Node_Check(Ti);
 	}
 	//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
 	return;
 }
 void Tissue::delete_Wall(int Ti) {
- 	#pragma omp parallel for schedule(static,1)
+ 	// (pragma) pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_wall_count() << endl;
-		//cells.at(i)->delete_Wall_Node(Ti);
+		cells.at(i)->delete_Wall_Node_Check(Ti);
 		//cout<< "Wall Count Cell " << i << ": " << this->cells.at(i)->get_wall_count() << endl;
 	}
 	return;
 }
+
+void Tissue::inc_Num_Deleted() { 
+	this->num_deleted++; 
+	cout << "Total Number of Wall Nodes Deleted: " << this->num_deleted << endl;
+	return;
+}
+
 //updates adhesion springs for each cell
 void Tissue::update_Adhesion() {
 	#pragma omp parallel for schedule(static,1)
@@ -437,7 +545,7 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 		if (cytoplasm) { 
 			num_Points += cells.at(i)->get_Node_Count();
 		} else { 
-			num_Points += cells.at(i)->get_wall_count();
+			num_Points += cells.at(i)->get_Wall_count();
 		}
 	}
 	
@@ -464,7 +572,7 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 		if (cytoplasm) { 
 			ofs << cells.at(i)->get_Node_Count();
 		} else { 
-			ofs << cells.at(i)->get_wall_count();
+			ofs << cells.at(i)->get_Wall_count();
 		}
 
 		for (int k = start_points.at(i); k <= end_points.at(i); k++) {
@@ -569,7 +677,21 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 	}
 	ofs << endl;
 
-	
+	ofs << "Scalars Corners float64" << 1 << endl;
+	ofs << "LOOKUP_TABLE discrete_colors" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Corners(ofs, cytoplasm);
+	}
+	ofs << endl;
+
+	ofs << "Scalars Mother_Daughter float64" << 1 << endl;
+	ofs << "LOOKUP_TABLE discrete_colors" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_MD(ofs, cytoplasm);
+	}
+	ofs << endl;
+
+
 	return;
 }
 
@@ -590,6 +712,7 @@ void Tissue::BAD_CATCH(int call, int Ti) {
 		cout << "Negative num_cells at location " << call << " at Time = " << Ti << endl;
 	}
 	double x_curr, y_curr, x_neigh, y_neigh;
+
 	for (unsigned int i = 0; i < cells.size(); i++) { 
 		x_curr = cells.at(i)->get_Left_Corner()->get_Location().get_X();
 		y_curr = cells.at(i)->get_Left_Corner()->get_Location().get_Y();
