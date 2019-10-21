@@ -116,6 +116,8 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	} else { 
 		set_Growing_This_Cycle(true);
 	}
+	recent_div = false;
+	recent_div_MD = 0;
 
 	//cout << "layer" << this->layer << endl;
 	//cout << "stem" << this->stem << endl;
@@ -1039,13 +1041,13 @@ void Cell::update_Cell_Progress(int& Ti) {
 		Cell_Progress++;
 	}
 
-	double current_cp = Cell_Progress+fraction;
+	double current_cp = Cell_Progress + fraction;
 	double maturity = calc_Cell_Maturity(current_cp);
 
 	bool cross_section_check = 
 		this->growing_this_cycle || !OUT_OF_PLANE_GROWTH;
 
-	if(maturity > num_cyt_nodes && maturity <= 30) {
+	if(maturity >= num_cyt_nodes + 1 && maturity < 31) {
 		//cout << "cyt node added "<< endl;
 		if (cross_section_check) this->add_Cyt_Node();
 	}
@@ -1056,7 +1058,7 @@ double Cell::calc_Cell_Maturity(double current_cp) {
 	double maturity;
 	if (NONLINEAR_GROWTH) { 
 		double start = this->get_Init_Cell_Progress();
-		start = (start < 10) ? start : 10;
+		start = (start < 15) ? start : 15;
 		double finish = (Cell_Progress < 30) ? 30 : Cell_Progress;
 		double ccp_normalized = (current_cp-start)/(finish-start);
 		double maturity_normalized = pow(ccp_normalized, 2.0/3.0);
@@ -1079,8 +1081,7 @@ void Cell::division_check() {
 	bool boundary_check = 
 		(this->boundary == 0 && this->stem == 0) || BOUNDARY_DIVISION;
 
-	bool cell_cycle_check =
-		(this->Cell_Progress >= 30) && (this->calc_Area() > 60); 
+	bool cell_cycle_check = (this->Cell_Progress >= 30); 
 
 	if (cross_section_check && boundary_check && cell_cycle_check) { 
 
