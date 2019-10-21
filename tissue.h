@@ -28,6 +28,7 @@ class Tissue{
 		// We'll need a better data structure for later
 		vector<shared_ptr<Cell>> cells;
 		int num_cells;
+		int num_deleted;
 		vector<int> dist1;
 		vector<int> dist2;
 		vector<int> dist3;
@@ -71,6 +72,7 @@ class Tissue{
 		int update_VTK_Indices(bool cytoplasm);
 		void print_VTK_File(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Direction_File(ofstream& ofs);	
+		void inc_Num_Deleted();
 		//Destructor
 		~Tissue();
 		//Debugging

@@ -356,10 +356,11 @@ void Wall_Node::update_adh_vec(shared_ptr<Wall_Node> node) {
 void Wall_Node::remove_from_adh_vecs(){
 	shared_ptr<Wall_Node> me = shared_from_this();
 	vector<shared_ptr<Wall_Node>> neighbor_connections;
-	for(unsigned int i = 0; i < adhesion_vector.size(); i++){
+	for (unsigned int i = 0; i < adhesion_vector.size(); i++){
+		neighbor_connections.clear();
 		neighbor_connections = adhesion_vector.at(i)->get_adh_vec();
 		adhesion_vector.at(i)->clear_adhesion_vec();
-		for(unsigned int j = 0; j<neighbor_connections.size();j++){
+		for (unsigned int j = 0; j < neighbor_connections.size(); j++) {
 			if(neighbor_connections.at(j) != me){
 				adhesion_vector.at(i)->adh_push_back(neighbor_connections.at(j));
 			}
@@ -517,14 +518,20 @@ Coord Wall_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 	Coord Fmmd;
 	Coord diff_vect = wall->get_Location() - my_loc;
 	double diff_len = diff_vect.length();
-	double attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
-	double repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
-
-	Fmmd = diff_vect*((-attract + repel)/diff_len);
+	if(diff_len < MembrEquLen_ADH) {
+		double attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
+		double repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
+		Fmmd = diff_vect*((-attract + repel)/diff_len);
+	} else { 
+		Fmmd = Coord(0,0);
+	}
 
 	//cout << Fmmd << endl;
 	return Fmmd;
 }
+
+
+
 Coord Wall_Node::bending_Equation_Center() {
 	Coord F_center;
 	double self_Constant; 

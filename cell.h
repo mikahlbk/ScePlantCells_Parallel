@@ -42,6 +42,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		double cytokinin;
 		double wuschel;
 		int growth_rate;
+		double init_Cell_Progress;
 		double perimeter;
 		bool growing_this_cycle;
 		Coord growth_direction;
@@ -49,6 +50,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		vector<shared_ptr<Cell>> adh_neighbors;
 		shared_ptr<Wall_Node> left_Corner;
 		bool recent_div;
+		int recent_div_MD;
 	public:
 
 		Cell(Tissue* tissue);
@@ -95,6 +97,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		//set/get cell progress
 		void update_Cell_Progress();
 		double get_Cell_Progress() {return Cell_Progress;}
+		double get_Init_Cell_Progress() {return init_Cell_Progress;}
+		void set_Init_Cell_Progress(double icp);
 		//get cell center
 		void update_Cell_Center();
 		Coord get_Cell_Center() {return cell_center;}
@@ -147,12 +151,14 @@ class Cell: public enable_shared_from_this<Cell> {
 
 		//Growth of a cell
 		void update_Cell_Progress(int& Ti);
+		double calc_Cell_Maturity(double current_cp);
 		void division_check();
 		double calc_Area();
 		void add_Wall_Node_Check(int Ti);
 		void delete_Wall_Node_Check(int Ti);
 		void add_Wall_Node(int Ti);
 		void delete_Wall_Node(int Ti);
+		void delete_Specific_Wall_Node(int Ti, shared_ptr<Wall_Node> wall);
 
 		void find_Smallest_Length(shared_ptr<Wall_Node>& right);
 		void find_Largest_Length(shared_ptr<Wall_Node>& node);//vector<pair<shared_ptr<Wall_Node>,double>>& nodes);
@@ -205,8 +211,10 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_VTK_Curved(ofstream& ofs, bool cytoplasm); 
 		void print_VTK_Corners(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Growth_Dir(ofstream& ofs, bool cytoplasm); 
+		void print_VTK_MD(ofstream& ofs, bool cytoplasm);
 		vector<pair<double,shared_ptr<Wall_Node>>> get_Angle_Wall_Sorted();
 		vector<shared_ptr<Wall_Node>> get_Corner_Nodes();
+		void set_MD(int n){ recent_div_MD = n; return;}
 
 		//Division 
 		shared_ptr<Cell> division();

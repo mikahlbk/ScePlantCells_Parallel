@@ -472,6 +472,8 @@ shared_ptr<Cell> Cell::division() {
 	  */
 	shared_ptr<Cell> sister = make_shared<Cell> (this->my_tissue);
 	sister->set_Layer(this->layer);
+	sister->set_MD(2);
+	this->set_MD(1);
 
 	this->life_length = 0;	
 	this->Cell_Progress = 0;		
@@ -479,15 +481,12 @@ shared_ptr<Cell> Cell::division() {
 	sister->reset_Life_Length();
 	if((this->layer == 1)||(this->layer == 2)) {
 		sister->set_growth_direction(Coord(1,0));
-	}
-	else if(rand()% 100 < 30){
+	} else if(rand()% 100 < 30) {
 		sister->set_growth_direction(Coord(0,0));
-	}
-	else{
+	} else {
 		if(rand()% 100 < 36){
 			sister->set_growth_direction(Coord(1,0));
-		}
-		else{
+		} else {
 			sister->set_growth_direction(Coord(0,1));
 		}
 	}
@@ -731,7 +730,7 @@ shared_ptr<Cell> Cell::division() {
 	this->calc_CK(L1_AVG);
 	sister->calc_CK(L1_AVG);
 
-	if(unifRand() < 0.5 && this->layer == 1) { 
+	if(unifRand() < 0.5) { 
 		sister->set_Growing_This_Cycle(false);
 	} else { 
 		sister->set_Growing_This_Cycle(true);
@@ -787,6 +786,8 @@ shared_ptr<Cell> Cell::division() {
 		//counter++;
 		//cout << "counter" <<  counter << endl;
 	}
+	this->set_Init_Cell_Progress(this->Cell_Progress);
+	sister->set_Init_Cell_Progress(sister->get_Cell_Progress());
 	//move cyt nodes that are too close 
 	//to the new cell wall
 	//cout << "sister" << sister->get_cyt_count()<< endl;
@@ -816,7 +817,7 @@ shared_ptr<Cell> Cell::division() {
 	} while (curr_wall != sis_left_Corner);
 	cout << endl;
 
-	if(unifRand() < 0.5 && this->layer == 1) { 
+	if (unifRand() < 0.5) {  
 		set_Growing_This_Cycle(false);
 	} else { 
 		set_Growing_This_Cycle(true);

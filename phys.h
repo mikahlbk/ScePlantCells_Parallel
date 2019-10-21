@@ -29,7 +29,7 @@ const double HIGH_ANGLE_DISCOUNT = 0.95;
 const int CORNER_RADIUS= 4;
 const double ADD_WALL_NODE_ANGLE_FIRST_QUAD =.436;
 const double ADD_WALL_NODE_ANGLE_SECOND_QUAD = 2.0;
-const double BOUNDARY_DAMP = .8; //was used before for boundary
+const double BOUNDARY_DAMP = 1; //TEST //was used before for boundary
 const double STEM_DAMP = .1;
 const double REG_DAMP = 1;
 ////// Cell wall mechanical parameters
@@ -60,7 +60,7 @@ const double Membr_Equi_Len_Short = .07;
 /////// Subcellular element parameters for membrane - membrane interactions
 const double U_MM = 53;
 const double W_MM =  0.2; //0 TEST 4
-const double xsi_MM = 0.1;
+const double xsi_MM = 0.103;
 const double gamma_MM = 1.1;	
 //
 /////// Subcellular element parameters for membrane  - internal interactions
@@ -86,6 +86,15 @@ const bool L1_L2_FORCED_ANTICLINAL_DIV = true;
 
 //If the following is set to true, then some of the L1 cells will "wait" for a growth phase to account for some cells growing out of the plane. 
 const bool OUT_OF_PLANE_GROWTH = false;
+
+//If the following is set to true, nonlinear growth rates are applied. False
+//is linear.
+const bool NONLINEAR_GROWTH = false;
+
+//If the following is set to false, then boundary division will not occur. This is also true for the L1 layer.
+const bool BOUNDARY_DIVISION = false;
+//All cells with layer >= STEM_LAYER will have stem damping and effects.
+const int STEM_LAYER = 7;
 
 /////// VTK parameters
 //Tensile stress cytoplasm color (Calibrated from circle value)

@@ -151,9 +151,11 @@ int main(int argc, char* argv[]) {
 		//was used previously to help stability of cells
 		//deletes a cell wall node if too close together
 		if(Ti > 10000){
-			if(Ti%2000 == 0){	
+			//if(Ti%1000 == 500){}
+			if (Ti % 1000 == 500) { 
 				//cout << "delete wall" << endl;
 				growing_Tissue.delete_Wall(Ti);
+				//growing_Tissue.delete_Wall_Node_Check(Ti);
 			}
 		}
 
