@@ -67,7 +67,8 @@ int main(int argc, char* argv[]) {
 	//cell configuration 
 	//cout << "before cell file is read in" << endl;
 	//string init_tissue = "cell_staggered.txt";
-	string init_tissue = "cell_staggered.txt";
+	string init_tissue = "one_cell.txt";//cell_staggered.txt";
+	//string init_tissue = "staggered_generated.txt";
 	//cout << "Read in cell starter" << endl;	
 
 
@@ -115,6 +116,7 @@ int main(int argc, char* argv[]) {
 	//which matlab file tells you how many
 	//seconds each time step reprsents (2.5?)
 	for(int Ti = 0; Ti*dt < numSteps; Ti++) {
+
 
 
 		//keep track of simulation runs
@@ -196,7 +198,7 @@ int main(int argc, char* argv[]) {
 		//cout << "Finished" << endl;
 
 		// print to dataOutput and vtk files
-		if(Ti%500==0) {
+		if(Ti%100==0) {
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
 				Number = "0000" + to_string(out);

@@ -517,9 +517,18 @@ Coord Wall_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 	Coord Fmmd;
 	Coord diff_vect = wall->get_Location() - my_loc;
 	double diff_len = diff_vect.length();
-	double attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
-	double repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
+	double attract;
+	double repel;
+	if(this->get_My_Cell()->get_recent_div()){
+		attract = (U_MM_DIV/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
+		repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
+	}
+	else{
+		attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
+		
+		repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
 
+	}
 	Fmmd = diff_vect*((-attract + repel)/diff_len);
 
 	//cout << Fmmd << endl;

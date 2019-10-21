@@ -86,6 +86,9 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	if((this->layer == 1)||(this->layer == 2)){
 		Cell_Progress = unifRandInt(5,10);
 	}
+	if((this->stem == 1)||(this->boundary == 1)){
+		Cell_Progress = 30;
+	}
 	else{
 		Cell_Progress = unifRandInt(10,14);
 	}
@@ -102,7 +105,10 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
         else if((this->layer == 1)||(this->layer == 2)) {
                  this->growth_direction = Coord(1,0);
         }
-        else if(rand()% 100 < 30){
+	else{
+		this->growth_direction = Coord(0,1);
+	}
+        /*else if(rand()% 100 < 30){
 	 	this->growth_direction = Coord(0,0);
 	}
 	else{
@@ -112,7 +118,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 		else{
 			this->growth_direction = Coord(0,1);
 		}
-	}
+	}*/
 	//cout << "layer" << this->layer << endl;
 	//cout << "stem" << this->stem << endl;
 	//cout << "boundary" << this-> boundary << endl;
@@ -1162,8 +1168,10 @@ void Cell::update_Cell_Progress(int& Ti) {
 		this->recent_div = false;
 	}
 	//stem and boundary?	
-
-	if((Ti%growth_rate == (growth_rate -1))){
+	if(this->Cell_Progress == 30){
+		//do nothing
+	}
+	else if((Ti%growth_rate == (growth_rate -1))){
 		//cout << "cyt node added "<< endl;
 		this->add_Cyt_Node();
 		this->Cell_Progress++;
@@ -1175,7 +1183,10 @@ void Cell::division_check(){
 	vector<shared_ptr<Cell>> neighbor_curr_adhesions;
 	shared_ptr<Cell> this_cell = shared_from_this();
 	//cout <<"Before div progress" << Cell_Progress << endl;	
-	if((this->Cell_Progress >= 30)&&(this-> calc_Area()>60)){
+	if((this->boundary == 1)||(this->stem == 1)){
+		//do nothing
+	}
+	else if((this->Cell_Progress >= 30)){//&&(this-> calc_Area()>60)){
 
 
 		cout << "dividing cell" << this->rank <<  endl;
@@ -1217,15 +1228,20 @@ void Cell::division_check(){
 		//left corner in divison function  
 		//cout << "adhesion division" << endl;
 		new_Cell->update_Neighbor_Cells(this->adh_neighbors,this_cell);
-		new_Cell->update_adhesion_springs();
+		//new_Cell->clear_adhesion_vectors();
+		//new_Cell->update_adhesion_springs();
 		this->get_ADH_Neighbors_Vec(adh_cells);
 		for(unsigned int i =0; i < adh_cells.size(); i++) {
 			adh_cells.at(i)->get_ADH_Neighbors_Vec(neighbor_curr_adhesions);
 			adh_cells.at(i)->update_Neighbor_Cells(neighbor_curr_adhesions,new_Cell);
-			adh_cells.at(i)->clear_adhesion_vectors();
-			adh_cells.at(i)->update_adhesion_springs();
+			//adh_cells.at(i)->clear_adhesion_vectors();
+			//adh_cells.at(i)->update_adhesion_springs();
 
 		}
+		this->update_Neighbor_Cells(this->adh_neighbors,new_Cell);
+		//this->clear_adhesion_vectors();
+		//this->update_adhesion_springs();
+
 	}
 	return;
 }

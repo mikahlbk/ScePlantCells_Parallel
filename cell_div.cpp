@@ -101,7 +101,7 @@ void Cell::find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_N
 		
 		//curr_diff = abs(area_1 - area_2);
 		//cout << "curr diff " << curr_diff << endl;
-		if((area_1/area_2 > .7) && (area_1/area_2 < 1.5)){
+		if((area_1/area_2 > .8) && (area_1/area_2 < 1.2)){
 			second_node = pairs[counter].second;
 			too_small = false;
 		}
@@ -764,7 +764,10 @@ shared_ptr<Cell> Cell::division() {
 	if((this->layer == 1)||(this->layer == 2)) {
                  sister->set_growth_direction(Coord(1,0));
         }
-        else if(rand()% 100 < 30){
+	else{
+		sister->set_growth_direction(Coord(0,1));
+	}
+        /*else if(rand()% 100 < 30){
 	 	sister->set_growth_direction(Coord(0,0));
 	}
 	else{
@@ -774,7 +777,7 @@ shared_ptr<Cell> Cell::division() {
 		else{
 			sister->set_growth_direction(Coord(0,1));
 		}
-	}
+	}*/
 	//this is the vector for the desired division orientation
 	Coord orientation;
 	//for layer and chemical division decision a vector called orientation
@@ -834,7 +837,10 @@ shared_ptr<Cell> Cell::division() {
 	move_start_end_points(first, second, daughter_ends);
 	//move start end points returns daughter_ends as
 	//daughter_ends = {start_one, end_one, start_two, end_two}
-
+	//daughter_ends.push_back(nodes.at(0));
+	//daughter_ends.push_back(nodes.at(1));
+	//daughter_ends.push_back(nodes.at(0)->get_Left_Neighbor());
+	//daughter_ends.push_back(nodes.at(1)->get_Left_Neighbor());
 	
 	
 	shared_ptr<Wall_Node> start_daughter_one = daughter_ends.at(0);
@@ -848,8 +854,8 @@ shared_ptr<Cell> Cell::division() {
 	//cout << "d two lenght" << daughter_two_length << endl;
 
 	//this is how many new nodes will be made for each cell
-	int total_num_one = static_cast<int>(daughter_one_length/(Membr_Equi_Len_Short*3));
-	int total_num_two = static_cast<int>(daughter_two_length/(Membr_Equi_Len_Short*3));
+	int total_num_one = static_cast<int>(daughter_one_length/(Membr_Equi_Len_Short*4));
+	int total_num_two = static_cast<int>(daughter_two_length/(Membr_Equi_Len_Short*4));
 	//cout << "Total num one" << total_num_one << endl;
 	//cout << "Total num two" << total_num_two << endl;
 	//this is how much change there is in the x direction of divison plane for each cell
@@ -883,7 +889,7 @@ shared_ptr<Cell> Cell::division() {
 	//this counter was for debugging
 
 	int counter = 0;
-	
+	vector<shared_ptr<Wall_Node>> new_nodes_1;
 	cout << "Make daughter one new cell wall nodes" << endl;
 	double total_num_one_minus_four = total_num_one -4;
 	for(unsigned int i = 0; i < total_num_one_minus_four; i++){
@@ -900,6 +906,7 @@ shared_ptr<Cell> Cell::division() {
 		prevW = currW;
 		//debugging
 		counter++;
+		new_nodes_1.push_back(currW);
 		//cout << counter << endl;	
 	}
 	currW->set_Right_Neighbor(end_daughter_one);
@@ -914,6 +921,7 @@ shared_ptr<Cell> Cell::division() {
 	curr_X = location.get_X()+2*delta_x_two;
 	curr_Y = location.get_Y()+2*delta_y_two;
 	double total_num_two_minus_four = total_num_two - 4;
+	vector<shared_ptr<Wall_Node>> new_nodes_2;
 	for(unsigned int i = 0; i< total_num_two_minus_four; i++){
 	
 		curr_X = curr_X + delta_x_two;
@@ -929,6 +937,7 @@ shared_ptr<Cell> Cell::division() {
 		prevW = currW;	
 		//debugging
 		counter++;
+		new_nodes_2.push_back(currW);
 		//cout<< counter << endl;
 
 	}
@@ -941,9 +950,63 @@ shared_ptr<Cell> Cell::division() {
 	//the wall node vectors for each cell 
 	//and setting private member variables for 
 	//each new wall node
-	double new_damping = this->get_Damping();	
-	sister->set_Damping(new_damping);
-	shared_ptr<Wall_Node> curr = sister->get_Left_Corner();
+	this->update_Cell_Center();
+	sister->update_Cell_Center();
+	double new_damping = this->get_Damping();
+	bool right = false;
+	if(this->get_Cell_Center().get_X()>0){
+		right =true;
+		//to determine which is boundary compare to (0,0)
+	}
+	if(new_damping == BOUNDARY_DAMP){
+		//are both cells still on boundary!
+		//if the change in y between the center points 
+		//is less than 4 then we consider them to be
+		//one on top of the other and both boundary
+		double distY = this->get_Cell_Center().get_Y() -sister->get_Cell_Center().get_Y();
+		double distX = this->get_Cell_Center().get_X() -sister->get_Cell_Center().get_X();
+		
+		if((distY > -3 ) && (distY  < 3)){
+			sister->set_Damping(new_damping);
+		}
+		else{
+			//if they arent both boundary then we look at
+			//the change in x.
+			//this - daughter will give us a number
+			if(distX > 0){
+				if(right){
+					sister->set_Damping(1);
+					//if that number is positive then that means this was on the right
+				}
+			}
+			else{
+				if(right){
+					this->set_Damping(1);
+					sister->set_Damping(new_damping);
+				}
+				//if the number is negative then that means that this was on the left
+			}
+		}
+	}
+	cout << "connect new nodes to each other"<< endl;
+	for(unsigned int i= 0; i<new_nodes_1.size();i++){
+		new_nodes_1.at(i)->make_connection(new_nodes_2);
+	}
+	for(unsigned int i = 0; i<new_nodes_2.size();i++){
+		new_nodes_2.at(i)->make_connection(new_nodes_1);
+	}
+	cout << "connect old nodes where inserted to each other" << endl;
+	start_daughter_one->clear_adhesion_vec();
+	start_daughter_two->clear_adhesion_vec();
+	vector<shared_ptr<Wall_Node>>my_neighb_1;
+	my_neighb_1.push_back(start_daughter_two);
+	vector<shared_ptr<Wall_Node>>my_neighb_2;
+	my_neighb_2.push_back(start_daughter_one);
+
+	cout << "make connections"  << endl;
+	start_daughter_one->make_connection(my_neighb_1);
+	start_daughter_two->make_connection(my_neighb_2);
+shared_ptr<Wall_Node> curr = sister->get_Left_Corner();
 	shared_ptr<Wall_Node> orig = curr;
 	double l_thresh = 0;
 	double k_lin = 0;
@@ -1094,7 +1157,7 @@ shared_ptr<Cell> Cell::division() {
 	cout << "Finished deleting old cyt nodes" << endl;
 	
 	curr_wall = left_Corner;
-	cout << "Mother angles after: " << endl;
+	//cout << "Mother angles after: " << endl;
 	do { 
 		cout << curr_wall->get_Angle() << ", ";
 		curr_wall = curr_wall->get_Left_Neighbor();
@@ -1103,7 +1166,7 @@ shared_ptr<Cell> Cell::division() {
 
 	shared_ptr<Wall_Node> sis_left_Corner = sister->get_Left_Corner();  
 	curr_wall = sis_left_Corner;
-	cout << "Sister angles after: " << endl;
+	//cout << "Sister angles after: " << endl;
 	do { 
 		cout << curr_wall->get_Angle() << ", ";
 		curr_wall = curr_wall->get_Left_Neighbor();
@@ -1117,7 +1180,7 @@ void Cell::move_cyt_nodes(Coord center_point){
 	double length_from_center_pt;
 	Coord location;
 	for(unsigned int i=0; i<cyt_nodes.size(); i++){
-		length_from_center_pt = (cyt_nodes.at(i)->get_Location()-center_point).length();
+		length_from_center_pt = (cyt_nodes.at(i)->get_Location()- center_point).length();
 		vector_from_center = cyt_nodes.at(i)->get_Location() - this->cell_center;
 
 		//if(length_from_center_pt< 4) {
